@@ -46,7 +46,7 @@
             }
             this.currentProvider = storedProvider || 'publicai';
             this.sidebarWidth = localStorage.getItem('verifier_sidebar_width') || '400px';
-            this.isVisible = localStorage.getItem('verifier_sidebar_visible') !== 'false';
+            this.isVisible = localStorage.getItem('verifier_sidebar_visible') === 'true';
             this.buttons = {};
             this.activeClaim = null;
             this.activeSource = null;
@@ -842,6 +842,7 @@
             const references = document.querySelectorAll('.reference a');
             references.forEach(ref => {
                 ref.addEventListener('click', (e) => {
+                    if (!this.isVisible) return;
                     e.preventDefault();
                     e.stopPropagation();
                     this.handleReferenceClick(ref);
