@@ -124,7 +124,6 @@
                         <div id="verifier-provider-container"></div>
                         <div id="verifier-provider-info"></div>
                         <div id="verifier-buttons-container"></div>
-                        <div id="verifier-status"></div>
                     </div>
                     <div id="verifier-claim-section">
                         <h4>Selected Claim</h4>
@@ -311,26 +310,6 @@
                 }
                 #verifier-action-container .oo-ui-buttonElement {
                     width: 100%;
-                }
-                #verifier-status {
-                    font-size: 12px;
-                    padding: 6px 8px;
-                    border-radius: 4px;
-                    min-height: 1em;
-                    word-break: break-all;
-                    display: none;
-                }
-                #verifier-status.verifier-status-info {
-                    display: block;
-                    background: #e8f4fd;
-                    color: #0645ad;
-                    border: 1px solid #b3d7f0;
-                }
-                #verifier-status.verifier-status-error {
-                    display: block;
-                    background: #f8d7da;
-                    color: #721c24;
-                    border: 1px solid #f5c6cb;
                 }
                 #verifier-title-link {
                     color: white;
@@ -940,7 +919,7 @@
                 this.hideSourceTextInput();
                 this.activeSource = null;
                 this.updateButtonVisibility();
-                this.updateStatus(`Opening ${refUrl}...`);
+                this.updateStatus('Fetching source content...');
                 const fetchId = ++this.currentFetchId;
                 const sourceInfo = await this.fetchSourceContent(refUrl);
 
@@ -1350,11 +1329,6 @@
                 console.error('Verifier Error:', message);
             } else {
                 console.log('Verifier Status:', message);
-            }
-            const statusEl = document.getElementById('verifier-status');
-            if (statusEl) {
-                statusEl.textContent = message;
-                statusEl.className = isError ? 'verifier-status-error' : 'verifier-status-info';
             }
         }
         
