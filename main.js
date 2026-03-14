@@ -829,7 +829,7 @@
                         portletId = 'p-tb';
                         break;
                     case 'timeless':
-                        portletId = 'p-namespaces';
+                        portletId = 'p-associated-pages';
                         break;
                     default:
                         portletId = 'p-namespaces';
