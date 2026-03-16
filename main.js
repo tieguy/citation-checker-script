@@ -2253,7 +2253,7 @@ ${sourceText}`;
                     case 'SUPPORTED': verdictWiki = '{{tick}} Supported'; break;
                     case 'PARTIALLY SUPPORTED': verdictWiki = '{{bang}} Partially supported'; break;
                     case 'NOT SUPPORTED': verdictWiki = '{{cross}} Not supported'; break;
-                    case 'SOURCE UNAVAILABLE': verdictWiki = '{{x-span}} Source unavailable'; break;
+                    case 'SOURCE UNAVAILABLE': verdictWiki = '{{hmmm}} Source unavailable'; break;
                     default: verdictWiki = r.verdict; break;
                 }
                 const confStr = r.confidence !== null ? `${r.confidence}%` : '—';
