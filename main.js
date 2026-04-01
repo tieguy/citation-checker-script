@@ -2107,22 +2107,15 @@ ${sourceText}`;
         collectAllCitations() {
             const refs = document.querySelectorAll('#mw-content-text .reference a');
             const citations = [];
-            const seenRefIds = new Set();
 
             refs.forEach(refElement => {
                 const href = refElement.getAttribute('href');
                 if (!href || !href.startsWith('#')) return;
 
                 const refId = href.substring(1);
-
                 const citationNumber = refElement.textContent.replace(/[\[\]]/g, '').trim();
                 const claimText = this.extractClaimText(refElement);
                 if (!claimText || claimText.length < 10) return;
-
-                // Deduplicate by footnote target + claim text (allows same source with different claims)
-                const dedupeKey = `${refId}|${claimText}`;
-                if (seenRefIds.has(dedupeKey)) return;
-                seenRefIds.add(dedupeKey);
 
                 const url = this.extractReferenceUrl(refElement);
                 const pageNum = this.extractPageNumber(refElement);
