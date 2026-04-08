@@ -66,6 +66,7 @@
             this.sourceCache = new Map();
             this.reportTokenUsage = { input: 0, output: 0 };
             this.hasReport = false;
+            this.reportRevisionId = null;
 
             this.init();
         }
@@ -2227,6 +2228,7 @@ ${sourceText}`;
                 <div style="margin-top:6px;font-size:11px;color:#888;">
                     ${total} citations checked${this.reportTokenUsage.input + this.reportTokenUsage.output > 0 ? ` · ${this.reportTokenUsage.input.toLocaleString()} input + ${this.reportTokenUsage.output.toLocaleString()} output tokens` : ''}
                 </div>
+                ${this.reportRevisionId ? `<div style="margin-top:4px;font-size:11px;color:#888;">Revision: <a href="${this.escapeHtml(this.getRevisionPermalinkUrl(this.reportRevisionId) || '#')}" target="_blank" rel="noopener">${this.reportRevisionId}</a></div>` : ''}
             `;
         }
 
@@ -2312,10 +2314,27 @@ ${sourceText}`;
             actionsEl.appendChild(copyTextBtn.$element[0]);
         }
 
+        getRevisionPermalinkUrl(revId) {
+            if (!revId || typeof mw === 'undefined') return null;
+            try {
+                let server = mw.config.get('wgServer') || '';
+                if (server.startsWith('//')) server = 'https:' + server;
+                const script = mw.config.get('wgScript') || '/w/index.php';
+                const title = mw.config.get('wgPageName') || '';
+                return `${server}${script}?title=${encodeURIComponent(title)}&oldid=${revId}`;
+            } catch (e) {
+                return null;
+            }
+        }
+
         generateWikitextReport() {
             const articleTitle = typeof mw !== 'undefined' ? mw.config.get('wgTitle') : document.title;
+            const revId = this.reportRevisionId;
             let wikitext = `== Citation verification report ==\n`;
             wikitext += `This is an experimental check of the article sources by [[User:Alaexis/AI_Source_Verification|Citation Verifier]]. Treat it with caution, be aware of its [[User:Alaexis/AI_Source_Verification#Limitations|limitations]] and feel free to leave feedback at [[User_talk:Alaexis/AI_Source_Verification|the talk page]].\n\n`;
+            if (revId) {
+                wikitext += `Revision checked: [[Special:PermanentLink/${revId}|${revId}]]\n\n`;
+            }
             wikitext += `{| class="wikitable sortable"\n`;
             wikitext += `|-\n! # !! Verdict !! Confidence !! Source !! Comments\n`;
 
@@ -2363,8 +2382,13 @@ ${sourceText}`;
 
         generatePlainTextReport() {
             const articleTitle = typeof mw !== 'undefined' ? mw.config.get('wgTitle') : document.title;
+            const revId = this.reportRevisionId;
             let text = `Citation Verification Report: ${articleTitle}\n`;
             text += `Provider: ${this.providers[this.currentProvider].name}\n`;
+            if (revId) {
+                const permalink = this.getRevisionPermalinkUrl(revId);
+                text += `Revision: ${revId}${permalink ? ` (${permalink})` : ''}\n`;
+            }
             text += `${'='.repeat(60)}\n\n`;
 
             for (const r of this.reportResults) {
@@ -2437,6 +2461,7 @@ ${sourceText}`;
             this.sourceCache = new Map();
             this.reportTokenUsage = { input: 0, output: 0 };
             this.hasReport = true;
+            this.reportRevisionId = mw.config.get('wgCurRevisionId') || null;
 
             this.showReportView();
             document.getElementById('verifier-report-results').innerHTML = '';
