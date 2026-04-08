@@ -30,6 +30,9 @@ def save_last_scraped(ts: str):
 
 # --- Fetch new revisions via MediaWiki API ---
 def fetch_new_revisions(since: str) -> list[dict]:
+    headers = {
+        "User-Agent": "citation-checker-script/1.0 (https://github.com/alex-o-748/citation-checker-script)"
+    }
     params = {
         "action": "query",
         "titles": TALK_PAGE,
@@ -42,7 +45,7 @@ def fetch_new_revisions(since: str) -> list[dict]:
         "formatversion": "2",
         "format": "json",
     }
-    r = requests.get("https://en.wikipedia.org/w/api.php", params=params)
+    r = requests.get("https://en.wikipedia.org/w/api.php", params=params, headers=headers)
     r.raise_for_status()
     data = r.json()
 
