@@ -13,7 +13,8 @@ TALK_PAGE_URL = "https://en.wikipedia.org/wiki/User_talk:Alaexis/AI_Source_Verif
 
 # --- Init ---
 client = Anthropic()
-gh = Github(os.environ["GITHUB_TOKEN"])
+from github import Github, Auth
+gh = Github(auth=Auth.Token(os.environ["GITHUB_TOKEN"]))
 repo = gh.get_repo(os.environ["GITHUB_REPO"])
 
 # --- Load/save last scraped timestamp ---
