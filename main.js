@@ -379,6 +379,24 @@
                     padding: 8px;
                     border-radius: 4px;
                 }
+                .verifier-truncation-warning {
+                    margin-top: 6px;
+                    padding: 6px 8px;
+                    font-size: 12px;
+                    color: #856404;
+                    background: #fff3cd;
+                    border: 1px solid #ffeeba;
+                    border-radius: 4px;
+                }
+                .report-card-truncated {
+                    margin-top: 4px;
+                    font-size: 11px;
+                    color: #856404;
+                    background: #fff3cd;
+                    border: 1px solid #ffeeba;
+                    border-radius: 3px;
+                    padding: 2px 6px;
+                }
                 body.verifier-sidebar-hidden {
                     margin-right: 0 !important;
                 }
@@ -663,6 +681,12 @@
                 html.skin-theme-clientpref-night .report-card-verdict.partial {
                     background: #3a3a1a !important;
                     color: #e0c060 !important;
+                }
+                html.skin-theme-clientpref-night .verifier-truncation-warning,
+                html.skin-theme-clientpref-night .report-card-truncated {
+                    background: #3a3a1a !important;
+                    color: #e0c060 !important;
+                    border-color: #5a5a2a !important;
                 }
                 html.skin-theme-clientpref-night .report-card-verdict.not-supported {
                     background: #3a1a1a !important;
@@ -1234,6 +1258,7 @@
                 const contentFetched = sourceInfo.includes('Source Content:');
                 const pdfMatch = sourceInfo.match(/PDF: (\d+) pages/);
                 const pageMatch = sourceInfo.match(/\(extracted page (\d+)\)/);
+                const isTruncated = sourceInfo.includes('\nTruncated: true');
 
                 if (urlMatch) {
                     let statusHtml;
@@ -1247,10 +1272,14 @@
                     } else {
                         statusHtml = '<em>Content will be fetched by AI during verification.</em>';
                     }
+                    const truncationHtml = isTruncated
+                        ? '<div class="verifier-truncation-warning">⚠ The source is long and was checked partially.</div>'
+                        : '';
                     sourceElement.innerHTML = `
                         <strong>Source URL:</strong><br>
                         <a href="${urlMatch[1]}" target="_blank" style="word-break: break-all;">${urlMatch[1]}</a><br><br>
                         ${statusHtml}
+                        ${truncationHtml}
                     `;
                 } else {
                     sourceElement.textContent = sourceInfo;
@@ -1439,12 +1468,19 @@
                 }
 
                 if (data.content && data.content.length > 100) {
+                    // Proxy caps fetched content around 12k chars. If we're at or
+                    // above that, the source was almost certainly truncated and
+                    // only partially sent to the model.
+                    const isTruncated = data.truncated === true || data.content.length >= 12000;
                     let meta = `Source URL: ${url}`;
                     if (data.pdf) {
                         meta += `\nPDF: ${data.totalPages} pages`;
                         if (data.page) {
                             meta += ` (extracted page ${data.page})`;
                         }
+                    }
+                    if (isTruncated) {
+                        meta += `\nTruncated: true`;
                     }
                     return `${meta}\n\nSource Content:\n${data.content}`;
                 }
@@ -2249,6 +2285,9 @@ ${sourceText}`;
             card.className = `verifier-report-card verdict-${verdictClass}`;
             const claimExcerpt = result.claimText.length > 80 ? result.claimText.substring(0, 80) + '…' : result.claimText;
             const confidenceStr = result.confidence !== null ? ` (${result.confidence}%)` : '';
+            const truncationHtml = result.truncated
+                ? '<div class="report-card-truncated">⚠ Source is long, only partially checked.</div>'
+                : '';
             card.innerHTML = `
                 <div class="report-card-header">
                     <span class="report-card-citation">[${result.citationNumber}]</span>
@@ -2256,6 +2295,7 @@ ${sourceText}`;
                 </div>
                 <div class="report-card-claim">${this.escapeHtml(claimExcerpt)}</div>
                 ${result.comments ? `<div class="report-card-comment">${this.escapeHtml(result.comments)}</div>` : ''}
+                ${truncationHtml}
             `;
 
             if (result.refElement) {
@@ -2349,7 +2389,10 @@ ${sourceText}`;
                 }
                 const confStr = r.confidence !== null ? `${r.confidence}%` : '—';
                 const sourceStr = r.url ? `[${r.url} source]` : '—';
-                const commentsClean = (r.comments || '').replace(/\n/g, ' ');
+                let commentsClean = (r.comments || '').replace(/\n/g, ' ');
+                if (r.truncated) {
+                    commentsClean += (commentsClean ? ' ' : '') + "''(Source is long, only partially checked.)''";
+                }
                 wikitext += `|-\n| [${r.citationNumber}] || ${verdictWiki} || ${confStr} || ${sourceStr} || ${commentsClean}\n`;
             }
 
@@ -2397,6 +2440,7 @@ ${sourceText}`;
                 text += `  Claim: ${r.claimText.substring(0, 100)}${r.claimText.length > 100 ? '...' : ''}\n`;
                 if (r.url) text += `  Source: ${r.url}\n`;
                 if (r.comments) text += `  Comments: ${r.comments}\n`;
+                if (r.truncated) text += `  Note: Source is long, only partially checked.\n`;
                 text += `\n`;
             }
 
@@ -2490,7 +2534,8 @@ ${sourceText}`;
                         refElement: citation.refElement,
                         verdict: 'SOURCE UNAVAILABLE',
                         confidence: 0,
-                        comments: 'No URL found in reference'
+                        comments: 'No URL found in reference',
+                        truncated: false
                     };
                 } else {
                     // Fetch source if not cached
@@ -2522,9 +2567,11 @@ ${sourceText}`;
                             refElement: citation.refElement,
                             verdict: 'SOURCE UNAVAILABLE',
                             confidence: 0,
-                            comments: 'Could not fetch source content'
+                            comments: 'Could not fetch source content',
+                            truncated: false
                         };
                     } else {
+                        const sourceTruncated = sourceContent.includes('\nTruncated: true');
                         // Verify via LLM
                         this.updateReportProgress(i, citations.length, `Verifying citation [${citation.citationNumber}]`, startTime);
                         try {
@@ -2539,7 +2586,8 @@ ${sourceText}`;
                                 refElement: citation.refElement,
                                 verdict: parsed.verdict,
                                 confidence: parsed.confidence,
-                                comments: parsed.comments
+                                comments: parsed.comments,
+                                truncated: sourceTruncated
                             };
 
                             // Fire-and-forget logging
@@ -2573,7 +2621,8 @@ ${sourceText}`;
                                             refElement: citation.refElement,
                                             verdict: parsed.verdict,
                                             confidence: parsed.confidence,
-                                            comments: parsed.comments
+                                            comments: parsed.comments,
+                                            truncated: sourceTruncated
                                         };
                                         retried = true;
                                         break;
@@ -2592,7 +2641,8 @@ ${sourceText}`;
                                     refElement: citation.refElement,
                                     verdict: 'ERROR',
                                     confidence: null,
-                                    comments: e.message
+                                    comments: e.message,
+                                    truncated: sourceTruncated
                                 };
                             }
                         }
