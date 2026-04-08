@@ -1273,7 +1273,7 @@
                         statusHtml = '<em>Content will be fetched by AI during verification.</em>';
                     }
                     const truncationHtml = isTruncated
-                        ? '<div class="verifier-truncation-warning">⚠ The source is long and was checked partially.</div>'
+                        ? '<div class="verifier-truncation-warning">⚠ The source is long and can only be checked partially.</div>'
                         : '';
                     sourceElement.innerHTML = `
                         <strong>Source URL:</strong><br>
