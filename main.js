@@ -2607,7 +2607,16 @@ ${sourceText}`;
                 if (r.truncated) {
                     commentsClean += (commentsClean ? ' ' : '') + "''(Source is long, only partially checked.)''";
                 }
-                wikitext += `|-\n| [${r.citationNumber}] || ${verdictWiki} || ${confStr} || ${sourceStr} || ${commentsClean}\n`;
+                // Link the citation number to the footnote anchor on the analyzed revision,
+                // so clicks from the report jump to the original citation even after later edits
+                // have shifted citation numbering. HTML entities are used for the square brackets
+                // in the display text so they don't confuse MediaWiki's wikilink parser.
+                const refHref = r.refElement && r.refElement.getAttribute('href');
+                const refAnchor = refHref && refHref.startsWith('#') ? refHref.substring(1) : null;
+                const citationCell = (revId && refAnchor)
+                    ? `[[Special:PermanentLink/${revId}#${refAnchor}|&#91;${r.citationNumber}&#93;]]`
+                    : `[${r.citationNumber}]`;
+                wikitext += `|-\n| ${citationCell} || ${verdictWiki} || ${confStr} || ${sourceStr} || ${commentsClean}\n`;
             }
 
             wikitext += `|}\n\n`;
