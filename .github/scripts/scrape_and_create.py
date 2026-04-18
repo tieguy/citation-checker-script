@@ -10,7 +10,7 @@ from github import Github, Auth
 TALK_PAGE = "User_talk:Alaexis/AI_Source_Verification"
 TALK_PAGE_URL = "https://en.wikipedia.org/wiki/User_talk:Alaexis/AI_Source_Verification"
 LAST_SCRAPED_FILE = ".github/last_scraped.txt"
-ANTHROPIC_MODEL = "claude-opus-4-5"
+ANTHROPIC_MODEL = "claude-sonnet-4-6"
 WIKI_HEADERS = {
     "User-Agent": "citation-checker-script/1.0 (https://github.com/alex-o-748/citation-checker-script)"
 }
@@ -179,14 +179,19 @@ def ensure_labels():
     for name, color in needed:
         if name not in existing:
             repo.create_label(name, color)
+            
+def section_anchor(title: str) -> str:
+    """Convert a section title to a Wikipedia anchor."""
+    return title.replace(" ", "_")
 
-# --- Create GitHub issue ---
-def create_issue(title: str, body: str, issue_type: str):
+def create_issue(title: str, body: str, issue_type: str, section_title: str):
     labels = ["from-talk-page", "feature-request" if issue_type == "feature" else "bug"]
+    anchor = section_anchor(section_title)
+    section_url = f"{TALK_PAGE_URL}#{anchor}"
     full_body = (
         f"{body}\n\n"
         f"---\n"
-        f"*Automatically imported from the [Wikipedia Talk page]({TALK_PAGE_URL})*"
+        f"*Automatically imported from the [Wikipedia Talk page § {section_title}]({section_url})*"
     )
     issue = repo.create_issue(title=title, body=full_body, labels=labels)
     print(f"  ✓ Created: {issue.title} → {issue.html_url}")
@@ -231,7 +236,7 @@ def main():
             if item.get("duplicate_of"):
                 print(f"  ↩ Skipping duplicate: '{item['title']}' (covered by '{item['duplicate_of']}')")
                 continue
-            create_issue(item["title"], item["body"], item["type"])
+            create_issue(item["title"], item["body"], item["type"], section["title"])
             existing_titles.append(item["title"])
 
     new_ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
