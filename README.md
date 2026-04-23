@@ -1,4 +1,4 @@
-# Wikipedia Citation Checker
+# Source Verifier - Citation Checking for Wikipedia
 
 An AI-powered Wikipedia user script that helps editors verify whether citations actually support the claims they're attached to. Clicking a citation number opens a sidebar that fetches the source, sends the claim plus the source text to an LLM, and returns a verdict: **Supported**, **Partially Supported**, **Not Supported**, or **Source Unavailable**.
 
