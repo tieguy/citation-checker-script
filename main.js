@@ -4,7 +4,13 @@
 
 (function() {
     'use strict';
-    
+
+    // Wikipedia inline maintenance markers that the article renders as bracketed
+    // superscript text (e.g. "[failed verification]"). Strip them from extracted
+    // claim text so they don't bias the LLM verdict toward the editor's own
+    // tagging.
+    const MAINTENANCE_MARKER_RE = /\[(failed verification|verification needed|citation needed|better source[^\]]*|dubious[^\]]*|unreliable source[^\]]*|clarification needed|disputed[^\]]*|page needed|when\??|where\??|who\??|why\??|by whom\??|according to whom\??|original research[^\]]*|specify[^\]]*|vague|opinion|fact)\]/gi;
+
     class WikipediaSourceVerifier {
         constructor() {
             this.providers = {
@@ -1487,18 +1493,20 @@
             
             // Clean up the text
             claimText = claimText
-                .replace(/\[\d+\]/g, '')           // Remove reference numbers like [1], [2]
-                .replace(/\s+/g, ' ')              // Normalize whitespace
+                .replace(/\[\d+\]/g, '')                 // Remove reference numbers like [1], [2]
+                .replace(MAINTENANCE_MARKER_RE, '')      // Remove maintenance markers like [failed verification]
+                .replace(/\s+/g, ' ')                    // Normalize whitespace
                 .trim();
-            
+
             // If we got nothing meaningful, fall back to the container text
             if (!claimText || claimText.length < 10) {
                 claimText = container.textContent
                     .replace(/\[\d+\]/g, '')
+                    .replace(MAINTENANCE_MARKER_RE, '')
                     .replace(/\s+/g, ' ')
                     .trim();
             }
-            
+
             return claimText;
         }
         
