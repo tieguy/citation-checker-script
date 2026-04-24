@@ -499,5 +499,7 @@ function writeReviewCSV(dataset) {
     fs.writeFileSync(OUTPUT_REVIEW_CSV, csv);
 }
 
-// Run
-main().catch(console.error);
+// Run only when invoked as a script, not when imported by tests or other modules
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    main().catch(console.error);
+}
