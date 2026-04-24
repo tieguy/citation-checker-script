@@ -19,6 +19,7 @@ import http from 'http';
 import { JSDOM } from 'jsdom';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { extractClaimText as extractClaimTextFromRef } from '../core/claim.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -185,125 +186,39 @@ async function fetchSourceContent(url) {
 }
 
 /**
- * Extract claim text for a specific citation from Wikipedia HTML
+ * For a given citation number, find every `.reference` element on the page
+ * that displays as `[N]` and extract the prose claim text bearing each one.
+ *
+ * Returns an array of `{occurrence, text, containerText}` so the caller can
+ * pick a specific occurrence (Wikipedia reuses citation numbers — the same
+ * `[5]` can appear several times in different paragraphs).
+ *
+ * Per-element extraction delegates to core/claim.js so the maintenance-marker
+ * stripping (PR #117) and the Range-based extraction stay in one place.
  */
-function extractClaimText(document, citationNumber) {
-    // Find all references with this citation number
-    const allRefs = document.querySelectorAll('.reference');
+export function extractClaimsForCitation(document, citationNumber) {
     const matchingRefs = [];
-
-    allRefs.forEach(ref => {
+    document.querySelectorAll('.reference').forEach(ref => {
         const link = ref.querySelector('a');
-        if (link) {
-            const text = link.textContent.trim();
-            // Match [N] pattern
-            const match = text.match(/^\[(\d+)\]$/);
-            if (match && parseInt(match[1], 10) === citationNumber) {
-                matchingRefs.push(ref);
-            }
+        if (!link) return;
+        const m = link.textContent.trim().match(/^\[(\d+)\]$/);
+        if (m && parseInt(m[1], 10) === citationNumber) {
+            matchingRefs.push(ref);
         }
     });
 
-    return matchingRefs.map((ref, occurrenceIndex) => {
+    return matchingRefs.map((ref, i) => {
+        const text = extractClaimTextFromRef(ref);
         const container = ref.closest('p, li, td, th, dd');
-        if (!container) {
-            return { occurrence: occurrenceIndex + 1, text: '', container: null };
-        }
-
-        // Get all references in this container
-        const refsInContainer = Array.from(container.querySelectorAll('.reference'));
-        const currentIndex = refsInContainer.indexOf(ref);
-
-        // Simple extraction: get text before this reference
-        let text = '';
-
-        if (currentIndex === 0) {
-            // First reference in container - get all text up to this ref
-            text = getTextBeforeElement(container, ref);
-        } else {
-            // Get text between previous ref and this one
-            const prevRef = refsInContainer[currentIndex - 1];
-            text = getTextBetweenElements(container, prevRef, ref);
-        }
-
-        // Clean up
-        text = text
-            .replace(/\[\d+\]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-
-        // Fallback to container text if extraction failed
-        if (!text || text.length < 10) {
-            text = container.textContent
-                .replace(/\[\d+\]/g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
-        }
-
+        const containerText = container
+            ? container.textContent.replace(/\s+/g, ' ').trim()
+            : '';
         return {
-            occurrence: occurrenceIndex + 1,
-            text: text,
-            containerText: container.textContent.replace(/\s+/g, ' ').trim()
+            occurrence: i + 1,
+            text,
+            containerText,
         };
     });
-}
-
-/**
- * Get text content before a specific element within a container
- */
-function getTextBeforeElement(container, element) {
-    let text = '';
-    const walker = container.ownerDocument.createTreeWalker(
-        container,
-        4, // NodeFilter.SHOW_TEXT
-        null
-    );
-
-    let node;
-    while ((node = walker.nextNode())) {
-        if (element.contains(node) || isAfterElement(node, element)) {
-            break;
-        }
-        text += node.textContent;
-    }
-    return text;
-}
-
-/**
- * Get text content between two elements
- */
-function getTextBetweenElements(container, startElement, endElement) {
-    let text = '';
-    let capturing = false;
-
-    const walker = container.ownerDocument.createTreeWalker(
-        container,
-        4, // NodeFilter.SHOW_TEXT
-        null
-    );
-
-    let node;
-    while ((node = walker.nextNode())) {
-        if (startElement.contains(node)) {
-            capturing = true;
-            continue;
-        }
-        if (endElement.contains(node)) {
-            break;
-        }
-        if (capturing) {
-            text += node.textContent;
-        }
-    }
-    return text;
-}
-
-/**
- * Check if node comes after element in document order
- */
-function isAfterElement(node, element) {
-    const position = node.compareDocumentPosition(element);
-    return (position & 2) !== 0; // DOCUMENT_POSITION_PRECEDING
 }
 
 /**
@@ -475,7 +390,7 @@ async function main() {
             console.log(`  Citation [${citationNumber}] (instance ${occurrence})...`);
 
             // Extract claim text
-            const claims = extractClaimText(document, citationNumber);
+            const claims = extractClaimsForCitation(document, citationNumber);
             const claimData = claims[occurrence - 1] || claims[0] || { text: '', occurrence: 1 };
 
             // Extract reference URL
