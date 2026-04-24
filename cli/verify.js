@@ -3,6 +3,13 @@
 // `bin/ccs` can import something.
 
 import { parseArgs } from 'node:util';
+import { JSDOM } from 'jsdom';
+import { extractClaimText } from '../core/claim.js';
+import { extractReferenceUrl, extractPageNumber } from '../core/urls.js';
+import { fetchSourceContent, logVerification } from '../core/worker.js';
+import { generateSystemPrompt, generateUserPrompt } from '../core/prompts.js';
+import { callProviderAPI } from '../core/providers.js';
+import { parseVerificationResult } from '../core/parsing.js';
 
 const KNOWN_PROVIDERS = ['publicai', 'claude', 'gemini', 'openai'];
 
@@ -104,6 +111,195 @@ export function deriveRestUrl({ title, oldid }) {
     return oldid ? `${base}/${oldid}` : base;
 }
 
+export function findReferenceByCitationNumber(document, citationNumber) {
+    const target = `[${citationNumber}]`;
+    const refs = document.querySelectorAll('sup.reference');
+    for (const ref of refs) {
+        if (ref.textContent.replace(/\s+/g, '') === target) {
+            return ref;
+        }
+    }
+    return null;
+}
+
+// COUPLING NOTE: This function parses exit codes out of the string format
+// that core/providers.js uses for its error messages ("API request failed
+// (<status>): ..." and "Invalid API response format"). If someone rewords
+// those messages in core/providers.js, this function silently stops
+// mapping to the right exit code. A typed-error refactor across core/ is
+// the proper long-term fix; until then, keep this and core/providers.js
+// in sync.
+export function classifyProviderError(err) {
+    const message = err?.message || '';
+    if (/Invalid API response format/i.test(message)) return 11;
+    const statusMatch = message.match(/\((\d{3})\)/);
+    if (statusMatch) {
+        const status = Number(statusMatch[1]);
+        if (status >= 400 && status < 500) return 9;
+        if (status >= 500) return 10;
+    }
+    // No status in message => treat as network/5xx-class failure.
+    return 10;
+}
+
+const PROVIDER_MODELS = {
+    publicai: 'aisingapore/Qwen-SEA-LION-v4-32B-IT',
+    claude:   'claude-sonnet-4-6',
+    gemini:   'gemini-flash-latest',
+    openai:   'gpt-4o',
+};
+
+const PROVIDER_ENV_VARS = {
+    publicai: null, // routed through the worker proxy; no client-side key
+    claude:   'CLAUDE_API_KEY',
+    gemini:   'GEMINI_API_KEY',
+    openai:   'OPENAI_API_KEY',
+};
+
+async function fetchWikipediaHtml(restUrl) {
+    const response = await fetch(restUrl, {
+        headers: {
+            'User-Agent': 'ccs-cli (https://github.com/alex-o-748/citation-checker-script)',
+            'Accept': 'text/html',
+        },
+    });
+
+    if (response.status === 404) {
+        const err = new Error(`Wikipedia article not found (404): ${restUrl}`);
+        err.exitCode = 3;
+        throw err;
+    }
+    if (!response.ok) {
+        const err = new Error(`Wikipedia fetch failed (${response.status}): ${restUrl}`);
+        err.exitCode = 4;
+        throw err;
+    }
+    return await response.text();
+}
+
+export async function runVerify(opts, { stdout = process.stdout, stderr = process.stderr, env = process.env } = {}) {
+    const { url, citationNumber, provider, noLog } = opts;
+
+    // 1. Check API key availability up-front (exit 8).
+    const envVar = PROVIDER_ENV_VARS[provider];
+    if (envVar && !env[envVar]) {
+        stderr.write(`ccs: ${envVar} environment variable is required for provider "${provider}"\n`);
+        return 8;
+    }
+
+    // 2. Parse the article URL and derive the REST URL.
+    let parsedWikiUrl, restUrl;
+    try {
+        parsedWikiUrl = parseWikiUrl(url);
+        restUrl = deriveRestUrl(parsedWikiUrl);
+    } catch (err) {
+        stderr.write(`ccs: ${err.message}\n`);
+        return 2;
+    }
+
+    // 3. Fetch the article HTML.
+    let html;
+    try {
+        html = await fetchWikipediaHtml(restUrl);
+    } catch (err) {
+        stderr.write(`ccs: ${err.message}\n`);
+        return err.exitCode ?? 4;
+    }
+
+    // 4. Parse with JSDOM. The `url` option lets relative hrefs resolve.
+    const dom = new JSDOM(html, { url });
+    const document = dom.window.document;
+
+    // 5. Locate the citation reference element.
+    const refSup = findReferenceByCitationNumber(document, citationNumber);
+    if (!refSup) {
+        stderr.write(`ccs: no citation [${citationNumber}] found in article\n`);
+        return 5;
+    }
+    const refAnchor = refSup.querySelector('a');
+    if (!refAnchor) {
+        stderr.write(`ccs: citation [${citationNumber}] has no anchor element\n`);
+        return 5;
+    }
+
+    // 6. Extract the claim text.
+    const claim = extractClaimText(refSup);
+    if (!claim) {
+        stderr.write(`ccs: could not extract claim text for citation [${citationNumber}]\n`);
+        return 5;
+    }
+
+    // 7. Extract the source URL and page number. Phase 1 of this plan
+    //    refactored core/urls.js to take `document` as an explicit param,
+    //    so no global shim is needed.
+    const sourceUrl = extractReferenceUrl(refAnchor, document);
+    const pageNum = extractPageNumber(refAnchor, document);
+    if (!sourceUrl) {
+        stderr.write(`ccs: citation [${citationNumber}] has no fetchable URL\n`);
+        return 6;
+    }
+
+    // 8. Fetch the source content via the worker proxy.
+    const sourceInfo = await fetchSourceContent(sourceUrl, pageNum);
+    if (!sourceInfo) {
+        stderr.write(`ccs: source unavailable: ${sourceUrl}\n`);
+        return 7;
+    }
+
+    // 9. Build prompts and call the LLM.
+    //    fetchSourceContent returns a string shaped "Source URL: <u>\n\n
+    //    Source Content:\n<body>"; generateUserPrompt parses that shape,
+    //    so we pass it through unchanged.
+    //    callProviderAPI returns { text, usage } on success; extra keys in
+    //    providerConfig are ignored by the destructure so it's safe to
+    //    include apiKey for publicai (which won't read it).
+    const systemPrompt = generateSystemPrompt();
+    const userContent = generateUserPrompt(claim, sourceInfo);
+    const providerConfig = {
+        model: PROVIDER_MODELS[provider],
+        systemPrompt,
+        userContent,
+        apiKey: envVar ? env[envVar] : undefined,
+    };
+
+    let providerResult;
+    try {
+        providerResult = await callProviderAPI(provider, providerConfig);
+    } catch (err) {
+        stderr.write(`ccs: provider call failed: ${err.message}\n`);
+        return classifyProviderError(err);
+    }
+
+    // 10. Parse the verdict.
+    const verdict = parseVerificationResult(providerResult.text);
+    if (verdict.verdict === 'ERROR') {
+        stderr.write(`ccs: LLM returned malformed JSON. Raw (first 200 chars): ${providerResult.text.slice(0, 200)}\n`);
+        return 11;
+    }
+
+    // 11. Log (fire-and-forget).
+    if (!noLog) {
+        const articleTitle = decodeURIComponent(parsedWikiUrl.title).replace(/_/g, ' ');
+        logVerification({
+            article_url: url,
+            article_title: articleTitle,
+            citation_number: String(citationNumber),
+            source_url: sourceUrl,
+            provider,
+            verdict: verdict.verdict,
+            confidence: verdict.confidence,
+        });
+    }
+
+    // 12. Print the result.
+    stdout.write(`Verdict:    ${verdict.verdict}\n`);
+    stdout.write(`Confidence: ${verdict.confidence ?? 'n/a'}\n`);
+    stdout.write(`Claim:      ${claim}\n`);
+    stdout.write(`Source:     ${sourceUrl}\n`);
+    stdout.write(`\n${verdict.comments}\n`);
+    return 0;
+}
+
 export async function main(argv) {
     let opts;
     try {
@@ -121,9 +317,7 @@ export async function main(argv) {
         return 0;
     }
 
-    // Full verification pipeline lands in Phase 4.
-    process.stderr.write(`ccs: verify not yet implemented (url=${opts.url}, citation=${opts.citationNumber}, provider=${opts.provider})\n`);
-    return 1;
+    return await runVerify(opts);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
