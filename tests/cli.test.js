@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseCliArgs } from '../cli/verify.js';
+import { parseCliArgs, parseWikiUrl, deriveRestUrl } from '../cli/verify.js';
 
 function args(...rest) {
   return ['node', 'bin/ccs', ...rest];
@@ -82,8 +82,6 @@ test('parseCliArgs: throws on unknown --provider value', () => {
     /unknown provider: nope/i,
   );
 });
-
-import { parseWikiUrl, deriveRestUrl } from '../cli/verify.js';
 
 test('parseWikiUrl: plain article URL', () => {
   const result = parseWikiUrl('https://en.wikipedia.org/wiki/Great_Migration_(African_American)');

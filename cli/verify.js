@@ -121,7 +121,7 @@ export async function main(argv) {
         return 0;
     }
 
-    // Full verification pipeline lands in Phase 3.
+    // Full verification pipeline lands in Phase 4.
     process.stderr.write(`ccs: verify not yet implemented (url=${opts.url}, citation=${opts.citationNumber}, provider=${opts.provider})\n`);
     return 1;
 }
