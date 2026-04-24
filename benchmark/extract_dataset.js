@@ -12,10 +12,16 @@
  *   - dataset_review.csv: CSV for manual review before benchmarking
  */
 
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-const { JSDOM } = require('jsdom');
+import fs from 'fs';
+import path from 'path';
+import https from 'https';
+import http from 'http';
+import { JSDOM } from 'jsdom';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Configuration
 const INPUT_CSV = path.join(__dirname, '..', 'Benchmarking_data_Citations.csv');
@@ -96,7 +102,7 @@ async function fetchWithRetry(url, maxRetries = 3) {
  */
 function fetchURL(url) {
     return new Promise((resolve, reject) => {
-        const protocol = url.startsWith('https') ? https : require('http');
+        const protocol = url.startsWith('https') ? https : http;
 
         const request = protocol.get(url, {
             headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BenchmarkBot/1.0)' }
