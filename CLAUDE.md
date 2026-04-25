@@ -16,7 +16,7 @@ benchmark/
   run_benchmark.js               # Run LLM verification on dataset
   analyze_results.js             # Calculate metrics and confusion matrices
   generate_comparison.js         # Generate comparison CSV
-  dataset.json                   # 76 claim-citation pairs (ground truth)
+  dataset.json                   # 77 claim-citation pairs (ground truth)
   results.json                   # Raw benchmark results
   analysis.json                  # Calculated metrics
 Benchmarking_data_Citations.csv  # Source ground truth data
@@ -72,6 +72,10 @@ npm run benchmark:publicai  # Run specific provider
 npm run analyze        # Analyze results
 npm run report         # Generate markdown report
 ```
+
+### Module system and shared logic
+
+`benchmark/` is ESM (`"type": "module"` in `benchmark/package.json`) and imports `extractClaimText` from `../core/claim.js`. Editing claim-extraction logic in `core/` automatically affects both the userscript (`main.js`, via the sync script) and the benchmark — no second copy to keep in sync.
 
 **Required environment variables:**
 - `ANTHROPIC_API_KEY` - Claude
