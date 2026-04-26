@@ -1,0 +1,83 @@
+# CI tier 4: full benchmark vs baseline. See docs/design-plans/2026-04-26-ci.md.
+#
+# Runs the full ~85-row benchmark against all configured LLM providers
+# and compares the resulting metrics against benchmark/baseline.json.
+# Fails CI on regression; uploads results as workflow artifacts so the
+# maintainer can inspect them.
+#
+# Cost: ~$1-2 per run (subject to dataset size and provider mix).
+# Time: ~25-30 minutes.
+#
+# Triggers
+# ========
+# - workflow_dispatch: maintainer-initiated (run on demand)
+# - schedule (weekly): Sunday 06:00 UTC, catches drift over time
+#
+# Tier 4 deliberately does NOT trigger on PRs by default. Per-PR full
+# benchmark runs would be too expensive ($1-2 each × every PR). If a
+# specific PR needs regression testing, run it manually via
+# workflow_dispatch from the GitHub UI after the PR is in draft.
+#
+# Prerequisites (set by Alex in repo settings)
+# ============================================
+# - PUBLICAI_API_KEY (required) and any other provider keys
+# - benchmark/baseline.json must be seeded — see _seeding_instructions
+#   field in baseline.json. Until seeded, this workflow runs but the
+#   comparator no-ops with an "unseeded" message.
+#
+# TODO (open-issues.md item 21): GitHub-dependency. Worth porting to
+# WMF's GitLab instance if the project's center of gravity shifts off
+# a personal GitHub account. Tier 4's cron + artifact upload patterns
+# translate cleanly to GitLab CI/CD's `schedule` and `artifacts:` keys.
+
+name: CI — accuracy regression (tier 4)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 0'  # Sunday 06:00 UTC
+
+jobs:
+  accuracy-regression:
+    name: tier 4 — accuracy regression vs baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 45  # full run is ~30 min; allow buffer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: check secret availability
+        id: secrets
+        run: |
+          if [ -z "${{ secrets.PUBLICAI_API_KEY }}" ]; then
+            echo "::warning::PUBLICAI_API_KEY is not configured — tier 4 will no-op."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: run full benchmark
+        if: steps.secrets.outputs.configured == 'true'
+        env:
+          PUBLICAI_API_KEY: ${{ secrets.PUBLICAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: cd benchmark && npm run benchmark
+      - name: analyze results
+        if: steps.secrets.outputs.configured == 'true'
+        run: cd benchmark && npm run analyze
+      - name: compare to baseline
+        if: steps.secrets.outputs.configured == 'true'
+        run: node benchmark/compare-to-baseline.js
+      - name: upload benchmark artifacts
+        if: always() && steps.secrets.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-${{ github.run_id }}
+          path: |
+            benchmark/results.json
+            benchmark/analysis.json
+          retention-days: 30

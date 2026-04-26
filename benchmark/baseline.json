@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "captured_at": null,
+  "captured_commit": null,
+  "captured_dataset_row_count": null,
+  "providers": {},
+  "_seeding_instructions": "STUB. Tier 4 (accuracy-regression) no-ops on this empty providers object until the maintainer seeds it. To seed: (1) ensure secrets are configured (PUBLICAI_API_KEY at minimum); (2) run `cd benchmark && npm run benchmark && npm run analyze` against the current dataset; (3) extract per-provider metrics from analysis.json into providers[<name>] with shape { binaryAccuracy: <0..1>, mustPassFailures: <int> }; (4) set captured_at, captured_commit, captured_dataset_row_count; (5) commit. Compare-to-baseline applies tolerance: binaryAccuracy floor is -2pp by default; mustPassFailures has zero tolerance on new failures."
+}

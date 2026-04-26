@@ -11,7 +11,13 @@
   },
   "scripts": {
     "test": "node --test 'tests/**/*.test.js'",
-    "build": "node scripts/sync-main.js"
+    "build": "node scripts/sync-main.js",
+    "benchmark:non-llm-infrastructure:sample": "node benchmark/run_benchmark.js --dry-run --smoke-set",
+    "benchmark:non-llm-infrastructure": "node benchmark/run_benchmark.js --dry-run",
+    "benchmark:llm-providers:sample": "node benchmark/run_benchmark.js --smoke-set",
+    "benchmark:infra:sample": "npm run benchmark:non-llm-infrastructure:sample",
+    "benchmark:infra": "npm run benchmark:non-llm-infrastructure",
+    "benchmark:llm:sample": "npm run benchmark:llm-providers:sample"
   },
   "dependencies": {
     "jsdom": "^24.0.0"

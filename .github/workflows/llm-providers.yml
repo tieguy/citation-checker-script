@@ -1,0 +1,74 @@
+# CI tier 3: LLM providers smoke check. See docs/design-plans/2026-04-26-ci.md.
+#
+# Runs the smoke set (5 rows) with real LLM provider calls to verify
+# provider authentication, response parsing, and the integration path
+# is healthy. This catches issues that the dry-run tiers cannot, such
+# as a provider returning malformed JSON or rate-limiting unexpectedly.
+#
+# Cost: ~$0.01 per run.
+# Time: ~30 seconds.
+#
+# Secrets gating
+# ==============
+# This workflow requires API keys as GitHub repository secrets. GitHub
+# does NOT expose secrets to workflows triggered by pull requests from
+# forks (this is a platform-level safety guarantee). The job uses an
+# explicit `if: secrets.PUBLICAI_API_KEY != ''` check to skip cleanly
+# rather than fail on forked PRs — external contributors can open PRs
+# and still see tier 0/1/2 results without secrets exposure.
+#
+# Required secrets (Alex sets these in repo settings):
+#   PUBLICAI_API_KEY  — required (smoke set's primary provider)
+#   ANTHROPIC_API_KEY — optional (Claude provider)
+#   GEMINI_API_KEY    — optional (Gemini provider)
+#   OPENAI_API_KEY    — optional (OpenAI provider)
+#
+# Until at least PUBLICAI_API_KEY is configured, this workflow no-ops
+# on every trigger. That's by design — tier 3 only activates when the
+# maintainer explicitly enables it.
+#
+# TODO (open-issues.md item 21): GitHub-dependency. Worth porting to
+# WMF's GitLab instance if the project's center of gravity shifts off
+# a personal GitHub account.
+
+name: CI — LLM providers (tier 3)
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  llm-providers-sample:
+    name: tier 3 — llm providers (sample)
+    runs-on: ubuntu-latest
+    # Skip cleanly on forked PRs (where secrets are unavailable) and
+    # before the maintainer has configured PUBLICAI_API_KEY. Job shows
+    # as "skipped" in the UI rather than failing.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: check secret availability
+        id: secrets
+        run: |
+          if [ -z "${{ secrets.PUBLICAI_API_KEY }}" ]; then
+            echo "PUBLICAI_API_KEY is not configured — skipping LLM provider smoke."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: benchmark llm providers on smoke set
+        if: steps.secrets.outputs.configured == 'true'
+        env:
+          PUBLICAI_API_KEY: ${{ secrets.PUBLICAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm run benchmark:llm-providers:sample

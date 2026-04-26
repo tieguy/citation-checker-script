@@ -1,0 +1,63 @@
+# CI tiers 0-2: structural and non-LLM checks. See
+# docs/design-plans/2026-04-26-ci.md for the full design.
+#
+# These tiers run on every PR (including from forks) and every push to
+# main. They require no secrets and exercise the verifier pipeline
+# without making any LLM calls. Tiers 3 and 4 (LLM-bound) live in
+# separate workflow files.
+#
+# TODO (open-issues.md item 21): GitHub-dependency. Wikipedia editing
+# tools shouldn't depend on GitHub for any critical path. Worth porting
+# this to WMF's GitLab instance (gitlab.wikimedia.org) if/when the
+# project's center of gravity shifts off a personal GitHub account.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  unit-and-build:
+    name: tier 0 — unit tests + build check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: npm test
+        run: npm test
+      - name: npm run build -- --check
+        run: npm run build -- --check
+
+  non-llm-infrastructure-sample:
+    name: tier 1 — non-llm infrastructure (sample)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: benchmark non-llm infrastructure on smoke set
+        run: npm run benchmark:non-llm-infrastructure:sample
+
+  non-llm-infrastructure-full:
+    name: tier 2 — non-llm infrastructure (full)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: benchmark non-llm infrastructure on full dataset
+        run: npm run benchmark:non-llm-infrastructure
