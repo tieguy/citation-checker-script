@@ -75,6 +75,54 @@ const PROVIDERS = {
     }
 };
 
+const DEFAULT_SMOKE_SET_PATH = path.join(__dirname, 'smoke-set.json');
+
+/**
+ * Load and parse a smoke-set JSON file.
+ *
+ * @param {string} smokeSetPath - Absolute path to the smoke-set JSON file.
+ * @returns {{ schema_version: number, rows: Array<{ row_id: string }> }}
+ * @throws {Error} If the file does not exist, is not valid JSON, or has an unsupported schema_version.
+ */
+export function loadSmokeSet(smokeSetPath) {
+  if (!fs.existsSync(smokeSetPath)) {
+    throw new Error(`Smoke set file not found: ${smokeSetPath}`);
+  }
+  const raw = fs.readFileSync(smokeSetPath, 'utf-8');
+  const parsed = JSON.parse(raw);
+  if (parsed.schema_version !== 1) {
+    throw new Error(`Unsupported smoke-set schema_version: ${parsed.schema_version} (expected 1)`);
+  }
+  if (!Array.isArray(parsed.rows) || parsed.rows.length === 0) {
+    throw new Error(`Smoke set must contain a non-empty 'rows' array`);
+  }
+  return parsed;
+}
+
+/**
+ * Filter dataset entries to those listed in the smoke set, validating that
+ * every smoke-set row id exists in the full dataset.
+ *
+ * @param {Array<object>} entries - Already-pre-filtered entries (e.g. with needs_manual_review excluded).
+ * @param {{ rows: Array<{ row_id: string }> }} smokeSet - Parsed smoke-set object.
+ * @param {Array<object>} fullDataset - The complete dataset, used to validate row ids.
+ * @returns {Array<object>} Filtered entries (subset of `entries`).
+ * @throws {Error} If any smoke-set row id is not present in fullDataset.
+ */
+export function filterEntriesBySmokeSet(entries, smokeSet, fullDataset) {
+  const datasetIds = new Set(fullDataset.map(e => e.id));
+  const missing = smokeSet.rows
+    .map(r => r.row_id)
+    .filter(id => !datasetIds.has(id));
+  if (missing.length > 0) {
+    throw new Error(
+      `Smoke set references row id(s) not present in dataset: ${missing.join(', ')}`,
+    );
+  }
+  const smokeIds = new Set(smokeSet.rows.map(r => r.row_id));
+  return entries.filter(e => smokeIds.has(e.id));
+}
+
 // Parse command line arguments
 const args = process.argv.slice(2);
 const providerArg = args.find(a => a.startsWith('--providers='));
@@ -93,6 +141,10 @@ const VERSION_FILTER = versionIndex !== -1 ? args[versionIndex + 1] : 'all';
 // so CI can verify the runner's decision distribution without burning API
 // budget. Used by tier 1 / tier 2 of the GitHub Actions workflow.
 const DRY_RUN = args.includes('--dry-run');
+const smokeSetArg = args.find(a => a === '--smoke-set' || a.startsWith('--smoke-set='));
+const SMOKE_SET_PATH = smokeSetArg
+    ? (smokeSetArg.includes('=') ? smokeSetArg.split('=')[1] : DEFAULT_SMOKE_SET_PATH)
+    : null;
 
 /**
  * Decide how the runner should handle a dataset entry.
@@ -520,6 +572,12 @@ async function main() {
     if (entries.length === 0) {
         console.error('\nNo complete entries found. Please review and complete the dataset first.');
         process.exit(1);
+    }
+
+    if (SMOKE_SET_PATH) {
+        const smokeSet = loadSmokeSet(SMOKE_SET_PATH);
+        entries = filterEntriesBySmokeSet(entries, smokeSet, dataset);
+        console.log(`Smoke set filter (${SMOKE_SET_PATH}): ${entries.length} entries selected`);
     }
 
     if (LIMIT) {

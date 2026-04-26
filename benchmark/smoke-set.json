@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "purpose": "Curated subset of dataset.json used by CI tier 1 (non-llm-infrastructure-sample) and tier 3 (llm-providers-sample). See docs/benchmark-smoke-set.md for selection criteria and update procedure.",
+  "selection_criteria": {
+    "verdict_classes_required": [
+      "Supported",
+      "Partially supported",
+      "Not supported"
+    ],
+    "fetch_types_required": [
+      "html",
+      "pdf",
+      "archive"
+    ],
+    "deterministic_shortcircuit_required": false
+  },
+  "rows": [
+    {
+      "row_id": "row_2",
+      "fetch_type": "html",
+      "rationale": "Supported verdict on a stable live HTML source (cis.org immigration report). Exercises the live-fetch + LLM-verdict path for the most common verdict class."
+    },
+    {
+      "row_id": "row_17",
+      "fetch_type": "pdf",
+      "rationale": "Supported verdict on a PDF source (census.gov via Wayback). Exercises the PDF extraction path (unpdf) — the only fetch path that differs structurally from HTML."
+    },
+    {
+      "row_id": "row_22",
+      "fetch_type": "archive",
+      "rationale": "Partially supported verdict on a Wayback Machine archive URL (web.archive.org). Exercises the archive-fetch path including Wayback preamble stripping in the proxy."
+    },
+    {
+      "row_id": "row_75",
+      "fetch_type": "html",
+      "rationale": "Not supported verdict on a live HTML source (Sydney Morning Herald). Exercises the verdict path where the source contradicts or fails to support the claim."
+    }
+  ]
+}
