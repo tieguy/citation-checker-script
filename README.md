@@ -145,11 +145,120 @@ See [`benchmark/README.md`](benchmark/README.md) for the full workflow, includin
 
 ## Development
 
-- No CI/CD and no linter; `core/*.js` has a `node:test` suite (`npm test`), and end-to-end validation is via the benchmark suite
+- CI runs unit tests + non-LLM benchmark infrastructure on every PR (see [Continuous Integration](#continuous-integration)); real-LLM tiers are secrets-gated. No linter; `core/*.js` has a `node:test` suite (`npm test`); end-to-end validation is via the benchmark suite
 - Edit `main.js` directly; test by loading it on Wikipedia (via the user-script page or a browser-console `importScript` call)
 - For testing changes before release, use [`User:Alaexis/AI_Source_Verification_test.js`](https://en.wikipedia.org/wiki/User:Alaexis/AI_Source_Verification_test.js), which tracks the dev branch
 - Feature branches off `main`, merged via pull requests
 - To add a new provider: add an entry to `this.providers` in the constructor, implement `callXxxAPI()`, and add routing in `callProviderAPI()`
+
+## Continuous Integration
+
+CI runs as five tiers covering different costs and signals. See [`docs/design-plans/2026-04-26-ci.md`](docs/design-plans/2026-04-26-ci.md) for the full design.
+
+| Tier | Workflow file | When | Cost |
+|---|---|---|---|
+| 0 — unit tests + build check | `ci.yml` | every PR + push to main | free |
+| 1 — non-LLM infrastructure (sample) | `ci.yml` | every PR + push to main | free |
+| 2 — non-LLM infrastructure (full) | `ci.yml` | every PR + push to main | free |
+| 3 — LLM providers (sample) | `llm-providers.yml` | trusted PRs + push to main | ~$0.01/run |
+| 4 — accuracy regression | `accuracy-regression.yml` | weekly Sunday + `workflow_dispatch` | ~$1–2/run |
+
+Tiers 0–2 are free and always run, including on PRs from forks. Tiers 3 and 4 require API keys as repository secrets and gracefully no-op without them.
+
+The smoke set used by tiers 1 and 3 is a hand-curated 5-row subset of the dataset (see [`docs/benchmark-smoke-set.md`](docs/benchmark-smoke-set.md)) covering all four verdict classes and three fetch types.
+
+### Enabling tiers 3 and 4
+
+Add the following secrets to repository settings (Settings → Secrets and variables → Actions):
+
+- `PUBLICAI_API_KEY` — required for both tiers (smoke set's primary provider)
+- `ANTHROPIC_API_KEY` — optional (Claude provider)
+- `GEMINI_API_KEY` — optional (Gemini provider)
+- `OPENAI_API_KEY` — optional (OpenAI provider)
+
+For tier 4 (accuracy regression), additionally seed [`benchmark/baseline.json`](benchmark/baseline.json):
+
+1. Run a known-good full benchmark: `cd benchmark && npm run benchmark && npm run analyze`
+2. Extract per-provider metrics from `benchmark/analysis.json` into `benchmark/baseline.json` per the `_seeding_instructions` field in that file
+3. Commit the seeded baseline
+
+Until seeded, tier 4 runs to completion but the comparator no-ops with a clear "unseeded" message — no false-positive regressions.
+
+### Running CI commands locally
+
+```sh
+npm test                                 # tier 0: unit tests
+npm run build -- --check                 # tier 0: build consistency
+npm run benchmark:infra:sample           # tier 1: dry-run on smoke set
+npm run benchmark:infra                  # tier 2: dry-run on full dataset
+npm run benchmark:llm:sample             # tier 3: real LLM on smoke set (needs keys)
+cd benchmark && npm run benchmark        # tier 4: full real benchmark
+node benchmark/compare-to-baseline.js    # tier 4: compare last analysis to baseline
+```
+
+The verbose canonical script names (e.g., `benchmark:non-llm-infrastructure:sample`) are also available; the `:infra` and `:llm` aliases above redirect to them.
+
+### Testing CI locally with `act`
+
+Before pushing CI changes (especially YAML edits or new workflows), validate locally with [`act`](https://github.com/nektos/act). This avoids round-trips to GitHub and keeps untested workflows out of upstream Actions logs.
+
+**One-time setup:**
+
+```sh
+# Install act (Linux/macOS, via Homebrew)
+brew install act
+
+# Container runtime: Docker or Podman.
+#   Docker: `act` finds the socket automatically.
+#   Podman: enable the user-level socket and point DOCKER_HOST at it.
+systemctl --user enable --now podman.socket
+echo 'export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock' >> ~/.bashrc
+# Or just export it in the current shell for one-off use.
+
+# Copy the secrets template (only needed if you want to run tier 3/4 locally)
+cp .secrets.example .secrets
+$EDITOR .secrets    # fill in keys; .secrets is gitignored
+```
+
+**Running:**
+
+```sh
+# List all workflows act detects
+act --list
+
+# Run tier 0 only (fastest sanity check)
+act -j unit-and-build
+
+# Run all jobs that fire on a pull_request event (tiers 0/1/2)
+act pull_request
+
+# Run a specific workflow file
+act -W .github/workflows/ci.yml
+
+# Run tier 3 with secrets (act reads .secrets automatically)
+act -j llm-providers-sample
+```
+
+The repo's `.actrc` pins the `ubuntu-latest` runner image to `catthehacker/ubuntu:act-latest`, which is the closest match to GitHub's hosted runners. First run downloads ~1 GB; subsequent runs reuse the image (`--pull=false` in `.actrc`) and the container (`--reuse`).
+
+**Caveats:**
+
+- `actions/upload-artifact` doesn't always work cleanly under `act` — tier 4's artifact step is best validated by pushing to your fork.
+- Cron triggers don't fire under `act`; test scheduled workflows by simulating with `act schedule` or running their job directly with `-j`.
+- Some action versions may behave slightly differently from GitHub's runners; for full fidelity, push to your fork (see below).
+
+### Pushing to a fork before the upstream PR
+
+When `act` is happy, push the branch to your own fork to validate against real GitHub Actions infrastructure (free for public repos):
+
+```sh
+git push <your-fork> add-github-actions-ci
+# Then watch github.com/<your-fork>/citation-checker-script/actions
+```
+
+GitHub disables Actions on forks by default — enable them via Settings → Actions → General if needed. Fork secrets (Settings → Secrets and variables → Actions) are independent of the upstream repo, so adding test API keys to your fork doesn't affect Alex's repo.
+
+Once the fork's runs are green, open the upstream PR — CI runs once on Alex's repo against already-validated code.
 
 ## Constraints to Keep in Mind
 

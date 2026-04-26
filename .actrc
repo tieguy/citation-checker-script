@@ -1,0 +1,18 @@
+# act (https://github.com/nektos/act) — local GitHub Actions runner.
+#
+# This file is checked in. The `DOCKER_HOST` env var (which act also reads
+# as a daemon-socket fallback) is NOT — set it in your shell. See the
+# "Testing CI locally" section in README.md for setup instructions.
+
+# Use the catthehacker images — closest match to GitHub's ubuntu-latest
+# runners; smaller "act-latest-slim" works for most jobs but lacks some
+# dev tools so we stick with the full image.
+-P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest
+
+# Avoid re-pulling on every run (the image is ~1GB). Comment out or
+# pass `--pull` on the CLI when you want to refresh.
+--pull=false
+
+# Reuse containers across runs — much faster iteration since `npm ci`
+# and the apt cache survive between invocations.
+--reuse

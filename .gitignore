@@ -1,2 +1,6 @@
 node_modules/
 .worktrees/
+
+# Local act config — real API keys for testing tier 3 / tier 4 workflows.
+# `.secrets.example` is the checked-in template.
+.secrets
