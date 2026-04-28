@@ -80,6 +80,10 @@ npm run analyze:v1-snapshot   # Re-derive analysis from frozen v1 snapshots
 npm run report                # Generate markdown report
 ```
 
+### Module system and shared logic
+
+`benchmark/` is ESM (`"type": "module"` in `benchmark/package.json`) and imports `extractClaimText` from `../core/claim.js`. Editing claim-extraction logic in `core/` automatically affects both the userscript (`main.js`, via the sync script) and the benchmark — no second copy to keep in sync.
+
 **Required environment variables:**
 - `ANTHROPIC_API_KEY` - Claude
 - `OPENAI_API_KEY` - OpenAI

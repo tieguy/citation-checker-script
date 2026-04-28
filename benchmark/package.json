@@ -2,6 +2,7 @@
   "name": "citation-benchmark",
   "version": "1.0.0",
   "description": "Benchmarking tools for comparing LLM performance on citation verification",
+  "type": "module",
   "scripts": {
     "extract": "node extract_dataset.js",
     "extract:dry": "node extract_dataset.js --dry-run",

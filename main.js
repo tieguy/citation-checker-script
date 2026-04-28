@@ -1,4 +1,4 @@
-// {{Wikipedia:USync |repo=https://github.com/alex-o-748/citation-checker-script |ref=refs/heads/dev|path=main.js}}
+// {{Wikipedia:USync |repo=https://github.com/alex-o-748/citation-checker-script |ref=refs/heads/main|path=main.js}}
 //Inspired by  User:Polygnotus/Scripts/AI_Source_Verification.js
 //Inspired by  User:Phlsph7/SourceVerificationAIAssistant.js
 
@@ -161,7 +161,10 @@ function parseVerificationResult(response) {
 
 // --- core/urls.js ---
 // URL extraction helpers for Wikipedia reference elements.
-// Note: extractReferenceUrl and extractPageNumber depend on a global `document` object (supplied by the browser in main.js, or by JSDOM in Node callers).
+// extractReferenceUrl and extractPageNumber accept a `document` parameter
+// for Node callers (CLI, tests). They fall back to `globalThis.document`
+// when called without one — that's the userscript path, where the browser
+// supplies the global.
 
 function extractHttpUrl(element) {
     if (!element) return null;
@@ -175,15 +178,22 @@ function extractHttpUrl(element) {
     return links[0].href;
 }
 
-function extractReferenceUrl(refElement) {
-    const href = refElement.getAttribute('href');
-    if (!href || !href.startsWith('#')) {
-        console.log('[CitationVerifier] No valid href on refElement:', href);
+function extractReferenceUrl(refElement, doc = globalThis.document) {
+    let href = refElement.getAttribute('href');
+    if (!href) {
+        console.log('[CitationVerifier] No href on refElement');
         return null;
     }
 
-    const refId = href.substring(1);
-    const refTarget = document.getElementById(refId);
+    // Handle Wikipedia REST API HTML which uses relative URLs with fragments
+    // like "./Page#cite_note-1". Extract just the fragment part.
+    const fragmentIndex = href.indexOf('#');
+    if (fragmentIndex === -1) {
+        console.log('[CitationVerifier] No fragment in href:', href);
+        return null;
+    }
+    const refId = href.substring(fragmentIndex + 1);
+    const refTarget = doc.getElementById(refId);
 
     if (!refTarget) {
         console.log('[CitationVerifier] No element found for refId:', refId);
@@ -200,7 +210,7 @@ function extractReferenceUrl(refElement) {
     const citerefLink = refTarget.querySelector('a[href^="#CITEREF"]');
     if (citerefLink) {
         const citerefId = citerefLink.getAttribute('href').substring(1);
-        const fullCitation = document.getElementById(citerefId);
+        const fullCitation = doc.getElementById(citerefId);
         if (fullCitation) {
             const resolvedUrl = extractHttpUrl(fullCitation);
             if (resolvedUrl) {
@@ -226,11 +236,14 @@ function extractReferenceUrl(refElement) {
     return null;
 }
 
-function extractPageNumber(refElement) {
+function extractPageNumber(refElement, doc = globalThis.document) {
     const href = refElement.getAttribute('href');
-    if (!href || !href.startsWith('#')) return null;
+    if (!href) return null;
 
-    const refTarget = document.getElementById(href.substring(1));
+    const fragmentIndex = href.indexOf('#');
+    if (fragmentIndex === -1) return null;
+
+    const refTarget = doc.getElementById(href.substring(fragmentIndex + 1));
     if (!refTarget) return null;
 
     const text = refTarget.textContent;
