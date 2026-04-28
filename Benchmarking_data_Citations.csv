@@ -1,78 +1,111 @@
-Citation number,Citation instance,Article,Ground truth
-1,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-2,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-3,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-2,2,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-4,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-4,2,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-4,3,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-8,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-11,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Partially supported
-12,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-13,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-14,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-15,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-20,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-25,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-29,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-33,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Partially supported
-34,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-42,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Not supported
-43,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-46,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Partially supported
-33,2,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported
-1,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-3,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-4,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-5,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-1,3,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-11,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-1,4,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-1,5,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-11,2,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-13,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-13,2,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported
-11,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Partially supported
-16,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-17,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-18,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-8,2,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-17,2,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-20,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-20,2,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-21,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-22,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-23,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-24,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-25,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-26,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-27,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported
-76,1,https://en.wikipedia.org/w/index.php?title=History_of_Chechnya&oldid=1333083936,Partially supported
-123,2,https://en.wikipedia.org/w/index.php?title=History_of_Chechnya&oldid=1333083936,Supported
-165,1,https://en.wikipedia.org/w/index.php?title=History_of_Chechnya&oldid=1333083936,Supported
-167,1,https://en.wikipedia.org/w/index.php?title=History_of_Chechnya&oldid=1333083936,Supported
-170,1,https://en.wikipedia.org/w/index.php?title=History_of_Chechnya&oldid=1333083936,Supported
-1,1,https://en.wikipedia.org/w/index.php?title=Dancing_House&oldid=1331358792,Supported
-2,1,https://en.wikipedia.org/w/index.php?title=Dancing_House&oldid=1331358792,Supported
-3,1,https://en.wikipedia.org/w/index.php?title=Dancing_House&oldid=1331358792,Supported
-5,1,https://en.wikipedia.org/w/index.php?title=Dancing_House&oldid=1331358792,Supported
-8,1,https://en.wikipedia.org/w/index.php?title=Dancing_House&oldid=1331358792,Supported
-112,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Partially supported
-113,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Partially supported
-114,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Supported
-116,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Supported
-18,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Supported
-27,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Supported
-30,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Supported
-28,1,"https://en.wikipedia.org/w/index.php?title=Hartford,_Connecticut&oldid=1329287981",Supported
-29,1,"https://en.wikipedia.org/w/index.php?title=Hartford,_Connecticut&oldid=1329287981",Supported
-30,1,"https://en.wikipedia.org/w/index.php?title=Hartford,_Connecticut&oldid=1329287981",Supported
-32,1,https://en.wikipedia.org/w/index.php?title=Nasry_Asfura&oldid=1330112057,Not supported
-52,1,https://en.wikipedia.org/w/index.php?title=Liberation_Tigers_of_Tamil_Eelam&oldid=1325239248,Partially supported
-4,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sokhumi_(1992)&oldid=1291683944,Partially supported
-7,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sokhumi_(1992)&oldid=1291683944,Partially supported
-70,1,https://en.wikipedia.org/w/index.php?title=Freedom_Flotilla_II&oldid=1320167236,Not supported
-61,4,https://en.wikipedia.org/w/index.php?title=First_Chechen_War&oldid=1325376850,Not supported
-64,1,https://en.wikipedia.org/w/index.php?title=Second_Congo_War&oldid=1324841474,Not supported
-739,1,https://en.wikipedia.org/w/index.php?title=Gaza_war&oldid=1324234133,Not supported
-
+Citation number,Citation instance,Article,Ground truth,Dataset version
+1,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+2,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+3,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+2,2,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+4,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+4,2,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+4,3,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+8,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+11,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Partially supported,v1
+12,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+13,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+14,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+15,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+20,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+25,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+29,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+33,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Partially supported,v1
+34,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+42,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Not supported,v1
+43,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+46,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Partially supported,v1
+33,2,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1
+1,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+3,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+4,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+5,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+1,3,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+11,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+1,4,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+1,5,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+11,2,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+13,1,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+13,2,https://en.wikipedia.org/w/index.php?title=Fall_of_Aden_(2026)&oldid=1333565519,Supported,v1
+11,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Partially supported,v1
+16,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+17,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+18,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+8,2,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+17,2,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+20,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+20,2,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+21,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+22,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+23,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+24,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+25,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+26,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+27,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sanaa_(2014)&oldid=1332969229,Supported,v1
+76,1,https://en.wikipedia.org/w/index.php?title=History_of_Chechnya&oldid=1333083936,Partially supported,v1
+123,2,https://en.wikipedia.org/w/index.php?title=History_of_Chechnya&oldid=1333083936,Supported,v1
+165,1,https://en.wikipedia.org/w/index.php?title=History_of_Chechnya&oldid=1333083936,Supported,v1
+167,1,https://en.wikipedia.org/w/index.php?title=History_of_Chechnya&oldid=1333083936,Supported,v1
+170,1,https://en.wikipedia.org/w/index.php?title=History_of_Chechnya&oldid=1333083936,Supported,v1
+1,1,https://en.wikipedia.org/w/index.php?title=Dancing_House&oldid=1331358792,Supported,v1
+2,1,https://en.wikipedia.org/w/index.php?title=Dancing_House&oldid=1331358792,Supported,v1
+3,1,https://en.wikipedia.org/w/index.php?title=Dancing_House&oldid=1331358792,Supported,v1
+5,1,https://en.wikipedia.org/w/index.php?title=Dancing_House&oldid=1331358792,Supported,v1
+8,1,https://en.wikipedia.org/w/index.php?title=Dancing_House&oldid=1331358792,Supported,v1
+112,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Partially supported,v1
+113,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Partially supported,v1
+114,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Supported,v1
+116,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Supported,v1
+18,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Supported,v1
+27,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Supported,v1
+30,1,https://en.wikipedia.org/w/index.php?title=Al_Jazeera_Media_Network&oldid=1330605065,Supported,v1
+28,1,"https://en.wikipedia.org/w/index.php?title=Hartford,_Connecticut&oldid=1329287981",Supported,v1
+29,1,"https://en.wikipedia.org/w/index.php?title=Hartford,_Connecticut&oldid=1329287981",Supported,v1
+30,1,"https://en.wikipedia.org/w/index.php?title=Hartford,_Connecticut&oldid=1329287981",Supported,v1
+32,1,https://en.wikipedia.org/w/index.php?title=Nasry_Asfura&oldid=1330112057,Not supported,v1
+52,1,https://en.wikipedia.org/w/index.php?title=Liberation_Tigers_of_Tamil_Eelam&oldid=1325239248,Partially supported,v1
+4,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sokhumi_(1992)&oldid=1291683944,Partially supported,v1
+7,1,https://en.wikipedia.org/w/index.php?title=Battle_of_Sokhumi_(1992)&oldid=1291683944,Partially supported,v1
+70,1,https://en.wikipedia.org/w/index.php?title=Freedom_Flotilla_II&oldid=1320167236,Not supported,v1
+61,4,https://en.wikipedia.org/w/index.php?title=First_Chechen_War&oldid=1325376850,Not supported,v1
+64,1,https://en.wikipedia.org/w/index.php?title=Second_Congo_War&oldid=1324841474,Not supported,v1
+739,1,https://en.wikipedia.org/w/index.php?title=Gaza_war&oldid=1324234133,Not supported,v1
+6,1,https://en.wikipedia.org/w/index.php?title=Agnes_Gund&oldid=1329750129,Partially supported,v2
+4,1,https://en.wikipedia.org/w/index.php?title=Arlo_Hemphill&oldid=1329709078,Not supported,v2
+40,1,https://en.wikipedia.org/w/index.php?title=Central_Bank_of_Sri_Lanka_bond_scandal&oldid=1319126614,Not supported,v2
+7,1,https://en.wikipedia.org/w/index.php?title=Gary_Graffman&oldid=1329781889,Not supported,v2
+5,1,https://en.wikipedia.org/w/index.php?title=Herzliya_Hebrew_Gymnasium&oldid=1330490808,Not supported,v2
+5,1,https://en.wikipedia.org/w/index.php?title=Justice_Mission-2025&oldid=1330519998,Partially supported,v2
+24,1,https://en.wikipedia.org/w/index.php?title=Kai_Cenat&oldid=1330512271,Not supported,v2
+4,1,https://en.wikipedia.org/w/index.php?title=Málaga–Almería_road_massacre&oldid=1329457872,Partially supported,v2
+30,1,https://en.wikipedia.org/w/index.php?title=National_Resistance_Front&oldid=1330111814,Not supported,v2
+8,1,https://en.wikipedia.org/w/index.php?title=Salaam-e-Ishq&oldid=1329988663,Not supported,v2
+14,1,https://en.wikipedia.org/w/index.php?title=Tim_Kask&oldid=1330498813,Supported,v2
+128,1,https://en.wikipedia.org/w/index.php?title=University_of_York&oldid=1330203930,Partially supported,v2
+19,1,https://en.wikipedia.org/w/index.php?title=Ajnad_al-Sham&oldid=1263995073,Not supported,v2
+7,1,https://en.wikipedia.org/w/index.php?title=Al-Jabal_Brigade&oldid=1262181669,Not supported,v2
+1,1,https://en.wikipedia.org/w/index.php?title=C._B._Forrest&oldid=1261714934,Not supported,v2
+9,1,"https://en.wikipedia.org/w/index.php?title=Clinton,_Washington&oldid=1256250414",Not supported,v2
+23,1,https://en.wikipedia.org/w/index.php?title=Croydon&oldid=1264351539,Not supported,v2
+3,1,https://en.wikipedia.org/w/index.php?title=Electric_energy_consumption&oldid=1265189492,Partially supported,v2
+6,1,https://en.wikipedia.org/w/index.php?title=Finley_Welch&oldid=1266392568,Not supported,v2
+7,1,https://en.wikipedia.org/w/index.php?title=Georgia_Shreve&oldid=1266203183,Partially supported,v2
+6,1,https://en.wikipedia.org/w/index.php?title=John_Zogby&oldid=1262931744,Not supported,v2
+90,1,https://en.wikipedia.org/w/index.php?title=Latin_music&oldid=1263170357,Not supported,v2
+2,1,https://en.wikipedia.org/w/index.php?title=Mohammad_Abdul_Rahman&oldid=1262327277,Not supported,v2
+48,1,https://en.wikipedia.org/w/index.php?title=Nasrin_Sotoudeh&oldid=1256477381,Not supported,v2
+18,1,https://en.wikipedia.org/w/index.php?title=Ohio_University&oldid=1263800935,Partially supported,v2
+96,1,https://en.wikipedia.org/w/index.php?title=Rashmika_Mandanna&oldid=1262804839,Not supported,v2
+35,1,https://en.wikipedia.org/w/index.php?title=Rax_Roast_Beef&oldid=1264300368,Not supported,v2
+41,1,https://en.wikipedia.org/w/index.php?title=Richard_Harris&oldid=1261700282,Not supported,v2
+1,1,https://en.wikipedia.org/w/index.php?title=Story_of_the_Eye&oldid=1263035448,Not supported,v2
+6,1,https://en.wikipedia.org/w/index.php?title=Sue_Fennessy&oldid=1264674950,Not supported,v2
+8,1,https://en.wikipedia.org/w/index.php?title=The_Phoenix_(magazine)&oldid=1263003668,Not supported,v2
+2,1,https://en.wikipedia.org/w/index.php?title=Wes_Olson&oldid=1261635737,Not supported,v2
+2,1,https://en.wikipedia.org/w/index.php?title=You'll_Never_Know&oldid=1263012631,Not supported,v2
+13,1,https://en.wikipedia.org/w/index.php?title=Zealandia_(wildlife_sanctuary)&oldid=1259406891,Not supported,v2

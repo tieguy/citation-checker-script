@@ -5,7 +5,7 @@
  * Reads the ground truth CSV and enriches it with claim text and source content
  * by fetching Wikipedia articles and extracting the relevant data.
  *
- * Usage: node extract_dataset.js [--dry-run] [--limit N]
+ * Usage: node extract_dataset.js [--dry-run] [--limit N] [--version v1|v2|all]
  *
  * Output:
  *   - dataset.json: Complete enriched dataset
@@ -35,6 +35,10 @@ const DRY_RUN = args.includes('--dry-run');
 const VERBOSE = args.includes('--verbose') || args.includes('-v');
 const limitIndex = args.indexOf('--limit');
 const LIMIT = limitIndex !== -1 ? parseInt(args[limitIndex + 1], 10) : null;
+const versionIndex = args.indexOf('--version');
+// VERSION_FILTER: 'all' | 'v1' | 'v2' | ... — restricts which dataset rows to process.
+// 'all' (default) keeps everything; specific tags (e.g. 'v1') reproduce a frozen subset.
+const VERSION_FILTER = versionIndex !== -1 ? args[versionIndex + 1] : 'all';
 
 function log(msg) {
     if (VERBOSE) console.log(msg);
@@ -393,6 +397,14 @@ async function main() {
 
     console.log(`Found ${rows.length} rows`);
 
+    if (VERSION_FILTER !== 'all') {
+        const before = rows.length;
+        // Treat rows with no Dataset version as 'v1' for backwards compatibility
+        // with CSVs predating the column.
+        rows = rows.filter(r => (r['Dataset version'] || 'v1') === VERSION_FILTER);
+        console.log(`Filtered to dataset version "${VERSION_FILTER}": ${rows.length}/${before} rows`);
+    }
+
     if (LIMIT) {
         rows = rows.slice(0, LIMIT);
         console.log(`Limited to ${LIMIT} rows`);
@@ -460,6 +472,7 @@ async function main() {
                         source_url: '',
                         source_text: '',
                         ground_truth: normalizeVerdict(row['Ground truth']),
+                        dataset_version: row['Dataset version'] || 'v1',
                         extraction_status: 'article_fetch_failed',
                         needs_manual_review: true
                     });
@@ -503,6 +516,7 @@ async function main() {
                 source_url: sourceUrl || '',
                 source_text: sourceText,
                 ground_truth: normalizeVerdict(row['Ground truth']),
+                dataset_version: row['Dataset version'] || 'v1',
                 extraction_status: determineStatus(claimData.text, sourceUrl, sourceText),
                 needs_manual_review: !claimData.text || !sourceText
             };
@@ -561,6 +575,7 @@ function writeReviewCSV(dataset) {
         'source_url',
         'source_text_preview',
         'ground_truth',
+        'dataset_version',
         'extraction_status',
         'needs_manual_review',
         'manual_claim_override',
@@ -576,6 +591,7 @@ function writeReviewCSV(dataset) {
         entry.source_url,
         `"${(entry.source_text || '').replace(/"/g, '""').substring(0, 200)}..."`,
         entry.ground_truth,
+        entry.dataset_version || 'v1',
         entry.extraction_status,
         entry.needs_manual_review,
         '', // manual_claim_override - to be filled by reviewer
