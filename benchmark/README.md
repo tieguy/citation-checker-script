@@ -105,6 +105,51 @@ npm run report
 | `analysis.json` | Calculated metrics |
 | `report.md` | Human-readable report |
 
+## Dataset Versions
+
+`Benchmarking_data_Citations.csv` carries a `Dataset version` column so the
+ground-truth set can grow without losing the ability to reproduce earlier
+analyses.
+
+- `v1` — the original 76 rows used for the published benchmark.
+- `v2` — 34 negative-class additions (mostly "Not supported" / "Partially
+  supported") that broaden topic coverage.
+
+The `dataset_version` field is propagated into each `dataset.json` entry and
+each script accepts a `--version v1|v2|all` filter (default: `all`).
+
+### Reproducing the original v1 analysis
+
+Frozen snapshots of the published v1 pipeline are committed alongside the
+mutable working files:
+
+| Snapshot | Description |
+|----------|-------------|
+| `dataset_v1.json` | v1 enriched dataset at extraction time |
+| `results_v1.json` | v1 raw LLM results |
+| `analysis_v1.json` | v1 calculated metrics |
+| `results_comparison_v1.csv` | v1 per-row comparison |
+
+Re-derive the v1 metrics from the snapshots without touching the current
+files:
+
+```bash
+npm run analyze:v1-snapshot
+# writes analysis_v1_recomputed.json — should match analysis_v1.json
+```
+
+Re-run the full v1 pipeline (network + API keys required; LLM calls are
+non-deterministic so numbers may drift slightly):
+
+```bash
+npm run extract:v1     # writes dataset.json filtered to v1 rows
+npm run benchmark:v1   # writes results.json for v1 entries only
+npm run analyze:v1     # writes analysis.json over v1 results
+```
+
+Working with the expanded v1 + v2 set is the default — just run `npm run
+extract`, `npm run benchmark`, and `npm run analyze` with no flags.
+
 ## Metrics Explained
 
 - **Exact Accuracy**: Predicted verdict exactly matches ground truth

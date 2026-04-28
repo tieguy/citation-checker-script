@@ -4,7 +4,7 @@
  *
  * Runs the enriched dataset through multiple LLM providers and records results.
  *
- * Usage: node run_benchmark.js [--providers claude,openai,gemini] [--limit N] [--resume]
+ * Usage: node run_benchmark.js [--providers claude,openai,gemini] [--limit N] [--resume] [--version v1|v2|all]
  *
  * Environment variables for API keys:
  *   ANTHROPIC_API_KEY - Claude API key
@@ -84,6 +84,10 @@ const selectedProviders = providerArg
 const limitIndex = args.indexOf('--limit');
 const LIMIT = limitIndex !== -1 ? parseInt(args[limitIndex + 1], 10) : null;
 const RESUME = args.includes('--resume');
+const versionIndex = args.indexOf('--version');
+// VERSION_FILTER: 'all' | 'v1' | 'v2' | ... — restricts which dataset entries
+// to benchmark, so the original 76-row v1 analysis can be reproduced on demand.
+const VERSION_FILTER = versionIndex !== -1 ? args[versionIndex + 1] : 'all';
 
 /**
  * Generate the system prompt (same as main.js)
@@ -427,6 +431,12 @@ async function main() {
     // Filter to complete entries only
     let entries = dataset.filter(e => e.extraction_status === 'complete' && !e.needs_manual_review);
     console.log(`${entries.length} entries are complete and ready for benchmarking`);
+
+    if (VERSION_FILTER !== 'all') {
+        const before = entries.length;
+        entries = entries.filter(e => (e.dataset_version || 'v1') === VERSION_FILTER);
+        console.log(`Filtered to dataset version "${VERSION_FILTER}": ${entries.length}/${before} entries`);
+    }
 
     if (entries.length === 0) {
         console.error('\nNo complete entries found. Please review and complete the dataset first.');

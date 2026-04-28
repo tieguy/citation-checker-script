@@ -4,12 +4,18 @@
  *
  * Analyzes benchmark results and generates detailed metrics for each LLM provider.
  *
- * Usage: node analyze_results.js [--output report.md]
+ * Usage: node analyze_results.js [--output report.md] [--version v1|v2|all]
+ *                                [--results <path>] [--dataset <path>] [--analysis <path>]
  *
  * Output:
  *   - Console summary
- *   - Markdown report (optional)
- *   - analysis.json: Detailed metrics in JSON format
+ *   - Markdown report (optional, via --output)
+ *   - analysis.json: Detailed metrics in JSON format (path overridable via --analysis)
+ *
+ * Reproducing the original v1 analysis from the frozen snapshots:
+ *   node analyze_results.js \
+ *     --results results_v1.json --dataset dataset_v1.json \
+ *     --analysis analysis_v1_recomputed.json
  */
 
 import fs from 'fs';
@@ -20,15 +26,22 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Configuration
-const RESULTS_PATH = path.join(__dirname, 'results.json');
-const DATASET_PATH = path.join(__dirname, 'dataset.json');
-const ANALYSIS_PATH = path.join(__dirname, 'analysis.json');
-
 // Parse command line arguments
 const args = process.argv.slice(2);
-const outputIndex = args.indexOf('--output');
-const REPORT_PATH = outputIndex !== -1 ? args[outputIndex + 1] : null;
+function flagValue(name) {
+    const i = args.indexOf(name);
+    return i !== -1 ? args[i + 1] : null;
+}
+
+const REPORT_PATH = flagValue('--output');
+// VERSION_FILTER: 'all' | 'v1' | 'v2' | ... — limit results to entries whose
+// dataset_version matches, so the original 76-row v1 metrics can be re-derived.
+const VERSION_FILTER = flagValue('--version') || 'all';
+
+// Configuration (paths are overridable so v1 snapshots can be re-analyzed in place)
+const RESULTS_PATH = path.resolve(__dirname, flagValue('--results') || 'results.json');
+const DATASET_PATH = path.resolve(__dirname, flagValue('--dataset') || 'dataset.json');
+const ANALYSIS_PATH = path.resolve(__dirname, flagValue('--analysis') || 'analysis.json');
 
 // Verdict categories for confusion matrix
 const VERDICT_CATEGORIES = ['Supported', 'Partially supported', 'Not supported', 'Source unavailable'];
@@ -266,8 +279,20 @@ function main() {
     }
 
     // Load data
-    const results = JSON.parse(fs.readFileSync(RESULTS_PATH, 'utf-8'));
-    console.log(`Loaded ${results.length} results`);
+    let results = JSON.parse(fs.readFileSync(RESULTS_PATH, 'utf-8'));
+    console.log(`Loaded ${results.length} results from ${path.basename(RESULTS_PATH)}`);
+
+    if (VERSION_FILTER !== 'all') {
+        if (!fs.existsSync(DATASET_PATH)) {
+            console.error(`--version filter requires dataset at ${DATASET_PATH}; not found.`);
+            process.exit(1);
+        }
+        const dataset = JSON.parse(fs.readFileSync(DATASET_PATH, 'utf-8'));
+        const versionById = new Map(dataset.map(e => [e.id, e.dataset_version || 'v1']));
+        const before = results.length;
+        results = results.filter(r => (versionById.get(r.entry_id) || 'v1') === VERSION_FILTER);
+        console.log(`Filtered to dataset version "${VERSION_FILTER}": ${results.length}/${before} results`);
+    }
 
     // Group by provider
     const byProvider = {};
@@ -285,6 +310,7 @@ function main() {
     const analysis = {
         generated: new Date().toISOString(),
         overview: {
+            datasetVersion: VERSION_FILTER,
             totalEntries: new Set(results.map(r => r.entry_id)).size,
             totalCalls: results.length,
             providers: providers
