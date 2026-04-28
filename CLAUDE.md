@@ -16,10 +16,13 @@ benchmark/
   run_benchmark.js               # Run LLM verification on dataset
   analyze_results.js             # Calculate metrics and confusion matrices
   generate_comparison.js         # Generate comparison CSV
-  dataset.json                   # 76 claim-citation pairs (ground truth)
+  dataset.json                   # 110 claim-citation pairs (v1: 76 original + v2: 34 added)
+  dataset_v1.json                # Frozen v1 snapshot for reproducing original analysis
   results.json                   # Raw benchmark results
+  results_v1.json                # Frozen v1 results snapshot
   analysis.json                  # Calculated metrics
-Benchmarking_data_Citations.csv  # Source ground truth data
+  analysis_v1.json               # Frozen v1 analysis snapshot
+Benchmarking_data_Citations.csv  # Source ground truth data (with Dataset version column)
 *.md                             # Documentation and research notes
 ```
 
@@ -65,12 +68,16 @@ cd benchmark
 npm install
 
 # Available npm scripts:
-npm run extract        # Extract dataset from Wikipedia
-npm run extract:dry    # Dry-run extraction
-npm run benchmark      # Run benchmarks on all providers
-npm run benchmark:publicai  # Run specific provider
-npm run analyze        # Analyze results
-npm run report         # Generate markdown report
+npm run extract               # Extract dataset from Wikipedia (all rows)
+npm run extract:dry           # Dry-run extraction
+npm run extract:v1            # Extract only original v1 rows (reproducing baseline)
+npm run benchmark             # Run benchmarks on all providers (all rows)
+npm run benchmark:publicai    # Run specific provider
+npm run benchmark:v1          # Run benchmark on v1 entries only
+npm run analyze               # Analyze results
+npm run analyze:v1            # Analyze results filtered to v1 entries
+npm run analyze:v1-snapshot   # Re-derive analysis from frozen v1 snapshots
+npm run report                # Generate markdown report
 ```
 
 **Required environment variables:**
@@ -82,7 +89,7 @@ npm run report         # Generate markdown report
 ## Development Workflow
 
 - **No CI/CD** configured
-- **No test framework** — validation is via the benchmark suite against 76 human-labeled citation pairs
+- **No test framework** — validation is via the benchmark suite against 110 human-labeled citation pairs (76 v1 + 34 v2)
 - **No linter** configured
 - **Branching:** Feature branches off `main`, merged via pull requests
 - **Deployment:** Deployed as a Wikipedia User Script (`User:Alaexis/AI_Source_Verification`) with USync for auto-updates
