@@ -646,6 +646,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             this.currentVerifyId = 0;
 
             this.sourceTextInput = null;
+            this.sourceInputForOverride = false;
 
             // Article report state
             this.reportMode = false;
@@ -732,6 +733,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     <div id="verifier-source-section">
                         <h4>Source Content</h4>
                         <div id="verifier-source-text">No source loaded yet.</div>
+                        <div id="verifier-source-override-container" style="display: none; margin-top: 8px;"></div>
                         <div id="verifier-source-input-container" style="display: none; margin-top: 10px;">
                             <div id="verifier-source-textarea-container"></div>
                             <div id="verifier-source-buttons" style="margin-top: 8px; display: flex; gap: 8px;">
@@ -1693,6 +1695,13 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 flags: ['safe']
             });
 
+            this.buttons.overrideText = new OO.ui.ButtonWidget({
+                label: 'Override content',
+                icon: 'edit',
+                framed: false,
+                title: 'Replace the fetched source content with text you paste in (e.g., the full article from The Wikipedia Library)'
+            });
+
             // Article report buttons
             this.buttons.verifyAll = new OO.ui.ButtonWidget({
                 label: 'Verify All Citations',
@@ -1726,6 +1735,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             document.getElementById('verifier-source-textarea-container').appendChild(this.sourceTextInput.$element[0]);
             document.getElementById('verifier-load-text-btn-container').appendChild(this.buttons.loadText.$element[0]);
             document.getElementById('verifier-cancel-text-btn-container').appendChild(this.buttons.cancelText.$element[0]);
+            document.getElementById('verifier-source-override-container').appendChild(this.buttons.overrideText.$element[0]);
         }
         
         updateProviderInfo() {
@@ -1977,35 +1987,66 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             }
         }
         
-        showSourceTextInput() {
+        showSourceTextInput(forOverride = false) {
+            this.sourceInputForOverride = forOverride;
             document.getElementById('verifier-source-input-container').style.display = 'block';
-            document.getElementById('verifier-source-text').textContent = 'No URL found. Please paste the source text below:';
+            if (!forOverride) {
+                document.getElementById('verifier-source-text').textContent = 'No URL found. Please paste the source text below:';
+            }
             this.sourceTextInput.setValue('');
+            this.hideOverrideButton();
         }
-        
+
         hideSourceTextInput() {
             document.getElementById('verifier-source-input-container').style.display = 'none';
+            this.refreshOverrideButton();
         }
-        
+
+        showOverrideButton() {
+            const el = document.getElementById('verifier-source-override-container');
+            if (el) el.style.display = '';
+        }
+
+        hideOverrideButton() {
+            const el = document.getElementById('verifier-source-override-container');
+            if (el) el.style.display = 'none';
+        }
+
+        // Show the override button only when a citation is selected and the
+        // manual-input panel is not already open.
+        refreshOverrideButton() {
+            const inputOpen = document.getElementById('verifier-source-input-container').style.display === 'block';
+            if (this.activeClaim && !inputOpen && !this.reportMode) {
+                this.showOverrideButton();
+            } else {
+                this.hideOverrideButton();
+            }
+        }
+
         loadManualSourceText() {
             const text = this.sourceTextInput.getValue().trim();
             if (!text) {
                 this.updateStatus('Please enter some source text', true);
                 return;
             }
-            
+
             this.activeSource = `Manual source text:\n\n${text}`;
             document.getElementById('verifier-source-text').innerHTML = `<strong>Manual Source Text:</strong><br><em>${text.substring(0, 200)}${text.length > 200 ? '...' : ''}</em>`;
+            this.sourceInputForOverride = false;
             this.hideSourceTextInput();
             this.updateButtonVisibility();
             this.updateStatus('Source text loaded. Ready to verify.');
         }
-        
+
         cancelManualSourceText() {
+            const wasOverride = this.sourceInputForOverride;
             this.sourceTextInput.setValue('');
+            this.sourceInputForOverride = false;
             this.hideSourceTextInput();
-            this.activeSource = null;
-            document.getElementById('verifier-source-text').textContent = 'No source loaded.';
+            if (!wasOverride) {
+                this.activeSource = null;
+                document.getElementById('verifier-source-text').textContent = 'No source loaded.';
+            }
             this.updateButtonVisibility();
             this.updateStatus('Cancelled');
         }
@@ -2155,6 +2196,11 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             
             this.buttons.cancelText.on('click', () => {
                 this.cancelManualSourceText();
+            });
+
+            this.buttons.overrideText.on('click', () => {
+                this.showSourceTextInput(true);
+                this.updateStatus('Paste replacement source text below, then click Load Text.');
             });
 
             this.buttons.verifyAll.on('click', () => {
@@ -2433,6 +2479,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             document.getElementById('verifier-results').style.display = '';
             // Hide report view
             document.getElementById('verifier-report-view').style.display = 'none';
+            this.refreshOverrideButton();
             this.updateButtonVisibility();
         }
 
