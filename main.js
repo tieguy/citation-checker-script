@@ -867,6 +867,22 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 #verifier-source-input-container {
                     margin-top: 10px;
                 }
+                #verifier-source-override-container .verifier-override-link .oo-ui-buttonElement-button {
+                    padding: 0;
+                    min-height: 0;
+                    font-weight: normal;
+                }
+                #verifier-source-override-container .verifier-override-link .oo-ui-labelElement-label {
+                    font-size: 12px;
+                    color: #54595d;
+                    text-decoration: underline;
+                    text-decoration-color: #a2a9b1;
+                    text-underline-offset: 2px;
+                }
+                #verifier-source-override-container .verifier-override-link:hover .oo-ui-labelElement-label {
+                    color: #202122;
+                    text-decoration-color: #54595d;
+                }
                 #verifier-source-textarea-container .oo-ui-inputWidget {
                     width: 100%;
                 }
@@ -1254,6 +1270,14 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     border-color: #3a3a4e !important;
                     color: #e0e0e0 !important;
                 }
+                html.skin-theme-clientpref-night #verifier-source-override-container .verifier-override-link .oo-ui-labelElement-label {
+                    color: #a0a8b3 !important;
+                    text-decoration-color: #6a7280 !important;
+                }
+                html.skin-theme-clientpref-night #verifier-source-override-container .verifier-override-link:hover .oo-ui-labelElement-label {
+                    color: #e0e0e0 !important;
+                    text-decoration-color: #a0a8b3 !important;
+                }
                 html.skin-theme-clientpref-night #verifier-verdict {
                     color: #e0e0e0 !important;
                 }
@@ -1463,6 +1487,14 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                         background: #2a2a3e !important;
                         border-color: #3a3a4e !important;
                         color: #e0e0e0 !important;
+                    }
+                    html.skin-theme-clientpref-os #verifier-source-override-container .verifier-override-link .oo-ui-labelElement-label {
+                        color: #a0a8b3 !important;
+                        text-decoration-color: #6a7280 !important;
+                    }
+                    html.skin-theme-clientpref-os #verifier-source-override-container .verifier-override-link:hover .oo-ui-labelElement-label {
+                        color: #e0e0e0 !important;
+                        text-decoration-color: #a0a8b3 !important;
                     }
                     html.skin-theme-clientpref-os #verifier-verdict {
                         color: #e0e0e0 !important;
@@ -1696,11 +1728,11 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             });
 
             this.buttons.overrideText = new OO.ui.ButtonWidget({
-                label: 'Override content',
-                icon: 'edit',
+                label: 'Paste source text manually',
                 framed: false,
                 title: 'Replace the fetched source content with text you paste in (e.g., the full article from The Wikipedia Library)'
             });
+            this.buttons.overrideText.$element.addClass('verifier-override-link');
 
             // Article report buttons
             this.buttons.verifyAll = new OO.ui.ButtonWidget({
