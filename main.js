@@ -1015,12 +1015,13 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 body.verifier-sidebar-hidden #t-verifier {
                     display: list-item !important;
                 }
-                /* Keep OOUI dialogs above the sidebar (z-index 10000) and
-                   the resize handle (10001) so they aren't hidden when the
-                   sidebar overlaps the viewport-centered dialog. */
-                .oo-ui-window-manager-modal,
-                .oo-ui-windowManager-modal {
-                    z-index: 10002;
+                /* Wikipedia's #mw-teleport-target wraps OOUI dialogs and has
+                   z-index: 450, which creates a stacking context that caps
+                   any z-index we set on the inner modal. Lift the wrapper
+                   itself above the sidebar (z-index 10000) so confirmation
+                   dialogs render on top instead of being hidden behind it. */
+                #mw-teleport-target {
+                    z-index: 10002 !important;
                 }
                 /* Report view styles */
                 #verifier-report-view h4 {
