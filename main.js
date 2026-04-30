@@ -1,4 +1,4 @@
-// {{Wikipedia:USync |repo=https://github.com/alex-o-748/citation-checker-script |ref=refs/heads/main|path=main.js}}
+// {{Wikipedia:USync |repo=https://github.com/alex-o-748/citation-checker-script |ref=refs/heads/dev|path=main.js}}
 //Inspired by  User:Polygnotus/Scripts/AI_Source_Verification.js
 //Inspired by  User:Phlsph7/SourceVerificationAIAssistant.js
 
@@ -646,6 +646,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             this.currentVerifyId = 0;
 
             this.sourceTextInput = null;
+            this.sourceInputForOverride = false;
 
             // Article report state
             this.reportMode = false;
@@ -732,6 +733,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     <div id="verifier-source-section">
                         <h4>Source Content</h4>
                         <div id="verifier-source-text">No source loaded yet.</div>
+                        <div id="verifier-source-override-container" style="display: none; margin-top: 8px;"></div>
                         <div id="verifier-source-input-container" style="display: none; margin-top: 10px;">
                             <div id="verifier-source-textarea-container"></div>
                             <div id="verifier-source-buttons" style="margin-top: 8px; display: flex; gap: 8px;">
@@ -865,6 +867,22 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 #verifier-source-input-container {
                     margin-top: 10px;
                 }
+                #verifier-source-override-container .verifier-override-link .oo-ui-buttonElement-button {
+                    padding: 0;
+                    min-height: 0;
+                    font-weight: normal;
+                }
+                #verifier-source-override-container .verifier-override-link .oo-ui-labelElement-label {
+                    font-size: 12px;
+                    color: #54595d;
+                    text-decoration: underline;
+                    text-decoration-color: #a2a9b1;
+                    text-underline-offset: 2px;
+                }
+                #verifier-source-override-container .verifier-override-link:hover .oo-ui-labelElement-label {
+                    color: #202122;
+                    text-decoration-color: #54595d;
+                }
                 #verifier-source-textarea-container .oo-ui-inputWidget {
                     width: 100%;
                 }
@@ -996,6 +1014,14 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 body.verifier-sidebar-hidden #ca-verifier,
                 body.verifier-sidebar-hidden #t-verifier {
                     display: list-item !important;
+                }
+                /* Wikipedia's #mw-teleport-target wraps OOUI dialogs and has
+                   z-index: 450, which creates a stacking context that caps
+                   any z-index we set on the inner modal. Lift the wrapper
+                   itself above the sidebar (z-index 10000) so confirmation
+                   dialogs render on top instead of being hidden behind it. */
+                #mw-teleport-target {
+                    z-index: 10002 !important;
                 }
                 /* Report view styles */
                 #verifier-report-view h4 {
@@ -1252,6 +1278,14 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     border-color: #3a3a4e !important;
                     color: #e0e0e0 !important;
                 }
+                html.skin-theme-clientpref-night #verifier-source-override-container .verifier-override-link .oo-ui-labelElement-label {
+                    color: #a0a8b3 !important;
+                    text-decoration-color: #6a7280 !important;
+                }
+                html.skin-theme-clientpref-night #verifier-source-override-container .verifier-override-link:hover .oo-ui-labelElement-label {
+                    color: #e0e0e0 !important;
+                    text-decoration-color: #a0a8b3 !important;
+                }
                 html.skin-theme-clientpref-night #verifier-verdict {
                     color: #e0e0e0 !important;
                 }
@@ -1461,6 +1495,14 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                         background: #2a2a3e !important;
                         border-color: #3a3a4e !important;
                         color: #e0e0e0 !important;
+                    }
+                    html.skin-theme-clientpref-os #verifier-source-override-container .verifier-override-link .oo-ui-labelElement-label {
+                        color: #a0a8b3 !important;
+                        text-decoration-color: #6a7280 !important;
+                    }
+                    html.skin-theme-clientpref-os #verifier-source-override-container .verifier-override-link:hover .oo-ui-labelElement-label {
+                        color: #e0e0e0 !important;
+                        text-decoration-color: #a0a8b3 !important;
                     }
                     html.skin-theme-clientpref-os #verifier-verdict {
                         color: #e0e0e0 !important;
@@ -1693,6 +1735,13 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 flags: ['safe']
             });
 
+            this.buttons.overrideText = new OO.ui.ButtonWidget({
+                label: 'Paste source text manually',
+                framed: false,
+                title: 'Replace the fetched source content with text you paste in (e.g., the full article from The Wikipedia Library)'
+            });
+            this.buttons.overrideText.$element.addClass('verifier-override-link');
+
             // Article report buttons
             this.buttons.verifyAll = new OO.ui.ButtonWidget({
                 label: 'Verify All Citations',
@@ -1726,6 +1775,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             document.getElementById('verifier-source-textarea-container').appendChild(this.sourceTextInput.$element[0]);
             document.getElementById('verifier-load-text-btn-container').appendChild(this.buttons.loadText.$element[0]);
             document.getElementById('verifier-cancel-text-btn-container').appendChild(this.buttons.cancelText.$element[0]);
+            document.getElementById('verifier-source-override-container').appendChild(this.buttons.overrideText.$element[0]);
         }
         
         updateProviderInfo() {
@@ -1969,6 +2019,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 }
 
                 this.updateButtonVisibility();
+                this.refreshOverrideButton();
                 this.updateStatus(contentFetched ? 'Source fetched. Ready to verify.' : 'Ready to verify claim against source');
                 
             } catch (error) {
@@ -1977,35 +2028,66 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             }
         }
         
-        showSourceTextInput() {
+        showSourceTextInput(forOverride = false) {
+            this.sourceInputForOverride = forOverride;
             document.getElementById('verifier-source-input-container').style.display = 'block';
-            document.getElementById('verifier-source-text').textContent = 'No URL found. Please paste the source text below:';
+            if (!forOverride) {
+                document.getElementById('verifier-source-text').textContent = 'No URL found. Please paste the source text below:';
+            }
             this.sourceTextInput.setValue('');
+            this.hideOverrideButton();
         }
-        
+
         hideSourceTextInput() {
             document.getElementById('verifier-source-input-container').style.display = 'none';
+            this.refreshOverrideButton();
         }
-        
+
+        showOverrideButton() {
+            const el = document.getElementById('verifier-source-override-container');
+            if (el) el.style.display = '';
+        }
+
+        hideOverrideButton() {
+            const el = document.getElementById('verifier-source-override-container');
+            if (el) el.style.display = 'none';
+        }
+
+        // Show the override button only when there is a loaded source to override
+        // and the manual-input panel is not already open.
+        refreshOverrideButton() {
+            const inputOpen = document.getElementById('verifier-source-input-container').style.display === 'block';
+            if (this.activeClaim && this.activeSource && !inputOpen && !this.reportMode) {
+                this.showOverrideButton();
+            } else {
+                this.hideOverrideButton();
+            }
+        }
+
         loadManualSourceText() {
             const text = this.sourceTextInput.getValue().trim();
             if (!text) {
                 this.updateStatus('Please enter some source text', true);
                 return;
             }
-            
+
             this.activeSource = `Manual source text:\n\n${text}`;
             document.getElementById('verifier-source-text').innerHTML = `<strong>Manual Source Text:</strong><br><em>${text.substring(0, 200)}${text.length > 200 ? '...' : ''}</em>`;
+            this.sourceInputForOverride = false;
             this.hideSourceTextInput();
             this.updateButtonVisibility();
             this.updateStatus('Source text loaded. Ready to verify.');
         }
-        
+
         cancelManualSourceText() {
+            const wasOverride = this.sourceInputForOverride;
             this.sourceTextInput.setValue('');
+            this.sourceInputForOverride = false;
             this.hideSourceTextInput();
-            this.activeSource = null;
-            document.getElementById('verifier-source-text').textContent = 'No source loaded.';
+            if (!wasOverride) {
+                this.activeSource = null;
+                document.getElementById('verifier-source-text').textContent = 'No source loaded.';
+            }
             this.updateButtonVisibility();
             this.updateStatus('Cancelled');
         }
@@ -2155,6 +2237,11 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             
             this.buttons.cancelText.on('click', () => {
                 this.cancelManualSourceText();
+            });
+
+            this.buttons.overrideText.on('click', () => {
+                this.showSourceTextInput(true);
+                this.updateStatus('Paste replacement source text below, then click Load Text.');
             });
 
             this.buttons.verifyAll.on('click', () => {
@@ -2433,6 +2520,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             document.getElementById('verifier-results').style.display = '';
             // Hide report view
             document.getElementById('verifier-report-view').style.display = 'none';
+            this.refreshOverrideButton();
             this.updateButtonVisibility();
         }
 
