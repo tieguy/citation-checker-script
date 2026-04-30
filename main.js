@@ -1979,6 +1979,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 }
 
                 this.updateButtonVisibility();
+                this.refreshOverrideButton();
                 this.updateStatus(contentFetched ? 'Source fetched. Ready to verify.' : 'Ready to verify claim against source');
                 
             } catch (error) {
@@ -2012,11 +2013,11 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             if (el) el.style.display = 'none';
         }
 
-        // Show the override button only when a citation is selected and the
-        // manual-input panel is not already open.
+        // Show the override button only when there is a loaded source to override
+        // and the manual-input panel is not already open.
         refreshOverrideButton() {
             const inputOpen = document.getElementById('verifier-source-input-container').style.display === 'block';
-            if (this.activeClaim && !inputOpen && !this.reportMode) {
+            if (this.activeClaim && this.activeSource && !inputOpen && !this.reportMode) {
                 this.showOverrideButton();
             } else {
                 this.hideOverrideButton();
