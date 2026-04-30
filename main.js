@@ -987,8 +987,12 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     border-radius: 3px;
                     padding: 2px 6px;
                 }
+                body {
+                    --verifier-sidebar-width: ${this.sidebarWidth};
+                }
                 body.verifier-sidebar-hidden {
                     margin-right: 0 !important;
+                    --verifier-sidebar-width: 0px !important;
                 }
                 body.verifier-sidebar-hidden #source-verifier-sidebar {
                     display: none;
@@ -996,6 +1000,13 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 body.verifier-sidebar-hidden #ca-verifier,
                 body.verifier-sidebar-hidden #t-verifier {
                     display: list-item !important;
+                }
+                /* Keep OOUI dialogs above the sidebar (z-index 10000) and
+                   centered within the visible article area. */
+                .oo-ui-window-manager-modal,
+                .oo-ui-windowManager-modal {
+                    z-index: 10002;
+                    right: var(--verifier-sidebar-width, 0px);
                 }
                 /* Report view styles */
                 #verifier-report-view h4 {
@@ -2076,6 +2087,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     const widthPx = newWidth + 'px';
                     sidebar.style.width = widthPx;
                     document.body.style.marginRight = widthPx;
+                    document.body.style.setProperty('--verifier-sidebar-width', widthPx);
                     this.sidebarWidth = widthPx;
                     localStorage.setItem('verifier_sidebar_width', widthPx);
                 }
