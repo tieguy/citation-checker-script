@@ -44,3 +44,32 @@ test('extractClaimText strips maintenance markers from the returned claim', () =
   assert.ok(!claim.includes('[failed verification]'), `marker leaked into claim: ${claim}`);
   assert.ok(claim.includes('Elvis is still alive'));
 });
+
+test('extractClaimText strips maintenance markers that contain a non-breaking space', () => {
+  // Wikipedia's {{failed verification}} and similar templates are styled
+  // white-space:nowrap and emit U+00A0 between the words in the rendered
+  // bracket text, so range.toString() yields "[failed verification]"
+  // rather than "[failed verification]".
+  const doc = mkDoc(`
+    <p>Elvis is still alive[failed verification].<sup id="cite_ref-1" class="reference"><a href="#cite_note-1">[1]</a></sup></p>
+  `);
+  const ref = doc.getElementById('cite_ref-1');
+  const claim = extractClaimText(ref);
+  assert.ok(!claim.includes('failed') && !claim.includes('verification'),
+    `NBSP marker leaked into claim: ${JSON.stringify(claim)}`);
+  assert.ok(claim.includes('Elvis is still alive'));
+});
+
+test('extractClaimText collapses whitespace left behind after stripping a marker', () => {
+  // Real Wikipedia markup often has a space on both sides of an inline
+  // maintenance template (e.g. "claim text [failed verification] more text"),
+  // so removing the marker leaves a double space in the middle of the claim
+  // unless the cleanup chain re-collapses whitespace afterward.
+  const doc = mkDoc(`
+    <p>Elvis is still alive [failed verification] in Memphis.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1">[1]</a></sup></p>
+  `);
+  const ref = doc.getElementById('cite_ref-1');
+  const claim = extractClaimText(ref);
+  assert.ok(!/\s{2,}/.test(claim), `claim contains run of whitespace: ${JSON.stringify(claim)}`);
+  assert.ok(claim.includes('Elvis is still alive in Memphis'));
+});
