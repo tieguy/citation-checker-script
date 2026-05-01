@@ -1168,7 +1168,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Contradiction [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_80",
@@ -1183,7 +1184,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Implicit Consistency [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_81",
@@ -1198,7 +1200,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Implicit Consistency",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_82",
@@ -1213,7 +1216,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Implicit Consistency",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_83",
@@ -1228,7 +1232,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Implicit Consistency",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_84",
@@ -1243,7 +1248,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Implicit Consistency",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_85",
@@ -1258,7 +1264,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Implicit Consistency",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_86",
@@ -1273,7 +1280,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_87",
@@ -1288,7 +1296,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_88",
@@ -1303,7 +1312,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_89",
@@ -1318,7 +1328,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_90",
@@ -1333,7 +1344,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_91",
@@ -1348,7 +1360,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_92",
@@ -1363,7 +1376,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_93",
@@ -1378,7 +1392,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_94",
@@ -1393,7 +1408,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer: A book by Silvera is #7 on the list, and death-cast is mentioned. But not visible in the source-text excerpt.]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_95",
@@ -1408,7 +1424,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer: It is a two-part claim and one part is clearly supported (albeit by a primary source).]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_96",
@@ -1423,7 +1440,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_97",
@@ -1438,7 +1456,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_98",
@@ -1453,7 +1472,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_99",
@@ -1468,7 +1488,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_100",
@@ -1483,7 +1504,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Accurate Paraphrasing",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_101",
@@ -1498,7 +1520,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Accurate Paraphrasing",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_102",
@@ -1513,7 +1536,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Accurate Paraphrasing",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_103",
@@ -1528,7 +1552,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Accurate Paraphrasing",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_104",
@@ -1543,7 +1568,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Accurate Paraphrasing [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_105",
@@ -1558,7 +1584,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Accurate Paraphrasing [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_106",
@@ -1573,7 +1600,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Accurate Paraphrasing",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_107",
@@ -1588,7 +1616,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Accurate Paraphrasing [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer: Audit correctly identifies one missing sub-claim, but misses another (the date that the audit claims is missing was in the byline).]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_108",
@@ -1603,7 +1632,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Accurate Paraphrasing",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_109",
@@ -1618,7 +1648,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Accurate Paraphrasing",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_110",
@@ -1633,7 +1664,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Unrelated Page",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_111",
@@ -1648,7 +1680,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_112",
@@ -1663,7 +1696,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_113",
@@ -1678,7 +1712,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Supported\" 2026-04-30: hand audit by reviewer: Was a speaker of Arabic from an Arab tribe, and wrote 80 books- admittedly a lot of extrapolation, likely a hard case for us.]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_114",
@@ -1693,7 +1728,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_115",
@@ -1708,7 +1744,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_116",
@@ -1723,7 +1760,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Supported\" 2026-04-30: hand audit by reviewer: December of the previous year is 2024.]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_117",
@@ -1738,7 +1776,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_118",
@@ -1753,7 +1792,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_119",
@@ -1768,7 +1808,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_120",
@@ -1783,7 +1824,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_121",
@@ -1798,7 +1840,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_122",
@@ -1813,7 +1856,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_123",
@@ -1828,7 +1872,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_124",
@@ -1843,7 +1888,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_125",
@@ -1858,7 +1904,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_126",
@@ -1873,7 +1920,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_127",
@@ -1888,7 +1936,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_128",
@@ -1903,7 +1952,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_129",
@@ -1918,7 +1968,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_130",
@@ -1933,7 +1984,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer: no mention of \"full-service\"]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_131",
@@ -1948,7 +2000,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_132",
@@ -1963,7 +2016,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_133",
@@ -1978,7 +2032,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_134",
@@ -1993,7 +2048,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_135",
@@ -2008,7 +2064,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_136",
@@ -2023,7 +2080,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: The source explicitly states that Polydamas swallowtails 'favor open woods, gardens, and disturbed areas' and that 'eggs are laid preferenti; sonnet-4.5 audit, see PR description]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_137",
@@ -2038,7 +2096,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_138",
@@ -2053,7 +2112,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Significant Omission",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_139",
@@ -2068,7 +2128,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Over-Extrapolation [reclassified from \"Not supported\" to \"Supported\" 2026-04-30: The source directly contains the exact claim being verified; sonnet-4.5 audit, see PR description]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_140",
@@ -2083,7 +2144,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Over-Extrapolation [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: The source confirms that the Sioux used the plant medicinally for gastrointestinal illness (specifically diarrhea), stating 'The Sioux boile; sonnet-4.5 audit, see PR description]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_141",
@@ -2098,7 +2160,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Over-Extrapolation [reclassified from \"Supported\" to \"Not supported\" 2026-04-30: WMF=NSup, strict audit=NSup; revert from earlier 11-row audit]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_142",
@@ -2113,7 +2176,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Over-Extrapolation [reclassified from \"Not supported\" to \"Supported\" 2026-04-30: hand audit by reviewer: The information is in the page, but via an Instagram embed.]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_143",
@@ -2128,7 +2192,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Over-Extrapolation [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_144",
@@ -2143,7 +2208,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Over-Extrapolation",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_145",
@@ -2158,7 +2224,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Over-Extrapolation [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_146",
@@ -2173,7 +2240,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Over-Extrapolation [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_147",
@@ -2188,7 +2256,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Insignificant Omission [reclassified from \"Not supported\" 2026-04-30: Insignificant Omission gap is minor; reviewed manually]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_148",
@@ -2198,12 +2267,13 @@
     "claim_container": "Berguer was born in 1940 in A Coruña, Spain. He qualified as a doctor with an MD degree from the University of Barcelona, Spain, in 1962. He trained in general and vascular Surgery at the Henry Ford Hospital in Detroit, Michigan, US. On his return to Spain he joined the opposition to General Franco's dictatorship and was active in the organization of the resistance among professionals. In 1972 he left for England to avoid detention and there he continued to organize international support for Spain's political prisoners with the help of the British Labor Party's leadership. In London he worked at Kings College Hospital and then obtained a PhD in Engineering from the University of Surrey. In 1975 he returned to the US as a surgeon at Wayne State University, Detroit.",
     "source_url": "http://galegos.galiciadigital.com/es/ramon-berguer",
     "source_text": "Es doctor en Medicina (1962) por la Universidad de Barcelona (España), obteniendo el doctorado en Cirugía en 1974 en la Universidad de Santiago (España); doctor en Filosofía (1981), Ingeniero Mecánico (Universidad de Surrey, Reino Unido) y Doctor Honoris Causa (1987) por la Universidad de Marsella (Francia). Entre los cargos que ocupa, destacan: Presidente del Instituto Vascular, en el Centro Médico de Detroit (Universidad de Wayne State), Detroit, MI (2000 - presente); profesor de Cirugía (Univerdiad Wayne State), Detroit, MI; jefe de la división de Cirugía Vascular (Detroit Medical Center/Wayne State University), Detroit, MI; consejero de Cirugía Vascular en el Hospital Infantil de Detroit y coeditor jefe de Annals of Vascular Surgery (Detroit) y Annales de Chirurgie Vasculaire (París). También ha ocupado los puestos de Director del Programa de Entrenamiento de la Asociación de Cirugía Vascular de la Escuela de Medicina de la Universidad de Wayne State y director del \"Acute Stroke Unit Harp\".",
-    "ground_truth": "Not supported",
+    "ground_truth": "Supported",
     "extraction_status": "complete",
     "needs_manual_review": false,
-    "notes": "Original annotator label: No - Insignificant Omission [reclassified from \"Supported\" to \"Not supported\" 2026-04-30: WMF=NSup, strict audit=NSup; revert from earlier insig-fix]",
+    "notes": "Original annotator label: No - Insignificant Omission [reclassified from \"Not supported\" to \"Supported\" 2026-04-30: live source contains \"Fecha de Nacimiento: En 1940\" and \"Lugar de Nacimiento: A Coruña\" in a structured table; the stored source_text snapshot missed the table. Ground truth reflects what an editor following the citation would find on the live page, not our snapshot. Reviewer-verified.]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_149",
@@ -2218,7 +2288,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Insignificant Omission [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_150",
@@ -2233,7 +2304,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Insignificant Omission [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer: Again, date from byline is missing.]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_151",
@@ -2248,7 +2320,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Insignificant Omission [reclassified from \"Not supported\" 2026-04-30: Insignificant Omission gap is minor; reviewed manually]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_152",
@@ -2263,7 +2336,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Contradiction",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_153",
@@ -2278,7 +2352,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Contradiction [reclassified from \"Not supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_154",
@@ -2293,7 +2368,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Contradiction [reclassified from \"Supported\" to \"Partially supported\" 2026-04-30: hand audit by reviewer: missing war details]",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_155",
@@ -2308,7 +2384,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: No - Contradiction",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_156",
@@ -2323,7 +2400,8 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   },
   {
     "id": "row_157",
@@ -2338,6 +2416,7 @@
     "needs_manual_review": false,
     "notes": "Original annotator label: Yes - Direct Evidence",
     "provenance": "human-annotation:source-verification-2026-04-25",
-    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json"
+    "source": "https://gitlab.wikimedia.org/repos/research/source-verification/-/blob/cf70073afd650d765fb4521a66f763140d120c71/data/dataset-annotated.json",
+    "dataset_version": "v3"
   }
 ]
