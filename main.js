@@ -537,7 +537,12 @@ async function callProviderAPI(name, config) {
 // Calls to the Cloudflare Worker proxy: source fetching and verification logging.
 
 
-async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
+// claim is optional. When supplied, the proxy may use it to extract
+// claim-relevant excerpts from long sources instead of returning
+// only the first ~12k chars. The proxy MUST gracefully ignore the
+// `query` param if it does not yet support it, so this is safe to
+// ship before the Worker is updated.
+async function fetchSourceContent(url, pageNum, { claim, workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
     if (isGoogleBooksUrl(url)) {
         console.log('[CitationVerifier] Skipping Google Books URL:', url);
         return null;
@@ -547,6 +552,9 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
         let proxyUrl = `${workerBase}/?fetch=${encodeURIComponent(url)}`;
         if (pageNum) {
             proxyUrl += `&page=${pageNum}`;
+        }
+        if (claim) {
+            proxyUrl += `&query=${encodeURIComponent(claim)}`;
         }
         const response = await fetch(proxyUrl);
         const data = await response.json();
@@ -1979,7 +1987,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 this.updateStatus('Fetching source content...');
                 const fetchId = ++this.currentFetchId;
                 const pageNum = this.extractPageNumber(refElement);
-                const sourceInfo = await this.fetchSourceContent(refUrl, pageNum);
+                const sourceInfo = await this.fetchSourceContent(refUrl, pageNum, claim);
 
                 if (fetchId !== this.currentFetchId) {
                     return;
@@ -2119,8 +2127,8 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             return isGoogleBooksUrl(url);
         }
 
-        async fetchSourceContent(url, pageNum) {
-            return fetchSourceContent(url, pageNum);
+        async fetchSourceContent(url, pageNum, claim) {
+            return fetchSourceContent(url, pageNum, { claim });
         }
         
         highlightClaim(refElement, claim) {
@@ -2955,7 +2963,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     if (!this.sourceCache.has(cacheKey)) {
                         this.updateReportProgress(i, citations.length, `Fetching source for [${citation.citationNumber}]`, startTime);
                         try {
-                            const sourceContent = await this.fetchSourceContent(citation.url, citation.pageNum);
+                            const sourceContent = await this.fetchSourceContent(citation.url, citation.pageNum, citation.claimText);
                             this.sourceCache.set(cacheKey, sourceContent);
                         } catch (e) {
                             this.sourceCache.set(cacheKey, null);
