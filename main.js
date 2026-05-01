@@ -331,15 +331,17 @@ function extractClaimText(refElement) {
     // Get the text content
     let claimText = extractionRange.toString();
 
-    // Clean up the text. Whitespace normalization must run BEFORE the
-    // maintenance-marker strip: Wikipedia's {{failed verification}} and similar
-    // templates use white-space:nowrap and emit U+00A0 (NBSP) between the
-    // words, which the literal-space alternatives in MAINTENANCE_MARKER_RE
-    // would otherwise fail to match.
+    // Clean up the text. Whitespace must be normalized BEFORE the marker
+    // strip (Wikipedia's {{failed verification}} et al. use white-space:nowrap
+    // and emit U+00A0 between the words, which the literal-space alternatives
+    // in MAINTENANCE_MARKER_RE would otherwise fail to match) AND AFTER the
+    // strip (removing a marker that had a leading/trailing space leaves a
+    // double space behind).
     claimText = claimText
         .replace(/\[\d+\]/g, '')                 // Remove reference numbers like [1], [2]
-        .replace(/\s+/g, ' ')                    // Normalize whitespace (incl. NBSP)
+        .replace(/\s+/g, ' ')                    // Normalize whitespace (incl. NBSP) so the marker regex matches
         .replace(MAINTENANCE_MARKER_RE, '')      // Remove maintenance markers like [failed verification]
+        .replace(/\s+/g, ' ')                    // Collapse the gap left by the marker strip
         .trim();
 
     // If we got nothing meaningful, fall back to the container text
@@ -348,6 +350,7 @@ function extractClaimText(refElement) {
             .replace(/\[\d+\]/g, '')
             .replace(/\s+/g, ' ')
             .replace(MAINTENANCE_MARKER_RE, '')
+            .replace(/\s+/g, ' ')
             .trim();
     }
 
