@@ -5,7 +5,14 @@
  * Reads the ground truth CSV and enriches it with claim text and source content
  * by fetching Wikipedia articles and extracting the relevant data.
  *
- * Usage: node extract_dataset.js [--dry-run] [--limit N] [--version v1|v2|all]
+ * Override columns (used by externally-imported rows like the v3/WMF batch):
+ *   - "WMF claim text"  — when non-blank, replaces extractClaimText() output
+ *   - "WMF source URL"  — when non-blank, replaces the URL discovered in the cite_note
+ *   - "WMF provenance"  — when non-blank, populates the row's `provenance` field
+ * When both override columns on a row are filled, the article fetch is skipped
+ * for that row (the row's full identity comes from the CSV + a fresh source fetch).
+ *
+ * Usage: node extract_dataset.js [--dry-run] [--limit N] [--version v1|v2|v3|all]
  *
  * Output:
  *   - dataset.json: Complete enriched dataset
@@ -341,9 +348,20 @@ async function main() {
     for (const [articleUrl, articleRows] of articleGroups) {
         console.log(`\nArticle: ${articleUrl.split('title=')[1]?.split('&')[0] || articleUrl}`);
 
-        // Fetch article HTML (with caching)
-        let document;
-        if (articleCache.has(articleUrl)) {
+        // If every row in this article group has BOTH WMF override columns filled,
+        // we can skip the article fetch entirely — claim text and source URL come
+        // from the CSV directly. Used for externally-imported rows (v3 / WMF dataset)
+        // where the row's audited claim_text differs from what extractClaimText() would
+        // produce and the audited source_url is the canonical citation target.
+        const allRowsHaveFullOverride = articleRows.every(r =>
+            (r['WMF claim text'] || '').trim() && (r['WMF source URL'] || '').trim()
+        );
+
+        // Fetch article HTML (with caching) unless every row is fully overridden.
+        let document = null;
+        if (allRowsHaveFullOverride) {
+            log('  All rows have WMF overrides — skipping article fetch');
+        } else if (articleCache.has(articleUrl)) {
             document = articleCache.get(articleUrl);
         } else {
             if (DRY_RUN) {
@@ -399,15 +417,28 @@ async function main() {
             const citationNumber = parseInt(row['Citation number'], 10);
             // Use explicit "Citation instance" from CSV instead of auto-counting
             const occurrence = parseInt(row['Citation instance'], 10) || 1;
+            const wmfClaimText = (row['WMF claim text'] || '').trim();
+            const wmfSourceUrl = (row['WMF source URL'] || '').trim();
+            const wmfProvenance = (row['WMF provenance'] || '').trim();
 
             console.log(`  Citation [${citationNumber}] (instance ${occurrence})...`);
 
-            // Extract claim text
-            const claims = extractClaimsForCitation(document, citationNumber);
-            const claimData = claims[occurrence - 1] || claims[0] || { text: '', occurrence: 1 };
+            // Claim text: WMF override takes precedence; otherwise extract from article.
+            let claimText, claimContainer, totalOccurrences;
+            if (wmfClaimText) {
+                claimText = wmfClaimText;
+                claimContainer = '';
+                totalOccurrences = null;
+            } else {
+                const claims = extractClaimsForCitation(document, citationNumber);
+                const claimData = claims[occurrence - 1] || claims[0] || { text: '', occurrence: 1 };
+                claimText = claimData.text;
+                claimContainer = claimData.containerText || '';
+                totalOccurrences = claims.length;
+            }
 
-            // Extract reference URL
-            const sourceUrl = extractReferenceUrl(document, citationNumber);
+            // Source URL: WMF override takes precedence; otherwise extract from article.
+            const sourceUrl = wmfSourceUrl || (document ? extractReferenceUrl(document, citationNumber) : null);
 
             // Fetch source content
             let sourceText = '';
@@ -423,15 +454,16 @@ async function main() {
                 article_title: articleUrl.split('title=')[1]?.split('&')[0]?.replace(/_/g, ' ') || '',
                 citation_number: citationNumber,
                 occurrence: occurrence,
-                total_occurrences: claims.length,
-                claim_text: claimData.text,
-                claim_container: claimData.containerText || '',
+                total_occurrences: totalOccurrences,
+                claim_text: claimText,
+                claim_container: claimContainer,
                 source_url: sourceUrl || '',
                 source_text: sourceText,
                 ground_truth: normalizeVerdict(row['Ground truth']),
                 dataset_version: row['Dataset version'] || 'v1',
-                extraction_status: determineStatus(claimData.text, sourceUrl, sourceText),
-                needs_manual_review: !claimData.text || !sourceText
+                extraction_status: determineStatus(claimText, sourceUrl, sourceText),
+                needs_manual_review: !claimText || !sourceText,
+                ...(wmfProvenance ? { provenance: wmfProvenance } : {}),
             };
 
             dataset.push(entry);
