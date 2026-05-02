@@ -93,7 +93,8 @@ const VERSION_FILTER = versionIndex !== -1 ? args[versionIndex + 1] : 'all';
 
 // generateSystemPrompt and generateUserPrompt are imported from core/prompts.js
 // (single source of truth shared with main.js and cli/verify.js). The benchmark
-// used to keep local copies of both that drifted silently — see open-issues #29.
+// used to keep local copies of both that drifted silently from main.js's
+// canonical pair — this PR is the unification.
 //
 // The userscript and CLI both call core.generateUserPrompt(claim, sourceInfo)
 // with sourceInfo shaped as "Source URL: <url>\n\nSource Content:\n<text>";

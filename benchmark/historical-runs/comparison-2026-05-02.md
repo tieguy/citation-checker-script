@@ -1,0 +1,20 @@
+# January vs pre-active April prompt — same dataset, same models
+
+- Generated: 2026-05-02T19:42:30.575Z
+- Dataset: v1+v2+v3, 187 rows, ground truth distribution 49.7% Supported / 25.7% Partially / 24.6% Not supported
+- 5-model panel: openrouter-mistral-small-3.2, openrouter-olmo-3.1-32b, openrouter-deepseek-v3.2, claude-sonnet-4-5, gemini-2.5-flash; 0 errors on either run
+- Plus two synthetic ensembles derived from the 3 OpenRouter panel members (`openrouter-vote-3` for 4-class majority, `openrouter-vote-3-binary` for binary collapse)
+
+## Side-by-side accuracy
+
+All values are %. Δ = pre-active − January (positive = the April prompt helped this provider).
+
+| Provider | Jan Exact | Apr Exact | Δ Exact | Jan Lenient | Apr Lenient | Δ Lenient | Jan Binary | Apr Binary | Δ Binary |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| openrouter-vote-3-binary | 64.7 | 65.8 | +1.1 | 85.0 | 86.6 | +1.6 | 85.0 | 86.6 | +1.6 |
+| gemini-2.5-flash | 62.0 | 61.0 | -1.1 | 78.1 | 80.2 | +2.1 | 78.6 | 80.2 | +1.6 |
+| claude-sonnet-4-5 | 50.8 | 51.3 | +0.5 | 64.7 | 66.3 | +1.6 | 82.4 | 82.9 | +0.5 |
+| openrouter-deepseek-v3.2 | 44.4 | 50.8 | +6.4 | 58.3 | 67.4 | +9.1 | 79.1 | 85.6 | +6.4 |
+| openrouter-mistral-small-3.2 | 46.5 | 50.3 | +3.7 | 68.4 | 72.2 | +3.7 | 84.0 | 84.0 | +0.0 |
+| openrouter-vote-3 | 47.1 | 49.7 | +2.7 | 66.8 | 69.0 | +2.1 | 85.0 | 85.6 | +0.5 |
+| openrouter-olmo-3.1-32b | 46.0 | 39.6 | -6.4 | 59.4 | 57.8 | -1.6 | 74.9 | 73.8 | -1.1 |

@@ -99,11 +99,12 @@ npm run report
 
 | File | Description |
 |------|-------------|
-| `dataset.json` | Enriched dataset with claim/source text |
+| `dataset.json` | Enriched dataset with claim/source text (uses `{metadata, rows}` shape — see "Reproducibility metadata" below) |
 | `dataset_review.csv` | CSV for manual verification |
-| `results.json` | Raw benchmark results |
+| `results.json` | Raw benchmark results (uses `{metadata, rows}` shape) |
 | `analysis.json` | Calculated metrics |
 | `report.md` | Human-readable report |
+| `historical-runs/` | Reference data: past userscript prompts re-scored against the current dataset via the `BENCHMARK_PROMPT_OVERRIDE_FILE` mechanism. See `historical-runs/README.md`. |
 
 ## Dataset Versions
 
@@ -164,9 +165,13 @@ artifact attributes itself to a date. The shape is:
     "prompt_date": "2026-05-02",            // YYYY-MM-DD; the date the prompt
                                             //   was effective (assumes
                                             //   core/prompts.js was at HEAD)
+    "prompt_source": "core/prompts.js",     // path to the prompt used; equals
+                                            //   the value of
+                                            //   BENCHMARK_PROMPT_OVERRIDE_FILE
+                                            //   when overriding for replay
     "dataset_extracted_at": "2026-04-30",   // copied from dataset.json's own
                                             //   metadata at run time
-    "dataset_version_filter": "v1"          // value of --version flag
+    "dataset_version_filter": "v1",         // value of --version flag
 
     // dataset.json fields
     "extracted_at": "2026-04-30",           // YYYY-MM-DD of extraction
@@ -227,7 +232,6 @@ zero errors), plus a side-by-side comparison report. See
 `core/prompts.js` is the **single source of truth** for both the system
 prompt and the user prompt — used by the userscript (`main.js`), the CLI
 (`bin/ccs` / `cli/verify.js`), and the benchmark (via direct ESM import).
-See open-issues #29 for the history of the drift this unification closes;
 `tests/benchmark_prompt_unification.test.js` guards against re-divergence.
 
 The benchmark keeps a thin local wrapper around `core.generateUserPrompt`
