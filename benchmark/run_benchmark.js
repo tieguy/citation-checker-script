@@ -20,7 +20,7 @@ import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { generateSystemPrompt as coreGenerateSystemPrompt, generateUserPrompt as coreGenerateUserPrompt } from '../core/prompts.js';
+import { generateSystemPrompt as coreGenerateSystemPrompt, generateUserPrompt } from '../core/prompts.js';
 import { loadRows, loadMetadata, writeWithMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -96,18 +96,13 @@ const VERSION_FILTER = versionIndex !== -1 ? args[versionIndex + 1] : 'all';
 // used to keep local copies of both that drifted silently from main.js's
 // canonical pair — this PR is the unification.
 //
-// The userscript and CLI both call core.generateUserPrompt(claim, sourceInfo)
-// with sourceInfo shaped as "Source URL: <url>\n\nSource Content:\n<text>";
-// the function then strips the URL prefix via its `Source Content:` regex and
-// returns just the text to the model. We construct sourceInfo the same way
-// here so the benchmark's user prompt is byte-identical to what real users see.
-
-function generateUserPrompt(claimText, sourceText, sourceUrl) {
-    const sourceInfo = sourceUrl
-        ? `Source URL: ${sourceUrl}\n\nSource Content:\n${sourceText}`
-        : `Source Content:\n${sourceText}`;
-    return coreGenerateUserPrompt(claimText, sourceInfo);
-}
+// In the userscript and CLI paths, callers pass `sourceInfo` strings that
+// carry `Source URL: <url>\n\nSource Content:\n<text>` metadata, which
+// core.generateUserPrompt strips via its `Source Content:` regex before
+// emitting the final `Claim: "<claim>"\n\nSource text:\n<text>` shape.
+// The benchmark already has clean `source_text`, so it just passes that
+// directly — core's else-branch uses the input verbatim and produces
+// byte-identical output to the strip path.
 
 /**
  * Resolve the system prompt at run time. Defaults to core/prompts.js
@@ -464,11 +459,7 @@ async function main() {
 
             console.log(`[${++completed}/${totalTasks}] ${entry.id} / ${provider}`);
 
-            const userPrompt = generateUserPrompt(
-                entry.claim_text,
-                entry.source_text,
-                entry.source_url
-            );
+            const userPrompt = generateUserPrompt(entry.claim_text, entry.source_text);
 
             const result = await callProvider(provider, systemPrompt, userPrompt);
 

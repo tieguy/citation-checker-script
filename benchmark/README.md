@@ -234,13 +234,14 @@ prompt and the user prompt — used by the userscript (`main.js`), the CLI
 (`bin/ccs` / `cli/verify.js`), and the benchmark (via direct ESM import).
 `tests/benchmark_prompt_unification.test.js` guards against re-divergence.
 
-The benchmark keeps a thin local wrapper around `core.generateUserPrompt`
-that builds the `Source URL: <url>\n\nSource Content:\n<text>` shape that
-both the userscript and CLI naturally produce. `core.generateUserPrompt`
-then strips the URL prefix via its `Source Content:` regex and returns the
-final text the model sees — so the model receives byte-identical user
-prompts in benchmark and real-world paths (it does NOT see the source URL
-in either).
+The benchmark calls `core.generateUserPrompt(claim, sourceText)` directly —
+the same function the userscript and CLI use. In those other paths,
+callers pass a `sourceInfo` string that sometimes carries
+`Source URL: <url>\n\nSource Content:\n<text>` metadata, which the
+function strips via its `Source Content:` regex. The benchmark already
+has clean `source_text` and just passes that, falling through to core's
+pass-through branch with byte-identical output. Either way the model
+receives `Claim: "<claim>"\n\nSource text:\n<text>` — never the URL.
 
 ## Metrics Explained
 
