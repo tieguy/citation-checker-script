@@ -202,9 +202,14 @@ keep working without migration.
 
 ### Historical-prompt replay
 
-To score a past userscript prompt against the current dataset (the "Q2
-reproducibility" question — "what would real users at time X have seen?"),
-recover the prompt from git and run the benchmark with two env vars:
+The benchmark can score a past version of the userscript prompt against
+the current dataset, to answer questions like *"how would today's models
+have done with the prompt we shipped on date X?"* — useful for measuring
+the impact of past prompt changes, or for sanity-checking whether a
+proposed prompt edit actually moves verdict accuracy.
+
+Recover the historical prompt from git and run the benchmark with two
+env vars:
 
 ```bash
 # 1. Recover the prompt at a historical SHA
