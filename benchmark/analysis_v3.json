@@ -1,0 +1,224 @@
+{
+  "generated": "2026-05-02T00:37:58.857Z",
+  "overview": {
+    "datasetVersion": "all",
+    "totalEntries": 79,
+    "totalCalls": 316,
+    "providers": [
+      "apertus-70b",
+      "qwen-sealion",
+      "claude-sonnet-4-5",
+      "gemini-2.5-flash"
+    ]
+  },
+  "providers": {
+    "apertus-70b": {
+      "name": "Apertus-70b",
+      "model": "swiss-ai/apertus-70b-instruct",
+      "sampleCount": 79,
+      "metrics": {
+        "total": 79,
+        "valid": 79,
+        "errors": 0,
+        "exactMatches": 36,
+        "partialMatches": 26,
+        "exactAccuracy": 0.45569620253164556,
+        "lenientAccuracy": 0.7848101265822784,
+        "binaryAccuracy": 0.7974683544303798,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 19,
+            "Partially supported": 9,
+            "Not supported": 1,
+            "Source unavailable": 2
+          },
+          "Partially supported": {
+            "Supported": 17,
+            "Partially supported": 12,
+            "Not supported": 2,
+            "Source unavailable": 0
+          },
+          "Not supported": {
+            "Supported": 2,
+            "Partially supported": 9,
+            "Not supported": 5,
+            "Source unavailable": 1
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 3893.0886075949365,
+          "min": 1964,
+          "max": 7288
+        },
+        "confidence": {
+          "avg": 79.4,
+          "avgWhenCorrect": 79.30555555555556,
+          "avgWhenWrong": 72.09302325581395,
+          "calibration": 7.212532299741611
+        }
+      }
+    },
+    "qwen-sealion": {
+      "name": "Qwen-sealion",
+      "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+      "sampleCount": 79,
+      "metrics": {
+        "total": 79,
+        "valid": 79,
+        "errors": 0,
+        "exactMatches": 46,
+        "partialMatches": 22,
+        "exactAccuracy": 0.5822784810126582,
+        "lenientAccuracy": 0.8607594936708861,
+        "binaryAccuracy": 0.8734177215189873,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 27,
+            "Partially supported": 1,
+            "Not supported": 1,
+            "Source unavailable": 2
+          },
+          "Partially supported": {
+            "Supported": 21,
+            "Partially supported": 8,
+            "Not supported": 2,
+            "Source unavailable": 0
+          },
+          "Not supported": {
+            "Supported": 2,
+            "Partially supported": 3,
+            "Not supported": 11,
+            "Source unavailable": 1
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 3867.8987341772154,
+          "min": 2785,
+          "max": 7381
+        },
+        "confidence": {
+          "avg": 72.33333333333333,
+          "avgWhenCorrect": 67.17391304347827,
+          "avgWhenWrong": 70.75757575757575,
+          "calibration": -3.5836627140974855
+        }
+      }
+    },
+    "claude-sonnet-4-5": {
+      "name": "Claude-sonnet-4-5",
+      "model": "claude-sonnet-4-5-20250929",
+      "sampleCount": 79,
+      "metrics": {
+        "total": 79,
+        "valid": 79,
+        "errors": 0,
+        "exactMatches": 37,
+        "partialMatches": 18,
+        "exactAccuracy": 0.46835443037974683,
+        "lenientAccuracy": 0.6962025316455697,
+        "binaryAccuracy": 0.8481012658227848,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 26,
+            "Partially supported": 2,
+            "Not supported": 0,
+            "Source unavailable": 3
+          },
+          "Partially supported": {
+            "Supported": 16,
+            "Partially supported": 9,
+            "Not supported": 2,
+            "Source unavailable": 4
+          },
+          "Not supported": {
+            "Supported": 0,
+            "Partially supported": 3,
+            "Not supported": 2,
+            "Source unavailable": 12
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 3898.5443037974683,
+          "min": 2472,
+          "max": 7495
+        },
+        "confidence": {
+          "avg": 82.33333333333333,
+          "avgWhenCorrect": 83.91891891891892,
+          "avgWhenWrong": 43.69047619047619,
+          "calibration": 40.22844272844273
+        }
+      }
+    },
+    "gemini-2.5-flash": {
+      "name": "Gemini-2.5-flash",
+      "model": "gemini-2.5-flash",
+      "sampleCount": 79,
+      "metrics": {
+        "total": 79,
+        "valid": 79,
+        "errors": 0,
+        "exactMatches": 55,
+        "partialMatches": 15,
+        "exactAccuracy": 0.6962025316455697,
+        "lenientAccuracy": 0.8860759493670886,
+        "binaryAccuracy": 0.8860759493670886,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 23,
+            "Partially supported": 5,
+            "Not supported": 2,
+            "Source unavailable": 1
+          },
+          "Partially supported": {
+            "Supported": 10,
+            "Partially supported": 17,
+            "Not supported": 4,
+            "Source unavailable": 0
+          },
+          "Not supported": {
+            "Supported": 1,
+            "Partially supported": 1,
+            "Not supported": 15,
+            "Source unavailable": 0
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 3749.0886075949365,
+          "min": 1358,
+          "max": 16386
+        },
+        "confidence": {
+          "avg": 64.15384615384616,
+          "avgWhenCorrect": 53.90909090909091,
+          "avgWhenWrong": 50.208333333333336,
+          "calibration": 3.700757575757571
+        }
+      }
+    }
+  }
+}
