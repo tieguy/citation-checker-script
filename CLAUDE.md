@@ -16,13 +16,16 @@ benchmark/
   run_benchmark.js               # Run LLM verification on dataset
   analyze_results.js             # Calculate metrics and confusion matrices
   generate_comparison.js         # Generate comparison CSV
-  dataset.json                   # 110 claim-citation pairs (v1: 76 original + v2: 34 added)
+  dataset.json                   # 189 claim-citation pairs (v1: 76 + v2: 34 + v3: 79)
   dataset_v1.json                # Frozen v1 snapshot for reproducing original analysis
+  dataset_v3.json                # Frozen v3 snapshot (post strict-rubric audit, 2026-04-30)
   results.json                   # Raw benchmark results
   results_v1.json                # Frozen v1 results snapshot
+  results_v3.json                # Frozen v3 results snapshot
   analysis.json                  # Calculated metrics
   analysis_v1.json               # Frozen v1 analysis snapshot
-Benchmarking_data_Citations.csv  # Source ground truth data (with Dataset version column)
+  analysis_v3.json               # Frozen v3 analysis snapshot
+Benchmarking_data_Citations.csv  # Source ground truth data (Dataset version + WMF override columns)
 docs/                            # Reference docs + design plans (see docs/README.md)
 ```
 
@@ -71,12 +74,16 @@ npm install
 npm run extract               # Extract dataset from Wikipedia (all rows)
 npm run extract:dry           # Dry-run extraction
 npm run extract:v1            # Extract only original v1 rows (reproducing baseline)
+npm run extract:v3            # Extract only v3 (WMF) rows
 npm run benchmark             # Run benchmarks on all providers (all rows)
 npm run benchmark:publicai    # Run specific provider
 npm run benchmark:v1          # Run benchmark on v1 entries only
+npm run benchmark:v3          # Run benchmark on v3 entries only
 npm run analyze               # Analyze results
 npm run analyze:v1            # Analyze results filtered to v1 entries
 npm run analyze:v1-snapshot   # Re-derive analysis from frozen v1 snapshots
+npm run analyze:v3            # Analyze results filtered to v3 entries
+npm run analyze:v3-snapshot   # Re-derive analysis from frozen v3 snapshots
 npm run report                # Generate markdown report
 ```
 
