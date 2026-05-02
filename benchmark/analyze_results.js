@@ -22,6 +22,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { loadRows } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -278,8 +279,8 @@ function main() {
         process.exit(1);
     }
 
-    // Load data
-    let results = JSON.parse(fs.readFileSync(RESULTS_PATH, 'utf-8'));
+    // Load data (loadRows handles both legacy [...rows] and new {metadata, rows} shapes)
+    let results = loadRows(RESULTS_PATH);
     console.log(`Loaded ${results.length} results from ${path.basename(RESULTS_PATH)}`);
 
     if (VERSION_FILTER !== 'all') {
@@ -287,7 +288,7 @@ function main() {
             console.error(`--version filter requires dataset at ${DATASET_PATH}; not found.`);
             process.exit(1);
         }
-        const dataset = JSON.parse(fs.readFileSync(DATASET_PATH, 'utf-8'));
+        const dataset = loadRows(DATASET_PATH);
         const versionById = new Map(dataset.map(e => [e.id, e.dataset_version || 'v1']));
         const before = results.length;
         results = results.filter(r => (versionById.get(r.entry_id) || 'v1') === VERSION_FILTER);

@@ -20,6 +20,7 @@ import { JSDOM } from 'jsdom';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { extractClaimText as extractClaimTextFromRef } from '../core/claim.js';
+import { writeWithMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -443,9 +444,15 @@ async function main() {
         return;
     }
 
-    // Write JSON output
+    // Write JSON output with metadata header so downstream runs can attribute
+    // their results to a specific extraction date. See benchmark/README.md
+    // "Reproducibility metadata" for the schema.
     console.log(`\nWriting: ${OUTPUT_JSON}`);
-    fs.writeFileSync(OUTPUT_JSON, JSON.stringify(dataset, null, 2));
+    const datasetMetadata = {
+        extracted_at: todayIso(),
+        version_filter: VERSION_FILTER
+    };
+    writeWithMetadata(OUTPUT_JSON, datasetMetadata, dataset);
 
     // Write review CSV
     console.log(`Writing: ${OUTPUT_REVIEW_CSV}`);

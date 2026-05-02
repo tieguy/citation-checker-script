@@ -20,6 +20,8 @@ import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { generateSystemPrompt } from '../core/prompts.js';
+import { loadRows, loadMetadata, writeWithMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -89,72 +91,15 @@ const versionIndex = args.indexOf('--version');
 // to benchmark, so the original 76-row v1 analysis can be reproduced on demand.
 const VERSION_FILTER = versionIndex !== -1 ? args[versionIndex + 1] : 'all';
 
-/**
- * Generate the system prompt (same as main.js)
- */
-function generateSystemPrompt() {
-    return `You are an assistant helping to verify whether claims from Wikipedia are supported by their cited sources.
-
-Your task is to analyze whether the provided source text supports the claim from the Wikipedia article.
-
-IMPORTANT GUIDELINES:
-1. ONLY use the information provided in the source text to make your determination
-2. Do NOT use any external knowledge about the topic
-3. Consider a claim "supported" if the source contains information that directly or reasonably confirms the claim
-4. Accept paraphrasing - the exact words don't need to match, but the meaning should
-5. Be careful to distinguish between facts stated as certain vs. speculation or disputed claims
-6. If the source text appears to be an error page, paywall, login page, or doesn't contain actual article content, mark as "SOURCE UNAVAILABLE"
-
-ABOUT SOURCES:
-Usable source content includes:
-- Actual article text from websites, news outlets, or blogs
-- Press releases or official statements
-- Archive.org snapshots of articles
-- Book or document content
-
-Unusable sources (mark as SOURCE UNAVAILABLE):
-- Library catalog entries (e.g., WorldCat, Google Books previews showing only metadata)
-- Paywall or login-required pages
-- Database search results without actual content
-- Cookie consent or error pages
-- 404 or "page not found" messages
-- Just bibliographic information without the actual source content
-
-Provide your response in valid JSON format with these fields:
-{
-  "confidence": <number from 0-100>,
-  "verdict": "<SUPPORTED|PARTIALLY SUPPORTED|NOT SUPPORTED|SOURCE UNAVAILABLE>",
-  "comments": "<brief quote from source if supported, or explanation if not>"
-}
-
-Confidence scoring guidelines:
-- 80-100: Claim is clearly and directly supported by source
-- 50-79: Claim is partially supported (some aspects confirmed, others not)
-- 1-49: Claim is not supported by the source content
-- 0: Source is unavailable or unusable
-
-EXAMPLES:
-
-Example 1:
-Claim: "The company was founded in 1985"
-Source: "Acme Corp, established in 1985, has grown to become..."
-Result: {"confidence": 95, "verdict": "SUPPORTED", "comments": "Source states 'established in 1985'"}
-
-Example 2:
-Claim: "The population increased by 25% between 2010 and 2020"
-Source: "Census data shows the population grew from 100,000 to 120,000 over the decade"
-Result: {"confidence": 60, "verdict": "PARTIALLY SUPPORTED", "comments": "Source confirms population growth but shows 20% increase, not 25%"}
-
-Example 3:
-Claim: "The building was designed by Frank Lloyd Wright"
-Source: "The historic structure was built in 1923 and features art deco elements"
-Result: {"confidence": 10, "verdict": "NOT SUPPORTED", "comments": "Source describes the building but does not mention the architect"}
-
-Example 4:
-Claim: "The treaty was signed in 1648"
-Source: "Access denied. Please log in to view this content."
-Result: {"confidence": 0, "verdict": "SOURCE UNAVAILABLE", "comments": "Source requires login and does not provide content"}`;
-}
+// generateSystemPrompt is imported from core/prompts.js (single source of truth
+// shared with main.js). The benchmark used to keep a local copy that drifted
+// silently — see open-issues #29.
+//
+// generateUserPrompt stays local for now: the benchmark passes a sourceUrl
+// that the userscript path doesn't, and unifying that signature is a separate
+// decision (does the model see the URL or not?). Keeping the local user-prompt
+// builder makes #29 a no-op for the *user* prompt and isolates the system
+// prompt change.
 
 /**
  * Generate user prompt for a claim/source pair
@@ -424,8 +369,9 @@ async function main() {
         process.exit(1);
     }
 
-    // Load dataset
-    const dataset = JSON.parse(fs.readFileSync(DATASET_PATH, 'utf-8'));
+    // Load dataset (handles both legacy [...rows] and new {metadata, rows} shapes)
+    const dataset = loadRows(DATASET_PATH);
+    const datasetMetadata = loadMetadata(DATASET_PATH);
     console.log(`Loaded ${dataset.length} entries from dataset`);
 
     // Filter to complete entries only
@@ -474,13 +420,22 @@ async function main() {
     const completedIds = new Set();
 
     if (RESUME && fs.existsSync(RESULTS_PATH)) {
-        results = JSON.parse(fs.readFileSync(RESULTS_PATH, 'utf-8'));
+        results = loadRows(RESULTS_PATH);
         results.forEach(r => completedIds.add(`${r.entry_id}|${r.provider}`));
         console.log(`Resuming: ${completedIds.size} results already completed`);
     }
 
     // Generate prompts
     const systemPrompt = generateSystemPrompt();
+
+    // Run-time metadata captured once and written into the results file header.
+    // See benchmark/README.md "Reproducibility metadata" for the schema.
+    const runMetadata = {
+        run_at: new Date().toISOString(),
+        prompt_date: todayIso(),
+        dataset_extracted_at: datasetMetadata.extracted_at || null,
+        dataset_version_filter: VERSION_FILTER
+    };
 
     // Run benchmarks
     const totalTasks = entries.length * availableProviders.length;
@@ -521,7 +476,7 @@ async function main() {
             });
 
             // Save after each result (for resume capability)
-            fs.writeFileSync(RESULTS_PATH, JSON.stringify(results, null, 2));
+            writeWithMetadata(RESULTS_PATH, runMetadata, results);
 
             // Rate limiting between calls
             await sleep(1000);

@@ -150,6 +150,64 @@ npm run analyze:v1     # writes analysis.json over v1 results
 Working with the expanded v1 + v2 set is the default — just run `npm run
 extract`, `npm run benchmark`, and `npm run analyze` with no flags.
 
+## Reproducibility metadata
+
+`dataset.json` and `results.json` (plus any new frozen `*_vN.json` snapshots
+written from now on) carry a `metadata` block alongside their row data so each
+artifact attributes itself to a date. The shape is:
+
+```jsonc
+{
+  "metadata": {
+    // results.json fields
+    "run_at": "2026-05-02T15:30:00Z",       // ISO timestamp of run start
+    "prompt_date": "2026-05-02",            // YYYY-MM-DD; the date the prompt
+                                            //   was effective (assumes
+                                            //   core/prompts.js was at HEAD)
+    "dataset_extracted_at": "2026-04-30",   // copied from dataset.json's own
+                                            //   metadata at run time
+    "dataset_version_filter": "v1"          // value of --version flag
+
+    // dataset.json fields
+    "extracted_at": "2026-04-30",           // YYYY-MM-DD of extraction
+    "version_filter": "all"                 // value of --version flag
+  },
+  "rows": [ /* same row shape as before */ ]
+}
+```
+
+This is a **deliberate MVP** — date-based, not git-SHA-based. Reproducibility
+is best-effort: to know what the prompt was on `2026-05-02`, run `git log --
+core/prompts.js`. If you ran with uncommitted local edits, `prompt_date`
+records when the run happened, not what was in the prompt at that moment;
+that's on you to remember.
+
+**Not captured** (deliberately, for now): the proxy version that produced
+`source_text`, individual git SHAs of touched files, model API
+sub-versions, OS environment. Add these only when a real reproducibility
+question makes them load-bearing.
+
+### Backward compatibility
+
+Frozen historical snapshots (`dataset_v1.json`, `results_v1.json`,
+`analysis_v1.json`) are kept in their legacy bare-array shape. All readers
+(`run_benchmark.js`, `analyze_results.js`, `generate_comparison.js`) accept
+both shapes via `benchmark/io.js`'s `loadRows()` helper, so older snapshots
+keep working without migration.
+
+### Where the prompt lives
+
+`core/prompts.js`'s `generateSystemPrompt()` is the **single source of truth**
+for the system prompt — used by both the userscript (via main.js) and the
+benchmark (via direct ESM import). See open-issues #29 for the history of
+this drift; `tests/benchmark_prompt_unification.test.js` guards against
+re-divergence.
+
+The user prompt (`generateUserPrompt`) is intentionally still local to
+`run_benchmark.js` because the benchmark embeds the source URL into the
+prompt and the userscript does not — that's a separate decision about what
+the model should see, not a unification gap.
+
 ## Metrics Explained
 
 - **Exact Accuracy**: Predicted verdict exactly matches ground truth
