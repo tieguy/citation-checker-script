@@ -197,16 +197,19 @@ keep working without migration.
 
 ### Where the prompt lives
 
-`core/prompts.js`'s `generateSystemPrompt()` is the **single source of truth**
-for the system prompt — used by both the userscript (via main.js) and the
-benchmark (via direct ESM import). See open-issues #29 for the history of
-this drift; `tests/benchmark_prompt_unification.test.js` guards against
-re-divergence.
+`core/prompts.js` is the **single source of truth** for both the system
+prompt and the user prompt — used by the userscript (`main.js`), the CLI
+(`bin/ccs` / `cli/verify.js`), and the benchmark (via direct ESM import).
+See open-issues #29 for the history of the drift this unification closes;
+`tests/benchmark_prompt_unification.test.js` guards against re-divergence.
 
-The user prompt (`generateUserPrompt`) is intentionally still local to
-`run_benchmark.js` because the benchmark embeds the source URL into the
-prompt and the userscript does not — that's a separate decision about what
-the model should see, not a unification gap.
+The benchmark keeps a thin local wrapper around `core.generateUserPrompt`
+that builds the `Source URL: <url>\n\nSource Content:\n<text>` shape that
+both the userscript and CLI naturally produce. `core.generateUserPrompt`
+then strips the URL prefix via its `Source Content:` regex and returns the
+final text the model sees — so the model receives byte-identical user
+prompts in benchmark and real-world paths (it does NOT see the source URL
+in either).
 
 ## Metrics Explained
 

@@ -20,7 +20,7 @@ import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { generateSystemPrompt } from '../core/prompts.js';
+import { generateSystemPrompt, generateUserPrompt as coreGenerateUserPrompt } from '../core/prompts.js';
 import { loadRows, loadMetadata, writeWithMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -91,34 +91,21 @@ const versionIndex = args.indexOf('--version');
 // to benchmark, so the original 76-row v1 analysis can be reproduced on demand.
 const VERSION_FILTER = versionIndex !== -1 ? args[versionIndex + 1] : 'all';
 
-// generateSystemPrompt is imported from core/prompts.js (single source of truth
-// shared with main.js). The benchmark used to keep a local copy that drifted
-// silently — see open-issues #29.
+// generateSystemPrompt and generateUserPrompt are imported from core/prompts.js
+// (single source of truth shared with main.js and cli/verify.js). The benchmark
+// used to keep local copies of both that drifted silently — see open-issues #29.
 //
-// generateUserPrompt stays local for now: the benchmark passes a sourceUrl
-// that the userscript path doesn't, and unifying that signature is a separate
-// decision (does the model see the URL or not?). Keeping the local user-prompt
-// builder makes #29 a no-op for the *user* prompt and isolates the system
-// prompt change.
+// The userscript and CLI both call core.generateUserPrompt(claim, sourceInfo)
+// with sourceInfo shaped as "Source URL: <url>\n\nSource Content:\n<text>";
+// the function then strips the URL prefix via its `Source Content:` regex and
+// returns just the text to the model. We construct sourceInfo the same way
+// here so the benchmark's user prompt is byte-identical to what real users see.
 
-/**
- * Generate user prompt for a claim/source pair
- */
 function generateUserPrompt(claimText, sourceText, sourceUrl) {
-    let sourceContent = sourceText;
-    if (sourceUrl) {
-        sourceContent = `Source URL: ${sourceUrl}\n\nSource Content:\n${sourceText}`;
-    }
-
-    return `Please analyze whether this source supports the following claim.
-
-CLAIM FROM WIKIPEDIA:
-${claimText}
-
-SOURCE:
-${sourceContent}
-
-Provide your analysis in JSON format.`;
+    const sourceInfo = sourceUrl
+        ? `Source URL: ${sourceUrl}\n\nSource Content:\n${sourceText}`
+        : `Source Content:\n${sourceText}`;
+    return coreGenerateUserPrompt(claimText, sourceInfo);
 }
 
 /**
