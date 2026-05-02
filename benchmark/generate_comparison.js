@@ -3,11 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { loadRows } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const results = JSON.parse(fs.readFileSync(path.join(__dirname, 'results.json'), 'utf-8'));
+// loadRows handles both legacy [...rows] and new {metadata, rows} shapes.
+const results = loadRows(path.join(__dirname, 'results.json'));
 
 // Group by entry_id
 const byEntry = {};

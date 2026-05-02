@@ -99,11 +99,12 @@ npm run report
 
 | File | Description |
 |------|-------------|
-| `dataset.json` | Enriched dataset with claim/source text |
+| `dataset.json` | Enriched dataset with claim/source text (uses `{metadata, rows}` shape — see "Reproducibility metadata" below) |
 | `dataset_review.csv` | CSV for manual verification |
-| `results.json` | Raw benchmark results |
+| `results.json` | Raw benchmark results (uses `{metadata, rows}` shape) |
 | `analysis.json` | Calculated metrics |
 | `report.md` | Human-readable report |
+| `historical-runs/` | Reference data: past userscript prompts re-scored against the current dataset via the `BENCHMARK_PROMPT_OVERRIDE_FILE` mechanism. See `historical-runs/README.md`. |
 
 ## Dataset Versions
 
@@ -176,6 +177,103 @@ The same flags apply for v3 (`extract:v3`, `benchmark:v3`, `analyze:v3`).
 
 Working with the expanded v1 + v2 + v3 set is the default — just run `npm run
 extract`, `npm run benchmark`, and `npm run analyze` with no flags.
+
+## Reproducibility metadata
+
+`dataset.json` and `results.json` (plus any new frozen `*_vN.json` snapshots
+written from now on) carry a `metadata` block alongside their row data so each
+artifact attributes itself to a date. The shape is:
+
+```jsonc
+{
+  "metadata": {
+    // results.json fields
+    "run_at": "2026-05-02T15:30:00Z",       // ISO timestamp of run start
+    "prompt_date": "2026-05-02",            // YYYY-MM-DD; the date the prompt
+                                            //   was effective (assumes
+                                            //   core/prompts.js was at HEAD)
+    "prompt_source": "core/prompts.js",     // path to the prompt used; equals
+                                            //   the value of
+                                            //   BENCHMARK_PROMPT_OVERRIDE_FILE
+                                            //   when overriding for replay
+    "dataset_extracted_at": "2026-04-30",   // copied from dataset.json's own
+                                            //   metadata at run time
+    "dataset_version_filter": "v1",         // value of --version flag
+
+    // dataset.json fields
+    "extracted_at": "2026-04-30",           // YYYY-MM-DD of extraction
+    "version_filter": "all"                 // value of --version flag
+  },
+  "rows": [ /* same row shape as before */ ]
+}
+```
+
+This is a **deliberate MVP** — date-based, not git-SHA-based. Reproducibility
+is best-effort: to know what the prompt was on `2026-05-02`, run `git log --
+core/prompts.js`. If you ran with uncommitted local edits, `prompt_date`
+records when the run happened, not what was in the prompt at that moment;
+that's on you to remember.
+
+**Not captured** (deliberately, for now): the proxy version that produced
+`source_text`, individual git SHAs of touched files, model API
+sub-versions, OS environment. Add these only when a real reproducibility
+question makes them load-bearing.
+
+### Backward compatibility
+
+Frozen historical snapshots (`dataset_v1.json`, `results_v1.json`,
+`analysis_v1.json`) are kept in their legacy bare-array shape. All readers
+(`run_benchmark.js`, `analyze_results.js`, `generate_comparison.js`) accept
+both shapes via `benchmark/io.js`'s `loadRows()` helper, so older snapshots
+keep working without migration.
+
+### Historical-prompt replay
+
+The benchmark can score a past version of the userscript prompt against
+the current dataset, to answer questions like *"how would today's models
+have done with the prompt we shipped on date X?"* — useful for measuring
+the impact of past prompt changes, or for sanity-checking whether a
+proposed prompt edit actually moves verdict accuracy.
+
+Recover the historical prompt from git and run the benchmark with two
+env vars:
+
+```bash
+# 1. Recover the prompt at a historical SHA
+git show 16f365a:main.js | \
+  awk '/generateSystemPrompt/,/^[[:space:]]*}[[:space:]]*$/' | \
+  awk '/return `/,/`;/' | sed '1s/^[^`]*`//; $s/`;.*$//' \
+  > /tmp/january-prompt.txt
+
+# 2. Run the benchmark with the override + historical date for metadata
+BENCHMARK_PROMPT_OVERRIDE_FILE=/tmp/january-prompt.txt \
+BENCHMARK_PROMPT_DATE=2026-01-20 \
+  node run_benchmark.js --providers=claude-sonnet-4-5,gemini-2.5-flash --version all
+```
+
+Each result row's `metadata.prompt_date` and `metadata.prompt_source` will
+record the historical date and the override path so the run is attributable.
+
+`benchmark/historical-runs/` contains a worked example: the
+2026-01-20 and 2026-04-19 userscript prompts run against the v1+v2+v3
+dataset (5 models, zero errors), plus a side-by-side comparison report.
+See `benchmark/historical-runs/README.md`.
+
+### Where the prompt lives
+
+`core/prompts.js` is the **single source of truth** for both the system
+prompt and the user prompt — used by the userscript (`main.js`), the CLI
+(`bin/ccs` / `cli/verify.js`), and the benchmark (via direct ESM import).
+`tests/benchmark_prompt_unification.test.js` guards against re-divergence.
+
+The benchmark calls `core.generateUserPrompt(claim, sourceText)` directly —
+the same function the userscript and CLI use. In those other paths,
+callers pass a `sourceInfo` string that sometimes carries
+`Source URL: <url>\n\nSource Content:\n<text>` metadata, which the
+function strips via its `Source Content:` regex. The benchmark already
+has clean `source_text` and just passes that, falling through to core's
+pass-through branch with byte-identical output. Either way the model
+receives `Claim: "<claim>"\n\nSource text:\n<text>` — never the URL.
 
 ## Metrics Explained
 
