@@ -227,10 +227,10 @@ BENCHMARK_PROMPT_DATE=2026-01-20 \
 Each result row's `metadata.prompt_date` and `metadata.prompt_source` will
 record the historical date and the override path so the run is attributable.
 
-`benchmark/historical-runs/` contains a worked example: the January 2026 and
-pre-active-April 2026 prompts run against the v1+v2+v3 dataset (5 models,
-zero errors), plus a side-by-side comparison report. See
-`benchmark/historical-runs/README.md`.
+`benchmark/historical-runs/` contains a worked example: the
+2026-01-20 and 2026-04-19 userscript prompts run against the v1+v2+v3
+dataset (5 models, zero errors), plus a side-by-side comparison report.
+See `benchmark/historical-runs/README.md`.
 
 ### Where the prompt lives
 

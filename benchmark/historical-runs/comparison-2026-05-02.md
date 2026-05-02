@@ -1,4 +1,4 @@
-# January vs pre-active April prompt — same dataset, same models
+# January (2026-01-20) vs April (2026-04-19) userscript prompt — same dataset, same models
 
 - Generated: 2026-05-02T19:42:30.575Z
 - Dataset: v1+v2+v3, 187 rows, ground truth distribution 49.7% Supported / 25.7% Partially / 24.6% Not supported
@@ -7,7 +7,7 @@
 
 ## Side-by-side accuracy
 
-All values are %. Δ = pre-active − January (positive = the April prompt helped this provider).
+All values are %. Δ = April − January (positive = the April prompt helped this provider).
 
 | Provider | Jan Exact | Apr Exact | Δ Exact | Jan Lenient | Apr Lenient | Δ Lenient | Jan Binary | Apr Binary | Δ Binary |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|

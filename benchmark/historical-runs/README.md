@@ -3,18 +3,27 @@
 Worked example of the historical-replay capability added in PR #165
 (`BENCHMARK_PROMPT_OVERRIDE_FILE` env var in `run_benchmark.js`). These
 files were generated on 2026-05-02 by running each historical userscript
-prompt against the v1+v2+v3 dataset (187 entries) with the 5-model panel
-used in the OpenRouter overnight experiment:
+prompt against the v1+v2+v3 dataset (187 entries) with a five-model panel:
 
-- `openrouter-mistral-small-3.2`
-- `openrouter-olmo-3.1-32b`
-- `openrouter-deepseek-v3.2`
-- `claude-sonnet-4-5`
-- `gemini-2.5-flash`
+- **Three open-weight models routed through OpenRouter**, deliberately
+  chosen to match the "Cheap-3" cohort used by the wikidata-SIFT
+  citation-verification project (a separate but similar effort) — useful
+  as a controlled comparison point and as candidates for an ensemble
+  vote:
+  - `openrouter-mistral-small-3.2`
+  - `openrouter-olmo-3.1-32b`
+  - `openrouter-deepseek-v3.2`
+- **Two closed-weight models** for a baseline against widely-used
+  general-purpose APIs:
+  - `claude-sonnet-4-5`
+  - `gemini-2.5-flash`
 
 Each results file also contains synthetic ensemble rows
 (`openrouter-vote-3` and `openrouter-vote-3-binary`, computed via
-`compute_ensemble.js`) over the three OpenRouter panel members.
+`compute_ensemble.js`) — a 3-model majority vote across the OpenRouter
+panel members. The 4-class variant uses the modal class with a
+tiebreaker rank when all three differ; the binary variant collapses each
+verdict to support / no-support before the vote.
 
 ## What's here
 
@@ -22,7 +31,7 @@ Each results file also contains synthetic ensemble rows
 |---|---|
 | `2026-01-20-prompt.txt` | The system prompt as it lived in `main.js` at commit `16f365a` (the original `main.js`, day 1 of the project) — `generateSystemPrompt`'s template-literal body, verbatim. |
 | `2026-01-20-results.json` | Result rows from running the 2026-01-20 prompt: 5 providers × 187 entries + 374 synthetic ensemble rows = 1309 rows total. Zero errors. |
-| `2026-04-19-prompt.txt` | The system prompt at commit `00a87d4` — the last `main.js` commit before the project's external contributor (`luis@lu.is`) made his first push. Three additions Alex made between January and that date: transliteration handling, IA-snapshot recognition, and the "if article content is present, the source IS usable" clause. This text is byte-equivalent to today's `core/prompts.js` (modulo whitespace). |
+| `2026-04-19-prompt.txt` | The system prompt at commit `00a87d4` — the last `main.js` commit before any external contributions to the repo. Three additions made between January and that date: transliteration handling, Internet Archive / Wayback snapshot recognition, and an explicit "if article content is present, the source IS usable" clause. This text is byte-equivalent to today's `core/prompts.js` (modulo whitespace). |
 | `2026-04-19-results.json` | Result rows from running the 2026-04-19 prompt; same shape as above. Zero errors. |
 | `comparison-2026-05-02.md` | Side-by-side delta report (Jan→Apr per provider, on Exact / Lenient / Binary). |
 
@@ -50,13 +59,10 @@ mv results.json benchmark/historical-runs/2026-01-20-results.json
 node compute_ensemble.js --results=benchmark/historical-runs/2026-01-20-results.json --write
 ```
 
-(In practice the experiment ran in two phases — OpenRouter providers first
-overnight, then Claude+Gemini added via `--resume` once those keys arrived
-the next morning.)
-
-The 5-model panel is documented above; the 3-model voting panel
-(Mistral+OLMo+DeepSeek through OpenRouter) follows the wikidata-SIFT
-"Cheap-3" cohort. See the PR description for context.
+`run_benchmark.js`'s `--resume` flag lets you build up a result file
+across multiple invocations (skipping `entry_id|provider` pairs already
+present), which is convenient when not all API keys are available at
+once or when adding a new provider to an existing run.
 
 ## Caveats — what these data accurately reflect
 
@@ -79,7 +85,7 @@ The 5-model panel is documented above; the 3-model voting panel
 
 ## Headline finding
 
-Alex's three prompt additions between January and pre-active April were
+The three prompt additions between the January and April-19 versions were
 net-positive at the ensemble level (`openrouter-vote-3-binary` +1.1 pp
 Exact, +1.6 pp Binary), with substantial individual-model gains for
 DeepSeek (+6.4 pp Exact, +9.1 pp Lenient) and Mistral (+3.7 pp Exact),
