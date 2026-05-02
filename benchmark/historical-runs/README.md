@@ -1,9 +1,10 @@
 # Historical-prompt replay runs
 
-Worked example of the historical-replay capability added in PR #165
-(`BENCHMARK_PROMPT_OVERRIDE_FILE` env var in `run_benchmark.js`). These
-files were generated on 2026-05-02 by running each historical userscript
-prompt against the v1+v2+v3 dataset (187 entries) with a five-model panel:
+This directory contains worked examples of the historical-replay capability 
+added in PR #165, allowing us to see more easily how the tool has improved 
+(or regressed) over time. These files were generated on 2026-05-02 by 
+running two "historical" (January and mid-April, 2026) prompts against 
+the v1+v2+v3 dataset (187 entries) with a five-model panel:
 
 - **Three open-weight models routed through OpenRouter** — small enough
   to be cheap to run, diverse enough that a 3-way majority vote across
