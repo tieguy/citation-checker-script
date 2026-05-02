@@ -7,12 +7,16 @@
     "extract": "node extract_dataset.js",
     "extract:dry": "node extract_dataset.js --dry-run",
     "extract:v1": "node extract_dataset.js --version v1",
+    "extract:v3": "node extract_dataset.js --version v3",
     "benchmark": "node run_benchmark.js",
     "benchmark:publicai": "node run_benchmark.js --providers=publicai",
     "benchmark:v1": "node run_benchmark.js --version v1",
+    "benchmark:v3": "node run_benchmark.js --version v3",
     "analyze": "node analyze_results.js",
     "analyze:v1": "node analyze_results.js --version v1",
     "analyze:v1-snapshot": "node analyze_results.js --results results_v1.json --dataset dataset_v1.json --analysis analysis_v1_recomputed.json",
+    "analyze:v3": "node analyze_results.js --version v3",
+    "analyze:v3-snapshot": "node analyze_results.js --results results_v3.json --dataset dataset_v3.json --analysis analysis_v3_recomputed.json",
     "report": "node analyze_results.js --output report.md"
   },
   "dependencies": {

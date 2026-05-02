@@ -114,9 +114,31 @@ analyses.
 - `v1` — the original 76 rows used for the published benchmark.
 - `v2` — 34 negative-class additions (mostly "Not supported" / "Partially
   supported") that broaden topic coverage.
+- `v3` — 79 rows imported from the WMF source-verification annotation
+  dataset (per-row provenance: `human-annotation:source-verification-2026-04-25`).
+  These rows were re-audited under the strict-rubric WP:V/WP:CITE methodology
+  on 2026-04-30; the post-audit verdict distribution is in `analysis_v3.json`.
 
 The `dataset_version` field is propagated into each `dataset.json` entry and
-each script accepts a `--version v1|v2|all` filter (default: `all`).
+each script accepts a `--version v1|v2|v3|all` filter (default: `all`).
+
+### Override columns for externally-imported rows
+
+`Benchmarking_data_Citations.csv` carries three additional columns used only
+when a row's claim/source data was imported from outside the Wikipedia
+extraction pipeline (currently: v3 / WMF rows):
+
+| Column | Purpose |
+|--------|---------|
+| `WMF claim text` | Replaces `extractClaimText()` output for this row |
+| `WMF source URL` | Replaces the URL discovered in the article's cite_note |
+| `WMF provenance` | Populates the `provenance` field on the dataset entry |
+
+When a row has both `WMF claim text` and `WMF source URL` filled,
+`extract_dataset.js` skips the article fetch for that row entirely — the row's
+claim and source identity comes from the CSV, and only the source content is
+fetched fresh. v1 and v2 rows leave these columns blank and behave exactly
+as before.
 
 ### Reproducing the original v1 analysis
 
@@ -129,13 +151,16 @@ mutable working files:
 | `results_v1.json` | v1 raw LLM results |
 | `analysis_v1.json` | v1 calculated metrics |
 | `results_comparison_v1.csv` | v1 per-row comparison |
+| `dataset_v3.json` | v3 dataset slice at strict-rubric audit completion (2026-04-30) |
+| `results_v3.json` | v3 LLM results against the post-audit ground truth |
+| `analysis_v3.json` | v3 calculated metrics |
 
-Re-derive the v1 metrics from the snapshots without touching the current
+Re-derive the v1 or v3 metrics from the snapshots without touching the current
 files:
 
 ```bash
-npm run analyze:v1-snapshot
-# writes analysis_v1_recomputed.json — should match analysis_v1.json
+npm run analyze:v1-snapshot   # writes analysis_v1_recomputed.json
+npm run analyze:v3-snapshot   # writes analysis_v3_recomputed.json
 ```
 
 Re-run the full v1 pipeline (network + API keys required; LLM calls are
@@ -147,7 +172,9 @@ npm run benchmark:v1   # writes results.json for v1 entries only
 npm run analyze:v1     # writes analysis.json over v1 results
 ```
 
-Working with the expanded v1 + v2 set is the default — just run `npm run
+The same flags apply for v3 (`extract:v3`, `benchmark:v3`, `analyze:v3`).
+
+Working with the expanded v1 + v2 + v3 set is the default — just run `npm run
 extract`, `npm run benchmark`, and `npm run analyze` with no flags.
 
 ## Metrics Explained
