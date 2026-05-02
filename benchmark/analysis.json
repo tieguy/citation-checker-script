@@ -1,9 +1,9 @@
 {
-  "generated": "2026-05-01T06:22:28.150Z",
+  "generated": "2026-05-02T01:19:15.989Z",
   "overview": {
     "datasetVersion": "all",
-    "totalEntries": 155,
-    "totalCalls": 620,
+    "totalEntries": 186,
+    "totalCalls": 744,
     "providers": [
       "apertus-70b",
       "qwen-sealion",
@@ -15,11 +15,11 @@
     "apertus-70b": {
       "name": "Apertus-70b",
       "model": "swiss-ai/apertus-70b-instruct",
-      "sampleCount": 155,
+      "sampleCount": 186,
       "metrics": {
-        "total": 155,
+        "total": 186,
         "valid": 155,
-        "errors": 0,
+        "errors": 31,
         "exactMatches": 84,
         "partialMatches": 47,
         "exactAccuracy": 0.5419354838709678,
@@ -52,8 +52,8 @@
           }
         },
         "latency": {
-          "avg": 3993.567741935484,
-          "min": 1964,
+          "avg": 3443.1774193548385,
+          "min": 504,
           "max": 9519
         },
         "confidence": {
@@ -67,11 +67,11 @@
     "qwen-sealion": {
       "name": "Qwen-sealion",
       "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
-      "sampleCount": 155,
+      "sampleCount": 186,
       "metrics": {
-        "total": 155,
+        "total": 186,
         "valid": 155,
-        "errors": 0,
+        "errors": 31,
         "exactMatches": 102,
         "partialMatches": 32,
         "exactAccuracy": 0.6580645161290323,
@@ -104,8 +104,8 @@
           }
         },
         "latency": {
-          "avg": 3987.0774193548386,
-          "min": 2477,
+          "avg": 3425.2741935483873,
+          "min": 458,
           "max": 7381
         },
         "confidence": {
@@ -119,34 +119,34 @@
     "claude-sonnet-4-5": {
       "name": "Claude-sonnet-4-5",
       "model": "claude-sonnet-4-5-20250929",
-      "sampleCount": 155,
+      "sampleCount": 186,
       "metrics": {
-        "total": 155,
-        "valid": 155,
+        "total": 186,
+        "valid": 186,
         "errors": 0,
-        "exactMatches": 94,
-        "partialMatches": 25,
-        "exactAccuracy": 0.6064516129032258,
-        "lenientAccuracy": 0.7677419354838709,
-        "binaryAccuracy": 0.8709677419354839,
+        "exactMatches": 101,
+        "partialMatches": 28,
+        "exactAccuracy": 0.543010752688172,
+        "lenientAccuracy": 0.6935483870967742,
+        "binaryAccuracy": 0.8548387096774194,
         "confusionMatrix": {
           "Supported": {
             "Supported": 78,
-            "Partially supported": 5,
+            "Partially supported": 6,
             "Not supported": 3,
             "Source unavailable": 6
           },
           "Partially supported": {
-            "Supported": 20,
-            "Partially supported": 14,
-            "Not supported": 2,
+            "Supported": 22,
+            "Partially supported": 16,
+            "Not supported": 4,
             "Source unavailable": 5
           },
           "Not supported": {
-            "Supported": 0,
-            "Partially supported": 4,
-            "Not supported": 2,
-            "Source unavailable": 16
+            "Supported": 2,
+            "Partially supported": 7,
+            "Not supported": 7,
+            "Source unavailable": 30
           },
           "Source unavailable": {
             "Supported": 0,
@@ -156,48 +156,48 @@
           }
         },
         "latency": {
-          "avg": 4021.5870967741935,
+          "avg": 4021.1182795698924,
           "min": 2377,
-          "max": 8794
+          "max": 8974
         },
         "confidence": {
-          "avg": 83.828125,
-          "avgWhenCorrect": 86.70212765957447,
-          "avgWhenWrong": 42.295081967213115,
-          "calibration": 44.40704569236136
+          "avg": 79.93055555555556,
+          "avgWhenCorrect": 82.47524752475248,
+          "avgWhenWrong": 37.411764705882355,
+          "calibration": 45.06348281887012
         }
       }
     },
     "gemini-2.5-flash": {
       "name": "Gemini-2.5-flash",
       "model": "gemini-2.5-flash",
-      "sampleCount": 155,
+      "sampleCount": 186,
       "metrics": {
-        "total": 155,
-        "valid": 155,
+        "total": 186,
+        "valid": 186,
         "errors": 0,
-        "exactMatches": 96,
-        "partialMatches": 38,
-        "exactAccuracy": 0.6193548387096774,
-        "lenientAccuracy": 0.864516129032258,
-        "binaryAccuracy": 0.864516129032258,
+        "exactMatches": 119,
+        "partialMatches": 39,
+        "exactAccuracy": 0.6397849462365591,
+        "lenientAccuracy": 0.8494623655913979,
+        "binaryAccuracy": 0.8494623655913979,
         "confusionMatrix": {
           "Supported": {
-            "Supported": 54,
+            "Supported": 55,
             "Partially supported": 27,
             "Not supported": 9,
             "Source unavailable": 2
           },
           "Partially supported": {
-            "Supported": 11,
-            "Partially supported": 24,
-            "Not supported": 5,
+            "Supported": 12,
+            "Partially supported": 26,
+            "Not supported": 8,
             "Source unavailable": 1
           },
           "Not supported": {
             "Supported": 1,
-            "Partially supported": 3,
-            "Not supported": 18,
+            "Partially supported": 7,
+            "Not supported": 38,
             "Source unavailable": 0
           },
           "Source unavailable": {
@@ -208,15 +208,15 @@
           }
         },
         "latency": {
-          "avg": 3875.0516129032258,
+          "avg": 3742.1989247311826,
           "min": 1358,
           "max": 16386
         },
         "confidence": {
-          "avg": 68.2905982905983,
-          "avgWhenCorrect": 60.416666666666664,
-          "avgWhenWrong": 37.11864406779661,
-          "calibration": 23.298022598870055
+          "avg": 60,
+          "avgWhenCorrect": 52.60504201680672,
+          "avgWhenWrong": 37.3134328358209,
+          "calibration": 15.291609180985823
         }
       }
     }

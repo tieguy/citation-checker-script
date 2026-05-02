@@ -3692,7 +3692,7 @@
     "timestamp": "2026-04-30T22:46:56.560Z"
   },
   {
-    "entry_id": "row_79",
+    "entry_id": "row_112",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -3705,7 +3705,7 @@
     "timestamp": "2026-04-30T22:47:01.249Z"
   },
   {
-    "entry_id": "row_79",
+    "entry_id": "row_112",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -3718,7 +3718,7 @@
     "timestamp": "2026-04-30T22:47:06.367Z"
   },
   {
-    "entry_id": "row_79",
+    "entry_id": "row_112",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -3731,7 +3731,7 @@
     "timestamp": "2026-04-30T22:47:10.874Z"
   },
   {
-    "entry_id": "row_79",
+    "entry_id": "row_112",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -3744,7 +3744,7 @@
     "timestamp": "2026-04-30T22:47:15.379Z"
   },
   {
-    "entry_id": "row_80",
+    "entry_id": "row_113",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -3757,7 +3757,7 @@
     "timestamp": "2026-04-30T22:47:23.061Z"
   },
   {
-    "entry_id": "row_80",
+    "entry_id": "row_113",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -3770,7 +3770,7 @@
     "timestamp": "2026-04-30T22:47:30.126Z"
   },
   {
-    "entry_id": "row_80",
+    "entry_id": "row_113",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -3783,7 +3783,7 @@
     "timestamp": "2026-04-30T22:47:36.688Z"
   },
   {
-    "entry_id": "row_81",
+    "entry_id": "row_114",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -3796,7 +3796,7 @@
     "timestamp": "2026-04-30T22:47:40.775Z"
   },
   {
-    "entry_id": "row_81",
+    "entry_id": "row_114",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -3809,7 +3809,7 @@
     "timestamp": "2026-04-30T22:47:45.792Z"
   },
   {
-    "entry_id": "row_81",
+    "entry_id": "row_114",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -3822,7 +3822,7 @@
     "timestamp": "2026-04-30T22:47:50.225Z"
   },
   {
-    "entry_id": "row_81",
+    "entry_id": "row_114",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -3835,7 +3835,7 @@
     "timestamp": "2026-04-30T22:47:54.311Z"
   },
   {
-    "entry_id": "row_82",
+    "entry_id": "row_115",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -3848,7 +3848,7 @@
     "timestamp": "2026-04-30T22:47:58.696Z"
   },
   {
-    "entry_id": "row_82",
+    "entry_id": "row_115",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -3861,7 +3861,7 @@
     "timestamp": "2026-04-30T22:48:02.683Z"
   },
   {
-    "entry_id": "row_82",
+    "entry_id": "row_115",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -3874,7 +3874,7 @@
     "timestamp": "2026-04-30T22:48:06.580Z"
   },
   {
-    "entry_id": "row_82",
+    "entry_id": "row_115",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -3887,7 +3887,7 @@
     "timestamp": "2026-04-30T22:48:10.167Z"
   },
   {
-    "entry_id": "row_83",
+    "entry_id": "row_116",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -3900,7 +3900,7 @@
     "timestamp": "2026-04-30T22:48:14.568Z"
   },
   {
-    "entry_id": "row_83",
+    "entry_id": "row_116",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -3913,7 +3913,7 @@
     "timestamp": "2026-04-30T22:48:19.384Z"
   },
   {
-    "entry_id": "row_83",
+    "entry_id": "row_116",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -3926,7 +3926,7 @@
     "timestamp": "2026-04-30T22:48:23.118Z"
   },
   {
-    "entry_id": "row_83",
+    "entry_id": "row_116",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -3939,7 +3939,7 @@
     "timestamp": "2026-04-30T22:48:27.184Z"
   },
   {
-    "entry_id": "row_84",
+    "entry_id": "row_117",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -3952,7 +3952,7 @@
     "timestamp": "2026-04-30T22:48:32.692Z"
   },
   {
-    "entry_id": "row_84",
+    "entry_id": "row_117",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -3965,7 +3965,7 @@
     "timestamp": "2026-04-30T22:48:38.428Z"
   },
   {
-    "entry_id": "row_84",
+    "entry_id": "row_117",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -3978,7 +3978,7 @@
     "timestamp": "2026-04-30T22:48:43.140Z"
   },
   {
-    "entry_id": "row_84",
+    "entry_id": "row_117",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -3991,7 +3991,7 @@
     "timestamp": "2026-04-30T22:48:46.612Z"
   },
   {
-    "entry_id": "row_85",
+    "entry_id": "row_118",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4004,7 +4004,7 @@
     "timestamp": "2026-04-30T22:48:50.313Z"
   },
   {
-    "entry_id": "row_85",
+    "entry_id": "row_118",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4017,7 +4017,7 @@
     "timestamp": "2026-04-30T22:48:54.788Z"
   },
   {
-    "entry_id": "row_85",
+    "entry_id": "row_118",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4030,7 +4030,7 @@
     "timestamp": "2026-04-30T22:49:00.238Z"
   },
   {
-    "entry_id": "row_86",
+    "entry_id": "row_119",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4043,7 +4043,7 @@
     "timestamp": "2026-04-30T22:49:07.716Z"
   },
   {
-    "entry_id": "row_86",
+    "entry_id": "row_119",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4056,7 +4056,7 @@
     "timestamp": "2026-04-30T22:49:13.652Z"
   },
   {
-    "entry_id": "row_86",
+    "entry_id": "row_119",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4069,7 +4069,7 @@
     "timestamp": "2026-04-30T22:49:17.749Z"
   },
   {
-    "entry_id": "row_86",
+    "entry_id": "row_119",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4082,7 +4082,7 @@
     "timestamp": "2026-04-30T22:49:26.965Z"
   },
   {
-    "entry_id": "row_87",
+    "entry_id": "row_120",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4095,7 +4095,7 @@
     "timestamp": "2026-04-30T22:49:30.059Z"
   },
   {
-    "entry_id": "row_87",
+    "entry_id": "row_120",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4108,7 +4108,7 @@
     "timestamp": "2026-04-30T22:49:34.341Z"
   },
   {
-    "entry_id": "row_87",
+    "entry_id": "row_120",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4121,7 +4121,7 @@
     "timestamp": "2026-04-30T22:49:39.354Z"
   },
   {
-    "entry_id": "row_87",
+    "entry_id": "row_120",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4134,7 +4134,7 @@
     "timestamp": "2026-04-30T22:49:41.813Z"
   },
   {
-    "entry_id": "row_88",
+    "entry_id": "row_121",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4147,7 +4147,7 @@
     "timestamp": "2026-04-30T22:49:46.317Z"
   },
   {
-    "entry_id": "row_88",
+    "entry_id": "row_121",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4160,7 +4160,7 @@
     "timestamp": "2026-04-30T22:49:51.132Z"
   },
   {
-    "entry_id": "row_88",
+    "entry_id": "row_121",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4173,7 +4173,7 @@
     "timestamp": "2026-04-30T22:49:54.901Z"
   },
   {
-    "entry_id": "row_88",
+    "entry_id": "row_121",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4186,7 +4186,7 @@
     "timestamp": "2026-04-30T22:49:57.889Z"
   },
   {
-    "entry_id": "row_89",
+    "entry_id": "row_122",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4199,7 +4199,7 @@
     "timestamp": "2026-04-30T22:50:01.782Z"
   },
   {
-    "entry_id": "row_89",
+    "entry_id": "row_122",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4212,7 +4212,7 @@
     "timestamp": "2026-04-30T22:50:05.994Z"
   },
   {
-    "entry_id": "row_89",
+    "entry_id": "row_122",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4225,7 +4225,7 @@
     "timestamp": "2026-04-30T22:50:10.176Z"
   },
   {
-    "entry_id": "row_89",
+    "entry_id": "row_122",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4238,7 +4238,7 @@
     "timestamp": "2026-04-30T22:50:13.264Z"
   },
   {
-    "entry_id": "row_90",
+    "entry_id": "row_123",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4251,7 +4251,7 @@
     "timestamp": "2026-04-30T22:50:17.141Z"
   },
   {
-    "entry_id": "row_90",
+    "entry_id": "row_123",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4264,7 +4264,7 @@
     "timestamp": "2026-04-30T22:50:21.256Z"
   },
   {
-    "entry_id": "row_90",
+    "entry_id": "row_123",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4277,7 +4277,7 @@
     "timestamp": "2026-04-30T22:50:26.052Z"
   },
   {
-    "entry_id": "row_90",
+    "entry_id": "row_123",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4290,7 +4290,7 @@
     "timestamp": "2026-04-30T22:50:32.703Z"
   },
   {
-    "entry_id": "row_91",
+    "entry_id": "row_124",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4303,7 +4303,7 @@
     "timestamp": "2026-04-30T22:50:36.863Z"
   },
   {
-    "entry_id": "row_91",
+    "entry_id": "row_124",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4316,7 +4316,7 @@
     "timestamp": "2026-04-30T22:50:42.847Z"
   },
   {
-    "entry_id": "row_91",
+    "entry_id": "row_124",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4329,7 +4329,7 @@
     "timestamp": "2026-04-30T22:50:46.631Z"
   },
   {
-    "entry_id": "row_91",
+    "entry_id": "row_124",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4342,7 +4342,7 @@
     "timestamp": "2026-04-30T22:50:51.036Z"
   },
   {
-    "entry_id": "row_92",
+    "entry_id": "row_125",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4355,7 +4355,7 @@
     "timestamp": "2026-04-30T22:50:55.810Z"
   },
   {
-    "entry_id": "row_92",
+    "entry_id": "row_125",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4368,7 +4368,7 @@
     "timestamp": "2026-04-30T22:50:59.991Z"
   },
   {
-    "entry_id": "row_92",
+    "entry_id": "row_125",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4381,7 +4381,7 @@
     "timestamp": "2026-04-30T22:51:04.962Z"
   },
   {
-    "entry_id": "row_92",
+    "entry_id": "row_125",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4394,7 +4394,7 @@
     "timestamp": "2026-04-30T22:51:08.239Z"
   },
   {
-    "entry_id": "row_93",
+    "entry_id": "row_126",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4407,7 +4407,7 @@
     "timestamp": "2026-04-30T22:51:12.838Z"
   },
   {
-    "entry_id": "row_93",
+    "entry_id": "row_126",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4420,7 +4420,7 @@
     "timestamp": "2026-04-30T22:51:17.147Z"
   },
   {
-    "entry_id": "row_93",
+    "entry_id": "row_126",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4433,7 +4433,7 @@
     "timestamp": "2026-04-30T22:51:20.938Z"
   },
   {
-    "entry_id": "row_93",
+    "entry_id": "row_126",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4446,7 +4446,7 @@
     "timestamp": "2026-04-30T22:51:24.133Z"
   },
   {
-    "entry_id": "row_94",
+    "entry_id": "row_127",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -4459,7 +4459,7 @@
     "timestamp": "2026-04-30T22:51:30.361Z"
   },
   {
-    "entry_id": "row_94",
+    "entry_id": "row_127",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -4472,7 +4472,7 @@
     "timestamp": "2026-04-30T22:51:34.761Z"
   },
   {
-    "entry_id": "row_94",
+    "entry_id": "row_127",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -4485,7 +4485,7 @@
     "timestamp": "2026-04-30T22:51:38.889Z"
   },
   {
-    "entry_id": "row_95",
+    "entry_id": "row_128",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -4498,7 +4498,7 @@
     "timestamp": "2026-04-30T22:51:43.391Z"
   },
   {
-    "entry_id": "row_95",
+    "entry_id": "row_128",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -4511,7 +4511,7 @@
     "timestamp": "2026-04-30T22:51:48.586Z"
   },
   {
-    "entry_id": "row_95",
+    "entry_id": "row_128",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -4524,7 +4524,7 @@
     "timestamp": "2026-04-30T22:51:54.438Z"
   },
   {
-    "entry_id": "row_95",
+    "entry_id": "row_128",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -4537,7 +4537,7 @@
     "timestamp": "2026-04-30T22:52:11.830Z"
   },
   {
-    "entry_id": "row_96",
+    "entry_id": "row_129",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4550,7 +4550,7 @@
     "timestamp": "2026-04-30T22:52:16.054Z"
   },
   {
-    "entry_id": "row_96",
+    "entry_id": "row_129",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4563,7 +4563,7 @@
     "timestamp": "2026-04-30T22:52:20.222Z"
   },
   {
-    "entry_id": "row_96",
+    "entry_id": "row_129",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4576,7 +4576,7 @@
     "timestamp": "2026-04-30T22:52:23.709Z"
   },
   {
-    "entry_id": "row_96",
+    "entry_id": "row_129",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4589,7 +4589,7 @@
     "timestamp": "2026-04-30T22:52:27.602Z"
   },
   {
-    "entry_id": "row_97",
+    "entry_id": "row_130",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4602,7 +4602,7 @@
     "timestamp": "2026-04-30T22:52:31.115Z"
   },
   {
-    "entry_id": "row_97",
+    "entry_id": "row_130",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4615,7 +4615,7 @@
     "timestamp": "2026-04-30T22:52:34.975Z"
   },
   {
-    "entry_id": "row_97",
+    "entry_id": "row_130",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4628,7 +4628,7 @@
     "timestamp": "2026-04-30T22:52:38.454Z"
   },
   {
-    "entry_id": "row_97",
+    "entry_id": "row_130",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4641,7 +4641,7 @@
     "timestamp": "2026-04-30T22:52:40.817Z"
   },
   {
-    "entry_id": "row_98",
+    "entry_id": "row_131",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4654,7 +4654,7 @@
     "timestamp": "2026-04-30T22:52:48.009Z"
   },
   {
-    "entry_id": "row_98",
+    "entry_id": "row_131",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4667,7 +4667,7 @@
     "timestamp": "2026-04-30T22:52:52.995Z"
   },
   {
-    "entry_id": "row_98",
+    "entry_id": "row_131",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4680,7 +4680,7 @@
     "timestamp": "2026-04-30T22:52:59.452Z"
   },
   {
-    "entry_id": "row_99",
+    "entry_id": "row_132",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4693,7 +4693,7 @@
     "timestamp": "2026-04-30T22:53:04.459Z"
   },
   {
-    "entry_id": "row_99",
+    "entry_id": "row_132",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4706,7 +4706,7 @@
     "timestamp": "2026-04-30T22:53:09.379Z"
   },
   {
-    "entry_id": "row_99",
+    "entry_id": "row_132",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4719,7 +4719,7 @@
     "timestamp": "2026-04-30T22:53:14.386Z"
   },
   {
-    "entry_id": "row_99",
+    "entry_id": "row_132",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4732,7 +4732,7 @@
     "timestamp": "2026-04-30T22:53:21.053Z"
   },
   {
-    "entry_id": "row_100",
+    "entry_id": "row_133",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4745,7 +4745,7 @@
     "timestamp": "2026-04-30T22:53:25.763Z"
   },
   {
-    "entry_id": "row_100",
+    "entry_id": "row_133",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4758,7 +4758,7 @@
     "timestamp": "2026-04-30T22:53:29.888Z"
   },
   {
-    "entry_id": "row_100",
+    "entry_id": "row_133",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4771,7 +4771,7 @@
     "timestamp": "2026-04-30T22:53:34.033Z"
   },
   {
-    "entry_id": "row_100",
+    "entry_id": "row_133",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4784,7 +4784,7 @@
     "timestamp": "2026-04-30T22:53:37.540Z"
   },
   {
-    "entry_id": "row_101",
+    "entry_id": "row_134",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4797,7 +4797,7 @@
     "timestamp": "2026-04-30T22:53:41.329Z"
   },
   {
-    "entry_id": "row_101",
+    "entry_id": "row_134",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4810,7 +4810,7 @@
     "timestamp": "2026-04-30T22:53:45.429Z"
   },
   {
-    "entry_id": "row_101",
+    "entry_id": "row_134",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4823,7 +4823,7 @@
     "timestamp": "2026-04-30T22:53:49.652Z"
   },
   {
-    "entry_id": "row_101",
+    "entry_id": "row_134",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4836,7 +4836,7 @@
     "timestamp": "2026-04-30T22:53:52.185Z"
   },
   {
-    "entry_id": "row_102",
+    "entry_id": "row_135",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4849,7 +4849,7 @@
     "timestamp": "2026-04-30T22:53:57.360Z"
   },
   {
-    "entry_id": "row_102",
+    "entry_id": "row_135",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4862,7 +4862,7 @@
     "timestamp": "2026-04-30T22:54:02.525Z"
   },
   {
-    "entry_id": "row_102",
+    "entry_id": "row_135",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4875,7 +4875,7 @@
     "timestamp": "2026-04-30T22:54:07.582Z"
   },
   {
-    "entry_id": "row_102",
+    "entry_id": "row_135",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4888,7 +4888,7 @@
     "timestamp": "2026-04-30T22:54:13.780Z"
   },
   {
-    "entry_id": "row_103",
+    "entry_id": "row_136",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -4901,7 +4901,7 @@
     "timestamp": "2026-04-30T22:54:19.548Z"
   },
   {
-    "entry_id": "row_103",
+    "entry_id": "row_136",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -4914,7 +4914,7 @@
     "timestamp": "2026-04-30T22:54:24.132Z"
   },
   {
-    "entry_id": "row_103",
+    "entry_id": "row_136",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -4927,7 +4927,7 @@
     "timestamp": "2026-04-30T22:54:28.313Z"
   },
   {
-    "entry_id": "row_103",
+    "entry_id": "row_136",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -4940,7 +4940,7 @@
     "timestamp": "2026-04-30T22:54:31.709Z"
   },
   {
-    "entry_id": "row_104",
+    "entry_id": "row_137",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -4953,7 +4953,7 @@
     "timestamp": "2026-04-30T22:54:35.112Z"
   },
   {
-    "entry_id": "row_104",
+    "entry_id": "row_137",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -4966,7 +4966,7 @@
     "timestamp": "2026-04-30T22:54:39.266Z"
   },
   {
-    "entry_id": "row_104",
+    "entry_id": "row_137",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -4979,7 +4979,7 @@
     "timestamp": "2026-04-30T22:54:43.891Z"
   },
   {
-    "entry_id": "row_104",
+    "entry_id": "row_137",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -4992,7 +4992,7 @@
     "timestamp": "2026-04-30T22:54:46.457Z"
   },
   {
-    "entry_id": "row_105",
+    "entry_id": "row_138",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -5005,7 +5005,7 @@
     "timestamp": "2026-04-30T22:54:51.303Z"
   },
   {
-    "entry_id": "row_105",
+    "entry_id": "row_138",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -5018,7 +5018,7 @@
     "timestamp": "2026-04-30T22:54:55.672Z"
   },
   {
-    "entry_id": "row_105",
+    "entry_id": "row_138",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -5031,7 +5031,7 @@
     "timestamp": "2026-04-30T22:55:00.912Z"
   },
   {
-    "entry_id": "row_106",
+    "entry_id": "row_139",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -5044,7 +5044,7 @@
     "timestamp": "2026-04-30T22:55:11.711Z"
   },
   {
-    "entry_id": "row_106",
+    "entry_id": "row_139",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -5057,7 +5057,7 @@
     "timestamp": "2026-04-30T22:55:16.698Z"
   },
   {
-    "entry_id": "row_106",
+    "entry_id": "row_139",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -5070,7 +5070,7 @@
     "timestamp": "2026-04-30T22:55:21.930Z"
   },
   {
-    "entry_id": "row_106",
+    "entry_id": "row_139",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -5083,7 +5083,7 @@
     "timestamp": "2026-04-30T22:55:24.857Z"
   },
   {
-    "entry_id": "row_107",
+    "entry_id": "row_140",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -5096,7 +5096,7 @@
     "timestamp": "2026-04-30T22:55:31.717Z"
   },
   {
-    "entry_id": "row_107",
+    "entry_id": "row_140",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -5109,7 +5109,7 @@
     "timestamp": "2026-04-30T22:55:36.224Z"
   },
   {
-    "entry_id": "row_107",
+    "entry_id": "row_140",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -5122,7 +5122,7 @@
     "timestamp": "2026-04-30T22:55:40.497Z"
   },
   {
-    "entry_id": "row_108",
+    "entry_id": "row_141",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -5135,7 +5135,7 @@
     "timestamp": "2026-04-30T22:55:47.900Z"
   },
   {
-    "entry_id": "row_108",
+    "entry_id": "row_141",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -5148,7 +5148,7 @@
     "timestamp": "2026-04-30T22:55:52.301Z"
   },
   {
-    "entry_id": "row_108",
+    "entry_id": "row_141",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -5161,7 +5161,7 @@
     "timestamp": "2026-04-30T22:55:55.821Z"
   },
   {
-    "entry_id": "row_109",
+    "entry_id": "row_142",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -5174,7 +5174,7 @@
     "timestamp": "2026-04-30T22:56:02.059Z"
   },
   {
-    "entry_id": "row_109",
+    "entry_id": "row_142",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -5187,7 +5187,7 @@
     "timestamp": "2026-04-30T22:56:06.152Z"
   },
   {
-    "entry_id": "row_109",
+    "entry_id": "row_142",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -5200,7 +5200,7 @@
     "timestamp": "2026-04-30T22:56:11.603Z"
   },
   {
-    "entry_id": "row_110",
+    "entry_id": "row_143",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -5213,7 +5213,7 @@
     "timestamp": "2026-04-30T22:56:16.615Z"
   },
   {
-    "entry_id": "row_110",
+    "entry_id": "row_143",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -5226,7 +5226,7 @@
     "timestamp": "2026-04-30T22:56:21.399Z"
   },
   {
-    "entry_id": "row_110",
+    "entry_id": "row_143",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -5239,7 +5239,7 @@
     "timestamp": "2026-04-30T22:56:25.746Z"
   },
   {
-    "entry_id": "row_110",
+    "entry_id": "row_143",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -5252,7 +5252,7 @@
     "timestamp": "2026-04-30T22:56:28.604Z"
   },
   {
-    "entry_id": "row_111",
+    "entry_id": "row_144",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -5265,7 +5265,7 @@
     "timestamp": "2026-04-30T22:56:33.827Z"
   },
   {
-    "entry_id": "row_111",
+    "entry_id": "row_144",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -5278,7 +5278,7 @@
     "timestamp": "2026-04-30T22:56:37.929Z"
   },
   {
-    "entry_id": "row_111",
+    "entry_id": "row_144",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -5291,7 +5291,7 @@
     "timestamp": "2026-04-30T22:56:41.555Z"
   },
   {
-    "entry_id": "row_111",
+    "entry_id": "row_144",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -5304,7 +5304,7 @@
     "timestamp": "2026-04-30T22:56:45.857Z"
   },
   {
-    "entry_id": "row_112",
+    "entry_id": "row_145",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -5317,7 +5317,7 @@
     "timestamp": "2026-04-30T22:56:51.698Z"
   },
   {
-    "entry_id": "row_112",
+    "entry_id": "row_145",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -5330,7 +5330,7 @@
     "timestamp": "2026-04-30T22:56:56.027Z"
   },
   {
-    "entry_id": "row_112",
+    "entry_id": "row_145",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -5343,7 +5343,7 @@
     "timestamp": "2026-04-30T22:57:00.822Z"
   },
   {
-    "entry_id": "row_113",
+    "entry_id": "row_146",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -5356,7 +5356,7 @@
     "timestamp": "2026-04-30T22:57:10.226Z"
   },
   {
-    "entry_id": "row_113",
+    "entry_id": "row_146",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -5369,7 +5369,7 @@
     "timestamp": "2026-04-30T22:57:16.289Z"
   },
   {
-    "entry_id": "row_113",
+    "entry_id": "row_146",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -5382,7 +5382,7 @@
     "timestamp": "2026-04-30T22:57:21.538Z"
   },
   {
-    "entry_id": "row_113",
+    "entry_id": "row_146",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -5395,7 +5395,7 @@
     "timestamp": "2026-04-30T22:57:28.385Z"
   },
   {
-    "entry_id": "row_114",
+    "entry_id": "row_147",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -5408,7 +5408,7 @@
     "timestamp": "2026-04-30T22:57:31.443Z"
   },
   {
-    "entry_id": "row_114",
+    "entry_id": "row_147",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -5421,7 +5421,7 @@
     "timestamp": "2026-04-30T22:57:35.305Z"
   },
   {
-    "entry_id": "row_114",
+    "entry_id": "row_147",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -5434,7 +5434,7 @@
     "timestamp": "2026-04-30T22:57:39.615Z"
   },
   {
-    "entry_id": "row_114",
+    "entry_id": "row_147",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -5447,7 +5447,7 @@
     "timestamp": "2026-04-30T22:57:42.895Z"
   },
   {
-    "entry_id": "row_115",
+    "entry_id": "row_148",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -5460,7 +5460,7 @@
     "timestamp": "2026-04-30T22:57:49.247Z"
   },
   {
-    "entry_id": "row_115",
+    "entry_id": "row_148",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -5473,7 +5473,7 @@
     "timestamp": "2026-04-30T22:57:53.159Z"
   },
   {
-    "entry_id": "row_115",
+    "entry_id": "row_148",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -5486,7 +5486,7 @@
     "timestamp": "2026-04-30T22:57:57.536Z"
   },
   {
-    "entry_id": "row_115",
+    "entry_id": "row_148",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -5499,7 +5499,7 @@
     "timestamp": "2026-04-30T22:58:00.655Z"
   },
   {
-    "entry_id": "row_116",
+    "entry_id": "row_149",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -5512,7 +5512,7 @@
     "timestamp": "2026-04-30T22:58:05.663Z"
   },
   {
-    "entry_id": "row_116",
+    "entry_id": "row_149",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -5525,7 +5525,7 @@
     "timestamp": "2026-04-30T22:58:09.857Z"
   },
   {
-    "entry_id": "row_116",
+    "entry_id": "row_149",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -5538,7 +5538,7 @@
     "timestamp": "2026-04-30T22:58:14.229Z"
   },
   {
-    "entry_id": "row_116",
+    "entry_id": "row_149",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -5551,7 +5551,7 @@
     "timestamp": "2026-04-30T22:58:18.478Z"
   },
   {
-    "entry_id": "row_117",
+    "entry_id": "row_150",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -5564,7 +5564,7 @@
     "timestamp": "2026-04-30T22:58:22.730Z"
   },
   {
-    "entry_id": "row_117",
+    "entry_id": "row_150",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -5577,7 +5577,7 @@
     "timestamp": "2026-04-30T22:58:28.157Z"
   },
   {
-    "entry_id": "row_117",
+    "entry_id": "row_150",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -5590,7 +5590,7 @@
     "timestamp": "2026-04-30T22:58:33.582Z"
   },
   {
-    "entry_id": "row_117",
+    "entry_id": "row_150",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -5603,7 +5603,7 @@
     "timestamp": "2026-04-30T22:58:38.497Z"
   },
   {
-    "entry_id": "row_118",
+    "entry_id": "row_151",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -5616,7 +5616,7 @@
     "timestamp": "2026-04-30T22:58:43.412Z"
   },
   {
-    "entry_id": "row_118",
+    "entry_id": "row_151",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -5629,7 +5629,7 @@
     "timestamp": "2026-04-30T22:58:49.454Z"
   },
   {
-    "entry_id": "row_118",
+    "entry_id": "row_151",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -5642,7 +5642,7 @@
     "timestamp": "2026-04-30T22:58:54.779Z"
   },
   {
-    "entry_id": "row_118",
+    "entry_id": "row_151",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -5655,7 +5655,7 @@
     "timestamp": "2026-04-30T22:59:00.720Z"
   },
   {
-    "entry_id": "row_119",
+    "entry_id": "row_152",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -5668,7 +5668,7 @@
     "timestamp": "2026-04-30T22:59:04.815Z"
   },
   {
-    "entry_id": "row_119",
+    "entry_id": "row_152",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -5681,7 +5681,7 @@
     "timestamp": "2026-04-30T22:59:09.117Z"
   },
   {
-    "entry_id": "row_119",
+    "entry_id": "row_152",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -5694,7 +5694,7 @@
     "timestamp": "2026-04-30T22:59:13.415Z"
   },
   {
-    "entry_id": "row_119",
+    "entry_id": "row_152",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -5707,7 +5707,7 @@
     "timestamp": "2026-04-30T22:59:16.486Z"
   },
   {
-    "entry_id": "row_120",
+    "entry_id": "row_153",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -5720,7 +5720,7 @@
     "timestamp": "2026-04-30T22:59:20.278Z"
   },
   {
-    "entry_id": "row_120",
+    "entry_id": "row_153",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -5733,7 +5733,7 @@
     "timestamp": "2026-04-30T22:59:26.116Z"
   },
   {
-    "entry_id": "row_120",
+    "entry_id": "row_153",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -5746,7 +5746,7 @@
     "timestamp": "2026-04-30T22:59:31.124Z"
   },
   {
-    "entry_id": "row_120",
+    "entry_id": "row_153",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -5759,7 +5759,7 @@
     "timestamp": "2026-04-30T22:59:37.356Z"
   },
   {
-    "entry_id": "row_121",
+    "entry_id": "row_154",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -5772,7 +5772,7 @@
     "timestamp": "2026-04-30T22:59:41.782Z"
   },
   {
-    "entry_id": "row_121",
+    "entry_id": "row_154",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -5785,7 +5785,7 @@
     "timestamp": "2026-04-30T22:59:46.593Z"
   },
   {
-    "entry_id": "row_121",
+    "entry_id": "row_154",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -5798,7 +5798,7 @@
     "timestamp": "2026-04-30T22:59:51.599Z"
   },
   {
-    "entry_id": "row_121",
+    "entry_id": "row_154",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -5811,7 +5811,7 @@
     "timestamp": "2026-04-30T22:59:55.773Z"
   },
   {
-    "entry_id": "row_122",
+    "entry_id": "row_155",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -5824,7 +5824,7 @@
     "timestamp": "2026-04-30T23:00:01.441Z"
   },
   {
-    "entry_id": "row_122",
+    "entry_id": "row_155",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -5837,7 +5837,7 @@
     "timestamp": "2026-04-30T23:00:07.380Z"
   },
   {
-    "entry_id": "row_122",
+    "entry_id": "row_155",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -5850,7 +5850,7 @@
     "timestamp": "2026-04-30T23:00:15.879Z"
   },
   {
-    "entry_id": "row_122",
+    "entry_id": "row_155",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -5863,7 +5863,7 @@
     "timestamp": "2026-04-30T23:00:22.435Z"
   },
   {
-    "entry_id": "row_123",
+    "entry_id": "row_156",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -5876,7 +5876,7 @@
     "timestamp": "2026-04-30T23:00:25.812Z"
   },
   {
-    "entry_id": "row_123",
+    "entry_id": "row_156",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -5889,7 +5889,7 @@
     "timestamp": "2026-04-30T23:00:29.896Z"
   },
   {
-    "entry_id": "row_123",
+    "entry_id": "row_156",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -5902,7 +5902,7 @@
     "timestamp": "2026-04-30T23:00:34.046Z"
   },
   {
-    "entry_id": "row_123",
+    "entry_id": "row_156",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -5915,7 +5915,7 @@
     "timestamp": "2026-04-30T23:00:37.897Z"
   },
   {
-    "entry_id": "row_124",
+    "entry_id": "row_157",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -5928,7 +5928,7 @@
     "timestamp": "2026-04-30T23:00:45.784Z"
   },
   {
-    "entry_id": "row_124",
+    "entry_id": "row_157",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -5941,7 +5941,7 @@
     "timestamp": "2026-04-30T23:00:50.391Z"
   },
   {
-    "entry_id": "row_124",
+    "entry_id": "row_157",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -5954,7 +5954,7 @@
     "timestamp": "2026-04-30T23:00:56.627Z"
   },
   {
-    "entry_id": "row_125",
+    "entry_id": "row_158",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -5967,7 +5967,7 @@
     "timestamp": "2026-04-30T23:01:06.811Z"
   },
   {
-    "entry_id": "row_125",
+    "entry_id": "row_158",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -5980,7 +5980,7 @@
     "timestamp": "2026-04-30T23:01:13.327Z"
   },
   {
-    "entry_id": "row_125",
+    "entry_id": "row_158",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -5993,7 +5993,7 @@
     "timestamp": "2026-04-30T23:01:19.729Z"
   },
   {
-    "entry_id": "row_125",
+    "entry_id": "row_158",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -6006,7 +6006,7 @@
     "timestamp": "2026-04-30T23:01:26.232Z"
   },
   {
-    "entry_id": "row_126",
+    "entry_id": "row_159",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6019,7 +6019,7 @@
     "timestamp": "2026-04-30T23:01:31.657Z"
   },
   {
-    "entry_id": "row_126",
+    "entry_id": "row_159",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -6032,7 +6032,7 @@
     "timestamp": "2026-04-30T23:01:36.677Z"
   },
   {
-    "entry_id": "row_126",
+    "entry_id": "row_159",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6045,7 +6045,7 @@
     "timestamp": "2026-04-30T23:01:41.022Z"
   },
   {
-    "entry_id": "row_126",
+    "entry_id": "row_159",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -6058,7 +6058,7 @@
     "timestamp": "2026-04-30T23:01:45.072Z"
   },
   {
-    "entry_id": "row_127",
+    "entry_id": "row_160",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6071,7 +6071,7 @@
     "timestamp": "2026-04-30T23:01:49.477Z"
   },
   {
-    "entry_id": "row_127",
+    "entry_id": "row_160",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -6084,7 +6084,7 @@
     "timestamp": "2026-04-30T23:01:54.653Z"
   },
   {
-    "entry_id": "row_127",
+    "entry_id": "row_160",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6097,7 +6097,7 @@
     "timestamp": "2026-04-30T23:01:58.814Z"
   },
   {
-    "entry_id": "row_128",
+    "entry_id": "row_161",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6110,7 +6110,7 @@
     "timestamp": "2026-04-30T23:02:10.275Z"
   },
   {
-    "entry_id": "row_128",
+    "entry_id": "row_161",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -6123,7 +6123,7 @@
     "timestamp": "2026-04-30T23:02:18.661Z"
   },
   {
-    "entry_id": "row_128",
+    "entry_id": "row_161",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6136,7 +6136,7 @@
     "timestamp": "2026-04-30T23:02:26.214Z"
   },
   {
-    "entry_id": "row_128",
+    "entry_id": "row_161",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -6149,7 +6149,7 @@
     "timestamp": "2026-04-30T23:02:32.795Z"
   },
   {
-    "entry_id": "row_129",
+    "entry_id": "row_162",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -6162,7 +6162,7 @@
     "timestamp": "2026-04-30T23:02:36.880Z"
   },
   {
-    "entry_id": "row_129",
+    "entry_id": "row_162",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -6175,7 +6175,7 @@
     "timestamp": "2026-04-30T23:02:41.496Z"
   },
   {
-    "entry_id": "row_129",
+    "entry_id": "row_162",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -6188,7 +6188,7 @@
     "timestamp": "2026-04-30T23:02:45.584Z"
   },
   {
-    "entry_id": "row_129",
+    "entry_id": "row_162",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -6201,7 +6201,7 @@
     "timestamp": "2026-04-30T23:02:49.385Z"
   },
   {
-    "entry_id": "row_130",
+    "entry_id": "row_163",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6214,7 +6214,7 @@
     "timestamp": "2026-04-30T23:02:53.782Z"
   },
   {
-    "entry_id": "row_130",
+    "entry_id": "row_163",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -6227,7 +6227,7 @@
     "timestamp": "2026-04-30T23:02:57.649Z"
   },
   {
-    "entry_id": "row_130",
+    "entry_id": "row_163",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6240,7 +6240,7 @@
     "timestamp": "2026-04-30T23:03:01.463Z"
   },
   {
-    "entry_id": "row_130",
+    "entry_id": "row_163",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -6253,7 +6253,7 @@
     "timestamp": "2026-04-30T23:03:08.223Z"
   },
   {
-    "entry_id": "row_131",
+    "entry_id": "row_164",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -6266,7 +6266,7 @@
     "timestamp": "2026-04-30T23:03:12.215Z"
   },
   {
-    "entry_id": "row_131",
+    "entry_id": "row_164",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -6279,7 +6279,7 @@
     "timestamp": "2026-04-30T23:03:19.143Z"
   },
   {
-    "entry_id": "row_131",
+    "entry_id": "row_164",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -6292,7 +6292,7 @@
     "timestamp": "2026-04-30T23:03:23.173Z"
   },
   {
-    "entry_id": "row_132",
+    "entry_id": "row_165",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -6305,7 +6305,7 @@
     "timestamp": "2026-04-30T23:03:30.545Z"
   },
   {
-    "entry_id": "row_132",
+    "entry_id": "row_165",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -6318,7 +6318,7 @@
     "timestamp": "2026-04-30T23:03:35.869Z"
   },
   {
-    "entry_id": "row_132",
+    "entry_id": "row_165",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -6331,7 +6331,7 @@
     "timestamp": "2026-04-30T23:03:41.169Z"
   },
   {
-    "entry_id": "row_132",
+    "entry_id": "row_165",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -6344,7 +6344,7 @@
     "timestamp": "2026-04-30T23:03:46.008Z"
   },
   {
-    "entry_id": "row_133",
+    "entry_id": "row_166",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -6357,7 +6357,7 @@
     "timestamp": "2026-04-30T23:03:55.737Z"
   },
   {
-    "entry_id": "row_133",
+    "entry_id": "row_166",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -6370,7 +6370,7 @@
     "timestamp": "2026-04-30T23:03:59.318Z"
   },
   {
-    "entry_id": "row_134",
+    "entry_id": "row_167",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6383,7 +6383,7 @@
     "timestamp": "2026-04-30T23:04:04.851Z"
   },
   {
-    "entry_id": "row_134",
+    "entry_id": "row_167",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6396,7 +6396,7 @@
     "timestamp": "2026-04-30T23:04:12.734Z"
   },
   {
-    "entry_id": "row_134",
+    "entry_id": "row_167",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -6409,7 +6409,7 @@
     "timestamp": "2026-04-30T23:04:19.185Z"
   },
   {
-    "entry_id": "row_135",
+    "entry_id": "row_168",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6422,7 +6422,7 @@
     "timestamp": "2026-04-30T23:04:22.768Z"
   },
   {
-    "entry_id": "row_135",
+    "entry_id": "row_168",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -6435,7 +6435,7 @@
     "timestamp": "2026-04-30T23:04:26.933Z"
   },
   {
-    "entry_id": "row_135",
+    "entry_id": "row_168",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6448,7 +6448,7 @@
     "timestamp": "2026-04-30T23:04:30.656Z"
   },
   {
-    "entry_id": "row_135",
+    "entry_id": "row_168",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -6461,7 +6461,7 @@
     "timestamp": "2026-04-30T23:04:34.404Z"
   },
   {
-    "entry_id": "row_136",
+    "entry_id": "row_169",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6474,7 +6474,7 @@
     "timestamp": "2026-04-30T23:04:40.279Z"
   },
   {
-    "entry_id": "row_136",
+    "entry_id": "row_169",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -6487,7 +6487,7 @@
     "timestamp": "2026-04-30T23:04:46.009Z"
   },
   {
-    "entry_id": "row_136",
+    "entry_id": "row_169",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6500,7 +6500,7 @@
     "timestamp": "2026-04-30T23:04:51.442Z"
   },
   {
-    "entry_id": "row_136",
+    "entry_id": "row_169",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -6513,7 +6513,7 @@
     "timestamp": "2026-04-30T23:04:56.549Z"
   },
   {
-    "entry_id": "row_137",
+    "entry_id": "row_170",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -6526,7 +6526,7 @@
     "timestamp": "2026-04-30T23:05:03.422Z"
   },
   {
-    "entry_id": "row_137",
+    "entry_id": "row_170",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -6539,7 +6539,7 @@
     "timestamp": "2026-04-30T23:05:07.598Z"
   },
   {
-    "entry_id": "row_137",
+    "entry_id": "row_170",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -6552,7 +6552,7 @@
     "timestamp": "2026-04-30T23:05:12.609Z"
   },
   {
-    "entry_id": "row_138",
+    "entry_id": "row_171",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -6565,7 +6565,7 @@
     "timestamp": "2026-04-30T23:05:22.412Z"
   },
   {
-    "entry_id": "row_138",
+    "entry_id": "row_171",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -6578,7 +6578,7 @@
     "timestamp": "2026-04-30T23:05:28.265Z"
   },
   {
-    "entry_id": "row_138",
+    "entry_id": "row_171",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -6591,7 +6591,7 @@
     "timestamp": "2026-04-30T23:05:33.221Z"
   },
   {
-    "entry_id": "row_139",
+    "entry_id": "row_172",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -6604,7 +6604,7 @@
     "timestamp": "2026-04-30T23:05:37.317Z"
   },
   {
-    "entry_id": "row_139",
+    "entry_id": "row_172",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -6617,7 +6617,7 @@
     "timestamp": "2026-04-30T23:05:41.821Z"
   },
   {
-    "entry_id": "row_139",
+    "entry_id": "row_172",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -6630,7 +6630,7 @@
     "timestamp": "2026-04-30T23:05:45.929Z"
   },
   {
-    "entry_id": "row_139",
+    "entry_id": "row_172",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -6643,7 +6643,7 @@
     "timestamp": "2026-04-30T23:05:49.400Z"
   },
   {
-    "entry_id": "row_140",
+    "entry_id": "row_173",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6656,7 +6656,7 @@
     "timestamp": "2026-04-30T23:05:55.580Z"
   },
   {
-    "entry_id": "row_140",
+    "entry_id": "row_173",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -6669,7 +6669,7 @@
     "timestamp": "2026-04-30T23:06:01.385Z"
   },
   {
-    "entry_id": "row_140",
+    "entry_id": "row_173",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6682,7 +6682,7 @@
     "timestamp": "2026-04-30T23:06:08.549Z"
   },
   {
-    "entry_id": "row_140",
+    "entry_id": "row_173",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -6695,7 +6695,7 @@
     "timestamp": "2026-04-30T23:06:13.977Z"
   },
   {
-    "entry_id": "row_141",
+    "entry_id": "row_174",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -6708,7 +6708,7 @@
     "timestamp": "2026-04-30T23:06:19.201Z"
   },
   {
-    "entry_id": "row_141",
+    "entry_id": "row_174",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -6721,7 +6721,7 @@
     "timestamp": "2026-04-30T23:06:24.012Z"
   },
   {
-    "entry_id": "row_141",
+    "entry_id": "row_174",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -6734,7 +6734,7 @@
     "timestamp": "2026-04-30T23:06:29.336Z"
   },
   {
-    "entry_id": "row_141",
+    "entry_id": "row_174",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -6747,7 +6747,7 @@
     "timestamp": "2026-04-30T23:06:34.558Z"
   },
   {
-    "entry_id": "row_142",
+    "entry_id": "row_175",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -6760,7 +6760,7 @@
     "timestamp": "2026-04-30T23:06:39.757Z"
   },
   {
-    "entry_id": "row_142",
+    "entry_id": "row_175",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -6773,7 +6773,7 @@
     "timestamp": "2026-04-30T23:06:44.947Z"
   },
   {
-    "entry_id": "row_142",
+    "entry_id": "row_175",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -6786,7 +6786,7 @@
     "timestamp": "2026-04-30T23:06:49.510Z"
   },
   {
-    "entry_id": "row_142",
+    "entry_id": "row_175",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -6799,7 +6799,7 @@
     "timestamp": "2026-04-30T23:06:53.912Z"
   },
   {
-    "entry_id": "row_143",
+    "entry_id": "row_176",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6812,7 +6812,7 @@
     "timestamp": "2026-04-30T23:06:58.725Z"
   },
   {
-    "entry_id": "row_143",
+    "entry_id": "row_176",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -6825,7 +6825,7 @@
     "timestamp": "2026-04-30T23:07:03.898Z"
   },
   {
-    "entry_id": "row_143",
+    "entry_id": "row_176",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6838,7 +6838,7 @@
     "timestamp": "2026-04-30T23:07:10.514Z"
   },
   {
-    "entry_id": "row_143",
+    "entry_id": "row_176",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -6851,7 +6851,7 @@
     "timestamp": "2026-04-30T23:07:17.261Z"
   },
   {
-    "entry_id": "row_144",
+    "entry_id": "row_177",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -6864,7 +6864,7 @@
     "timestamp": "2026-04-30T23:07:21.351Z"
   },
   {
-    "entry_id": "row_144",
+    "entry_id": "row_177",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -6877,7 +6877,7 @@
     "timestamp": "2026-04-30T23:07:26.680Z"
   },
   {
-    "entry_id": "row_144",
+    "entry_id": "row_177",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -6890,7 +6890,7 @@
     "timestamp": "2026-04-30T23:07:33.032Z"
   },
   {
-    "entry_id": "row_145",
+    "entry_id": "row_178",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6903,7 +6903,7 @@
     "timestamp": "2026-04-30T23:07:42.967Z"
   },
   {
-    "entry_id": "row_145",
+    "entry_id": "row_178",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -6916,7 +6916,7 @@
     "timestamp": "2026-04-30T23:07:50.744Z"
   },
   {
-    "entry_id": "row_145",
+    "entry_id": "row_178",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6929,7 +6929,7 @@
     "timestamp": "2026-04-30T23:07:57.299Z"
   },
   {
-    "entry_id": "row_146",
+    "entry_id": "row_179",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -6942,7 +6942,7 @@
     "timestamp": "2026-04-30T23:08:07.125Z"
   },
   {
-    "entry_id": "row_146",
+    "entry_id": "row_179",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -6955,7 +6955,7 @@
     "timestamp": "2026-04-30T23:08:11.603Z"
   },
   {
-    "entry_id": "row_146",
+    "entry_id": "row_179",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -6968,7 +6968,7 @@
     "timestamp": "2026-04-30T23:08:17.165Z"
   },
   {
-    "entry_id": "row_146",
+    "entry_id": "row_179",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -6981,7 +6981,7 @@
     "timestamp": "2026-04-30T23:08:21.874Z"
   },
   {
-    "entry_id": "row_147",
+    "entry_id": "row_180",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -6994,7 +6994,7 @@
     "timestamp": "2026-04-30T23:08:27.936Z"
   },
   {
-    "entry_id": "row_147",
+    "entry_id": "row_180",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -7007,7 +7007,7 @@
     "timestamp": "2026-04-30T23:08:33.052Z"
   },
   {
-    "entry_id": "row_147",
+    "entry_id": "row_180",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -7020,7 +7020,7 @@
     "timestamp": "2026-04-30T23:08:38.465Z"
   },
   {
-    "entry_id": "row_147",
+    "entry_id": "row_180",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -7033,7 +7033,7 @@
     "timestamp": "2026-04-30T23:08:43.278Z"
   },
   {
-    "entry_id": "row_148",
+    "entry_id": "row_181",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -7046,7 +7046,7 @@
     "timestamp": "2026-04-30T23:08:46.247Z"
   },
   {
-    "entry_id": "row_148",
+    "entry_id": "row_181",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -7059,7 +7059,7 @@
     "timestamp": "2026-04-30T23:08:50.241Z"
   },
   {
-    "entry_id": "row_148",
+    "entry_id": "row_181",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -7072,7 +7072,7 @@
     "timestamp": "2026-04-30T23:08:56.387Z"
   },
   {
-    "entry_id": "row_148",
+    "entry_id": "row_181",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -7085,7 +7085,7 @@
     "timestamp": "2026-04-30T23:08:59.480Z"
   },
   {
-    "entry_id": "row_149",
+    "entry_id": "row_182",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -7098,7 +7098,7 @@
     "timestamp": "2026-04-30T23:09:04.474Z"
   },
   {
-    "entry_id": "row_149",
+    "entry_id": "row_182",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -7111,7 +7111,7 @@
     "timestamp": "2026-04-30T23:09:08.468Z"
   },
   {
-    "entry_id": "row_149",
+    "entry_id": "row_182",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -7124,7 +7124,7 @@
     "timestamp": "2026-04-30T23:09:12.051Z"
   },
   {
-    "entry_id": "row_149",
+    "entry_id": "row_182",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -7137,7 +7137,7 @@
     "timestamp": "2026-04-30T23:09:15.636Z"
   },
   {
-    "entry_id": "row_150",
+    "entry_id": "row_183",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -7150,7 +7150,7 @@
     "timestamp": "2026-04-30T23:09:20.268Z"
   },
   {
-    "entry_id": "row_150",
+    "entry_id": "row_183",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -7163,7 +7163,7 @@
     "timestamp": "2026-04-30T23:09:24.549Z"
   },
   {
-    "entry_id": "row_150",
+    "entry_id": "row_183",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -7176,7 +7176,7 @@
     "timestamp": "2026-04-30T23:09:29.154Z"
   },
   {
-    "entry_id": "row_150",
+    "entry_id": "row_183",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -7189,7 +7189,7 @@
     "timestamp": "2026-04-30T23:09:35.283Z"
   },
   {
-    "entry_id": "row_151",
+    "entry_id": "row_184",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -7202,7 +7202,7 @@
     "timestamp": "2026-04-30T23:09:41.441Z"
   },
   {
-    "entry_id": "row_151",
+    "entry_id": "row_184",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -7215,7 +7215,7 @@
     "timestamp": "2026-04-30T23:09:46.049Z"
   },
   {
-    "entry_id": "row_151",
+    "entry_id": "row_184",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -7228,7 +7228,7 @@
     "timestamp": "2026-04-30T23:09:52.093Z"
   },
   {
-    "entry_id": "row_151",
+    "entry_id": "row_184",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -7241,7 +7241,7 @@
     "timestamp": "2026-04-30T23:09:57.008Z"
   },
   {
-    "entry_id": "row_152",
+    "entry_id": "row_185",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -7254,7 +7254,7 @@
     "timestamp": "2026-04-30T23:10:01.410Z"
   },
   {
-    "entry_id": "row_152",
+    "entry_id": "row_185",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -7267,7 +7267,7 @@
     "timestamp": "2026-04-30T23:10:05.403Z"
   },
   {
-    "entry_id": "row_152",
+    "entry_id": "row_185",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -7280,7 +7280,7 @@
     "timestamp": "2026-04-30T23:10:10.359Z"
   },
   {
-    "entry_id": "row_152",
+    "entry_id": "row_185",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -7293,7 +7293,7 @@
     "timestamp": "2026-04-30T23:10:16.258Z"
   },
   {
-    "entry_id": "row_153",
+    "entry_id": "row_186",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -7306,7 +7306,7 @@
     "timestamp": "2026-04-30T23:10:19.889Z"
   },
   {
-    "entry_id": "row_153",
+    "entry_id": "row_186",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -7319,7 +7319,7 @@
     "timestamp": "2026-04-30T23:10:25.474Z"
   },
   {
-    "entry_id": "row_153",
+    "entry_id": "row_186",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -7332,7 +7332,7 @@
     "timestamp": "2026-04-30T23:10:29.263Z"
   },
   {
-    "entry_id": "row_153",
+    "entry_id": "row_186",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -7345,7 +7345,7 @@
     "timestamp": "2026-04-30T23:10:32.845Z"
   },
   {
-    "entry_id": "row_154",
+    "entry_id": "row_187",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -7358,7 +7358,7 @@
     "timestamp": "2026-04-30T23:10:36.636Z"
   },
   {
-    "entry_id": "row_154",
+    "entry_id": "row_187",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -7371,7 +7371,7 @@
     "timestamp": "2026-04-30T23:10:42.595Z"
   },
   {
-    "entry_id": "row_154",
+    "entry_id": "row_187",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Partially supported",
@@ -7384,7 +7384,7 @@
     "timestamp": "2026-04-30T23:10:47.922Z"
   },
   {
-    "entry_id": "row_155",
+    "entry_id": "row_188",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -7397,7 +7397,7 @@
     "timestamp": "2026-04-30T23:10:57.218Z"
   },
   {
-    "entry_id": "row_155",
+    "entry_id": "row_188",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -7410,7 +7410,7 @@
     "timestamp": "2026-04-30T23:11:01.966Z"
   },
   {
-    "entry_id": "row_155",
+    "entry_id": "row_188",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Not supported",
@@ -7423,7 +7423,7 @@
     "timestamp": "2026-04-30T23:11:07.157Z"
   },
   {
-    "entry_id": "row_155",
+    "entry_id": "row_188",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -7436,7 +7436,7 @@
     "timestamp": "2026-04-30T23:11:11.326Z"
   },
   {
-    "entry_id": "row_156",
+    "entry_id": "row_189",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -7449,7 +7449,7 @@
     "timestamp": "2026-04-30T23:11:18.536Z"
   },
   {
-    "entry_id": "row_156",
+    "entry_id": "row_189",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -7462,7 +7462,7 @@
     "timestamp": "2026-04-30T23:11:23.655Z"
   },
   {
-    "entry_id": "row_156",
+    "entry_id": "row_189",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -7475,7 +7475,7 @@
     "timestamp": "2026-04-30T23:11:28.479Z"
   },
   {
-    "entry_id": "row_156",
+    "entry_id": "row_189",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -7488,7 +7488,7 @@
     "timestamp": "2026-04-30T23:11:32.761Z"
   },
   {
-    "entry_id": "row_157",
+    "entry_id": "row_190",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -7501,7 +7501,7 @@
     "timestamp": "2026-04-30T23:11:36.899Z"
   },
   {
-    "entry_id": "row_157",
+    "entry_id": "row_190",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Supported",
@@ -7514,7 +7514,7 @@
     "timestamp": "2026-04-30T23:11:41.763Z"
   },
   {
-    "entry_id": "row_157",
+    "entry_id": "row_190",
     "provider": "claude-sonnet-4-5",
     "model": "claude-sonnet-4-5-20250929",
     "ground_truth": "Supported",
@@ -7527,7 +7527,7 @@
     "timestamp": "2026-04-30T23:11:45.553Z"
   },
   {
-    "entry_id": "row_157",
+    "entry_id": "row_190",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -7774,7 +7774,7 @@
     "timestamp": "2026-04-30T23:16:38.974Z"
   },
   {
-    "entry_id": "row_80",
+    "entry_id": "row_113",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -7787,7 +7787,7 @@
     "timestamp": "2026-04-30T23:16:52.038Z"
   },
   {
-    "entry_id": "row_94",
+    "entry_id": "row_127",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -7800,7 +7800,7 @@
     "timestamp": "2026-04-30T23:17:14.632Z"
   },
   {
-    "entry_id": "row_98",
+    "entry_id": "row_131",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -7813,7 +7813,7 @@
     "timestamp": "2026-04-30T23:17:26.348Z"
   },
   {
-    "entry_id": "row_105",
+    "entry_id": "row_138",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -7826,7 +7826,7 @@
     "timestamp": "2026-04-30T23:17:39.486Z"
   },
   {
-    "entry_id": "row_107",
+    "entry_id": "row_140",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Partially supported",
@@ -7839,7 +7839,7 @@
     "timestamp": "2026-04-30T23:17:50.100Z"
   },
   {
-    "entry_id": "row_108",
+    "entry_id": "row_141",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -7852,7 +7852,7 @@
     "timestamp": "2026-04-30T23:18:04.728Z"
   },
   {
-    "entry_id": "row_109",
+    "entry_id": "row_142",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Supported",
@@ -7865,7 +7865,7 @@
     "timestamp": "2026-04-30T23:18:15.598Z"
   },
   {
-    "entry_id": "row_112",
+    "entry_id": "row_145",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -7878,7 +7878,7 @@
     "timestamp": "2026-04-30T23:18:26.841Z"
   },
   {
-    "entry_id": "row_124",
+    "entry_id": "row_157",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -7891,7 +7891,7 @@
     "timestamp": "2026-04-30T23:18:41.314Z"
   },
   {
-    "entry_id": "row_127",
+    "entry_id": "row_160",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -7904,7 +7904,7 @@
     "timestamp": "2026-04-30T23:18:52.262Z"
   },
   {
-    "entry_id": "row_131",
+    "entry_id": "row_164",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -7917,7 +7917,7 @@
     "timestamp": "2026-04-30T23:19:04.340Z"
   },
   {
-    "entry_id": "row_133",
+    "entry_id": "row_166",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -7930,7 +7930,7 @@
     "timestamp": "2026-04-30T23:19:14.989Z"
   },
   {
-    "entry_id": "row_133",
+    "entry_id": "row_166",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Not supported",
@@ -7943,7 +7943,7 @@
     "timestamp": "2026-04-30T23:19:27.994Z"
   },
   {
-    "entry_id": "row_134",
+    "entry_id": "row_167",
     "provider": "qwen-sealion",
     "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "ground_truth": "Partially supported",
@@ -7956,7 +7956,7 @@
     "timestamp": "2026-04-30T23:19:39.976Z"
   },
   {
-    "entry_id": "row_137",
+    "entry_id": "row_170",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -7969,7 +7969,7 @@
     "timestamp": "2026-04-30T23:19:52.469Z"
   },
   {
-    "entry_id": "row_138",
+    "entry_id": "row_171",
     "provider": "apertus-70b",
     "model": "swiss-ai/apertus-70b-instruct",
     "ground_truth": "Not supported",
@@ -7982,7 +7982,7 @@
     "timestamp": "2026-04-30T23:20:06.191Z"
   },
   {
-    "entry_id": "row_144",
+    "entry_id": "row_177",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Not supported",
@@ -7995,7 +7995,7 @@
     "timestamp": "2026-04-30T23:20:17.362Z"
   },
   {
-    "entry_id": "row_145",
+    "entry_id": "row_178",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -8008,7 +8008,7 @@
     "timestamp": "2026-04-30T23:20:30.357Z"
   },
   {
-    "entry_id": "row_154",
+    "entry_id": "row_187",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Partially supported",
@@ -8047,7 +8047,7 @@
     "timestamp": "2026-04-30T23:21:25.348Z"
   },
   {
-    "entry_id": "row_85",
+    "entry_id": "row_118",
     "provider": "gemini-2.5-flash",
     "model": "gemini-2.5-flash",
     "ground_truth": "Supported",
@@ -8058,5 +8058,1617 @@
     "error": null,
     "correct": "exact",
     "timestamp": "2026-04-30T23:21:37.020Z"
+  },
+  {
+    "entry_id": "row_79",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 1027,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:11:45.368Z"
+  },
+  {
+    "entry_id": "row_79",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 521,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:11:46.898Z"
+  },
+  {
+    "entry_id": "row_79",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source article is about The Metals Company and deep-sea mining, but does not contain any information about Hemphill, his educational background in marine biology, or his involvement with the Deep Sea Conservation Coalition. The source mentions the DSCC only briefly as 'a Netherlands-based coalition of more than 100 organizations promoting deep-sea protection' but provides no information about Hemphill being a founding steering committee member or having any connection to it.",
+    "latency_ms": 3453,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:11:51.360Z"
+  },
+  {
+    "entry_id": "row_79",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The provided source text does not mention 'Hemphill' or any of the claims related to his educational background, conservation involvement, or role in the Deep Sea Conservation Coalition.",
+    "latency_ms": 1740,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:11:54.107Z"
+  },
+  {
+    "entry_id": "row_80",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 868,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:11:55.978Z"
+  },
+  {
+    "entry_id": "row_80",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 641,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:11:57.626Z"
+  },
+  {
+    "entry_id": "row_80",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 0,
+    "comments": "The source discusses a no-confidence vote against PM Wickremesinghe but attributes it to 'failing to prevent an alleged scam in the bond market' and 'failing to stop anti-Muslim riots.' There is no mention of alleged interference in the Central Bank as a key issue in the motion.",
+    "latency_ms": 3215,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:12:01.848Z"
+  },
+  {
+    "entry_id": "row_80",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "The source states the opposition blamed the Prime Minister for 'failing to prevent an alleged scam in the bond market' and 'failing to stop anti-Muslim riots'. It does not mention 'alleged interference in the Central Bank' as a key issue.",
+    "latency_ms": 2722,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:12:05.577Z"
+  },
+  {
+    "entry_id": "row_81",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 561,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:07.145Z"
+  },
+  {
+    "entry_id": "row_81",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 1112,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:09.264Z"
+  },
+  {
+    "entry_id": "row_81",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "Source is a catalog/database listing of left-hand piano repertoire with composer biographies. While it contains extensive information about various composers and their left-hand works, it does not contain any information about the 1985 UK premiere of Korngold's Piano Concerto or any mentions of Korngold, Wittgenstein, or the specific premiere event claimed.",
+    "latency_ms": 8974,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:19.248Z"
+  },
+  {
+    "entry_id": "row_81",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source content is a catalogue of composers whose names start with 'K'. It does not mention Erich Wolfgang Korngold, his Piano Concerto, Paul Wittgenstein, or any UK premiere in 1985.",
+    "latency_ms": 3028,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:12:23.284Z"
+  },
+  {
+    "entry_id": "row_82",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 789,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:25.080Z"
+  },
+  {
+    "entry_id": "row_82",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 1049,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:27.138Z"
+  },
+  {
+    "entry_id": "row_82",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source is about Yitzhak Frenkel-Frenel, a Ukrainian-Israeli painter, and does not mention Joseph Constant at all. The source contains no information about whether Joseph Constant was a sculptor or writer.",
+    "latency_ms": 3895,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:32.041Z"
+  },
+  {
+    "entry_id": "row_82",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source text is an artnet page detailing the life and work of artist Yitzhak Frenkel-Frenel. It does not mention Joseph Constant, nor does it contain any information about a sculptor and writer by that name.",
+    "latency_ms": 1747,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:12:34.795Z"
+  },
+  {
+    "entry_id": "row_83",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 537,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:36.339Z"
+  },
+  {
+    "entry_id": "row_83",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 500,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:37.846Z"
+  },
+  {
+    "entry_id": "row_83",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Supported",
+    "confidence": 95,
+    "comments": "The source directly supports the claim. Mick Ryan writes: 'Similar to other joint exercises conducted in 2025 and 2024, this was an activity to rehearse future military campaigns' and states the exercise is 'rehearsing a range of military activities.' He explicitly describes it as rehearsing operations for a future campaign against Taiwan, including invasion scenarios. The article extensively analyzes the exercise as preparation for potential military action against Taiwan.",
+    "latency_ms": 4034,
+    "error": null,
+    "correct": "partial",
+    "timestamp": "2026-05-02T01:12:42.888Z"
+  },
+  {
+    "entry_id": "row_83",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Supported",
+    "confidence": 90,
+    "comments": "The source, written by Mick Ryan, states: 'First, the PLA is continuing to evolve its operational planning and it is using differing exercise areas over time to assess the optimum locations for any future campaign designed to either quarantine Taiwan or to invade it.' It also notes, 'Thus, Justice Mission 2025 is intended to project the image of an advanced, capable PLA that can both attack Taiwan while fending off assistance from the military forces of America, Japan and elsewhere.'",
+    "latency_ms": 4045,
+    "error": null,
+    "correct": "partial",
+    "timestamp": "2026-05-02T01:12:47.937Z"
+  },
+  {
+    "entry_id": "row_84",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 779,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:49.725Z"
+  },
+  {
+    "entry_id": "row_84",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 462,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:51.194Z"
+  },
+  {
+    "entry_id": "row_84",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source article discusses Kai Cenat's reaction to Lil Nas X's religious-themed promotions but does not contain any information about Cenat's own religious affiliation or whether he is Catholic. The article only shows Cenat making religious references ('God is going to handle you') but does not specify his denomination or religious identity.",
+    "latency_ms": 5976,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:12:58.178Z"
+  },
+  {
+    "entry_id": "row_84",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "The source indicates Kai Cenat has strong religious beliefs, stating he believes 'God is going to handle' Lil Nas X for disrespecting 'God himself' and 'the whole culture.' However, it does not specify that Cenat is Catholic; it only implies a general religious or Christian affiliation.",
+    "latency_ms": 3442,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:13:02.627Z"
+  },
+  {
+    "entry_id": "row_85",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 511,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:04.147Z"
+  },
+  {
+    "entry_id": "row_85",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 468,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:05.624Z"
+  },
+  {
+    "entry_id": "row_85",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 75,
+    "comments": "The source confirms systematic executions at San Rafael Cemetery, stating 'Around 4,500 people were executed in San Rafael cemetery by Franco forces in the period 1936 to 1957' and mentions victims including 'around 400 children' who were 'mostly sons of Republicans.' However, the source does not specifically mention the evacuation of Málaga, rejection by Almería citizens, or the approximate 4,000 figure for those who declined to evacuate. The source also does not mention rape. The timeframe given (1936-1957) is much broader than the Málaga evacuation event would suggest.",
+    "latency_ms": 4265,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:13:10.897Z"
+  },
+  {
+    "entry_id": "row_85",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 65,
+    "comments": "The source mentions that 'Around 4,500 people were executed in San Rafael cemetery by Franco forces' and that 'fosas' or pits where skeletons were uncovered exist, supporting the claim of killings and mass graves in San Rafael Cemetery, Malaga, and the approximate number of victims. However, the source does not mention Almería, nor does it explicitly state that the victims declined to evacuate, were rounded-up, or raped.",
+    "latency_ms": 4713,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:13:16.616Z"
+  },
+  {
+    "entry_id": "row_86",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 1260,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:18.884Z"
+  },
+  {
+    "entry_id": "row_86",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 538,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:20.431Z"
+  },
+  {
+    "entry_id": "row_86",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source article does not contain any mention of Massoud, the NRF's shift to guerrilla warfare, or the $8 billion in U.S. military equipment. While the article discusses the National Resistance Front of Afghanistan (NRF) and Afghan insurgent groups, it does not include the specific claim about operational shifts or equipment seizure values attributed to Massoud.",
+    "latency_ms": 5674,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:27.113Z"
+  },
+  {
+    "entry_id": "row_86",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "The source mentions the National Resistance Front (NRF) engaging in 'hit-and-run insurgency' (guerrilla warfare), but it does not mention 'Massoud' highlighting an operational shift, nor does it provide any information about the Taliban seizing $8 billion worth of U.S. military equipment as a reason for such a shift.",
+    "latency_ms": 3055,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:13:31.175Z"
+  },
+  {
+    "entry_id": "row_87",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 584,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:32.767Z"
+  },
+  {
+    "entry_id": "row_87",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 490,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:34.265Z"
+  },
+  {
+    "entry_id": "row_87",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source is about the original Hollywood film 'Love Actually' itself, not about any remake of it. The article discusses behind-the-scenes facts about the making of Love Actually (2003), including how it evolved from different scripts and contained multiple storylines. It does not mention any remake of this film, nor does it discuss a film with six love stories that was based on Love Actually. This source cannot verify the claim about a remake.",
+    "latency_ms": 4033,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:39.307Z"
+  },
+  {
+    "entry_id": "row_87",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source is an article about the film 'Love Actually' itself, discussing facts about its production and cast. It does not mention any other film being an 'unofficial remake' of 'Love Actually', nor does it specify the number of love stories (ten or six) in 'Love Actually' or any other film.",
+    "latency_ms": 4366,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:13:44.681Z"
+  },
+  {
+    "entry_id": "row_88",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 574,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:46.262Z"
+  },
+  {
+    "entry_id": "row_88",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 579,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:47.848Z"
+  },
+  {
+    "entry_id": "row_88",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 75,
+    "comments": "The source confirms Kask passed away at age 76 after an illness ('passed away last night after a sudden illness'). However, there's a discrepancy: the source says he 'passed peacefully in his sleep' and the article is dated Dec 31, 2025, suggesting death on Dec 30, 2025. The claim states 'short illness' while source says 'sudden illness' - these are similar but not identical characterizations. The age and general timeframe are supported, but the exact phrasing differs.",
+    "latency_ms": 4719,
+    "error": null,
+    "correct": "partial",
+    "timestamp": "2026-05-02T01:13:53.575Z"
+  },
+  {
+    "entry_id": "row_88",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Supported",
+    "predicted_verdict": "Supported",
+    "confidence": 95,
+    "comments": "The source states 'Tim Kask, TSR's First Employee, Passes At Age 76' and 'passed away last night after a sudden illness.' The thread's start date is 'Dec 31, 2025', meaning 'last night' would be December 30, 2025.",
+    "latency_ms": 2780,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:13:57.365Z"
+  },
+  {
+    "entry_id": "row_89",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 935,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:13:59.310Z"
+  },
+  {
+    "entry_id": "row_89",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 1078,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:01.391Z"
+  },
+  {
+    "entry_id": "row_89",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 55,
+    "comments": "The source confirms URY is 'the oldest legal independent radio station in the country' (UK), which supports the first part of the claim. However, the source is from 2008 and only mentions being 'BBC Radio One Student Station of the Year 2005' - it cannot support the claim about winning the Student Radio Awards Best Station Award 2020, as this predates that achievement by 12 years.",
+    "latency_ms": 3838,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:14:06.237Z"
+  },
+  {
+    "entry_id": "row_89",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 65,
+    "comments": "The source states, 'The oldest legal independent radio station in the country' and 'beginning in 1968 when URY became the UK's first legal independent radio station,' supporting the claim about URY being the oldest. However, the source, last updated in 2007, mentions 'BBC Radio One Student Station of the Year 2005' but does not mention winning the 'Student Radio Awards Best Station Award 2020'.",
+    "latency_ms": 2496,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:14:09.738Z"
+  },
+  {
+    "entry_id": "row_90",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 670,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:11.416Z"
+  },
+  {
+    "entry_id": "row_90",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 482,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:12.905Z"
+  },
+  {
+    "entry_id": "row_90",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 75,
+    "comments": "Source confirms fighting in southern Aleppo countryside involving villages Zeytan (Zaytan) and Khalasa (Khalsah) in June 2016, with 'at least 70 fighters killed' rather than the claimed 86 soldiers. Source states rebels initially captured villages but pro-regime forces retook them, while Wikipedia claims rebels initially captured Zeytan. Al-Nusra Front (not Ajnad al-Sham) is specifically mentioned as launching the counterattack. Death toll and village names match closely but attribution and sequence of events differ somewhat.",
+    "latency_ms": 5036,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:18.948Z"
+  },
+  {
+    "entry_id": "row_90",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 0,
+    "comments": "Failed to parse JSON response",
+    "latency_ms": 5073,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:25.025Z"
+  },
+  {
+    "entry_id": "row_91",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 615,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:26.649Z"
+  },
+  {
+    "entry_id": "row_91",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 527,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:28.187Z"
+  },
+  {
+    "entry_id": "row_91",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source is a news article about the assassination of Marhaj al-Jarmani, commander of 'Liwa al-Jabal' (Mountain Brigade) in al-Suwayda. While it mentions he was known for opposition to the Syrian regime and his role in protests, and that his faction was involved in detaining regime officers to pressure for release of detainees, it does not contain specific information about human rights abuses, forced conscription, or criticisms from local activists about undermining civil liberties. The source does not provide sufficient content to verify the specific claims made.",
+    "latency_ms": 4454,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:33.650Z"
+  },
+  {
+    "entry_id": "row_91",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source discusses the assassination of the leader of 'Liwa al-Jabal' (Mountain Brigade), Morhej al-Jermani. It states that al-Jermani was known for his strong opposition to the Syrian regime and his prominent role in the movement in Suwayda, and that his faction detained regime officers to pressure for the release of detainees. This information contradicts the claim that the brigade faced accusations of human rights abuses, repression of protests, or undermining civil liberties. The source does not mention any such accusations or criticisms.",
+    "latency_ms": 3472,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:14:38.126Z"
+  },
+  {
+    "entry_id": "row_92",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 582,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:39.716Z"
+  },
+  {
+    "entry_id": "row_92",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 459,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:41.182Z"
+  },
+  {
+    "entry_id": "row_92",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source page only contains contact information and social media links for C.B. Forrest, with no actual content about his poetry publications or reviews from other writers. This appears to be just a contact page rather than biographical or publication information.",
+    "latency_ms": 2998,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:45.187Z"
+  },
+  {
+    "entry_id": "row_92",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source is a contact page for C.B. Forrest and does not contain any information about his poetry, publications, or praise from other writers.",
+    "latency_ms": 1716,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:14:47.911Z"
+  },
+  {
+    "entry_id": "row_93",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 529,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:49.449Z"
+  },
+  {
+    "entry_id": "row_93",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 488,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:14:50.945Z"
+  },
+  {
+    "entry_id": "row_93",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "The source discusses Washington State's overall economy and key industries at the state level, including tourism, agriculture, and manufacturing sectors. However, it contains no specific information about Clinton or Island County's economy. The claim requires verification of local economic drivers for a specific geographic area, which this state-level overview does not provide.",
+    "latency_ms": 3459,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:14:55.411Z"
+  },
+  {
+    "entry_id": "row_93",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "The source describes key industries for Washington State as a whole, including tourism and agriculture, and mentions 'recreation and sports opportunities' for the state. However, it does not provide any information specific to Clinton or Island County, nor does it mention 'service industries' or 'small-scale manufacturing' as drivers for that specific area, or specific outdoor activities like boating, hiking, and beach activities drawing visitors to Clinton/Island County.",
+    "latency_ms": 4226,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:15:00.644Z"
+  },
+  {
+    "entry_id": "row_94",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 667,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:02.321Z"
+  },
+  {
+    "entry_id": "row_94",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 492,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:03.820Z"
+  },
+  {
+    "entry_id": "row_94",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source is an archived webpage of Croydon Minster's 'About us' page, but it contains only navigation elements, basic mission statement information, and social media links. It does not contain any detailed historical information about the church's architecture, Sir George Gilbert Scott, the 1870 opening, the design features, or the burial of Archbishops. The actual historical content referenced in the navigation ('The history of Croydon Minster') is not present in this capture.",
+    "latency_ms": 4392,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:09.220Z"
+  },
+  {
+    "entry_id": "row_94",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source is an 'About us' page that mentions 'The history of Croydon Minster' as a link, but the provided text does not contain any of the historical details about the architect, opening date, design, burials, or diocesan information mentioned in the claim.",
+    "latency_ms": 2885,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:15:13.113Z"
+  },
+  {
+    "entry_id": "row_95",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 589,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:14.710Z"
+  },
+  {
+    "entry_id": "row_95",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 469,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:16.187Z"
+  },
+  {
+    "entry_id": "row_95",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source provides data for 2019 (22,848 TWh) but does not contain information about 2022 consumption (claimed as 24,398 TWh) or 1981 consumption (claimed as 8,132 TWh). Without data for the specific years mentioned in the claim, the comparison cannot be verified from this source.",
+    "latency_ms": 2873,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:20.068Z"
+  },
+  {
+    "entry_id": "row_95",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source provides global electricity consumption data for 2019 (22,848 TWh) but does not mention the consumption figures for 2022 or 1981 as stated in the claim.",
+    "latency_ms": 2495,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:23.570Z"
+  },
+  {
+    "entry_id": "row_96",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 504,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:25.080Z"
+  },
+  {
+    "entry_id": "row_96",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 486,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:26.569Z"
+  },
+  {
+    "entry_id": "row_96",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source is a BBC Sport match report about Middlesbrough vs Norwich on 6 March 2024. While it confirms the 3-1 score and mentions Ashley Barnes scoring for Norwich, there is no mention of anyone named Welch making a debut or coming on as a substitute. The article does not provide complete substitution information that would allow verification of this claim.",
+    "latency_ms": 3469,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:31.041Z"
+  },
+  {
+    "entry_id": "row_96",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "The source confirms the 3-1 Championship defeat to Middlesbrough, but it does not mention Welch, his senior debut, or him replacing Ashley Barnes. The date of the match is also not explicitly stated in the article content.",
+    "latency_ms": 2716,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:15:34.765Z"
+  },
+  {
+    "entry_id": "row_97",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 634,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:36.411Z"
+  },
+  {
+    "entry_id": "row_97",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 1075,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:38.495Z"
+  },
+  {
+    "entry_id": "row_97",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Supported",
+    "confidence": 100,
+    "comments": "The source is a short story published in The New Yorker magazine (dated 1994/01/31), confirming that Anita Shreve's literary works have been featured in The New Yorker. The story 'Last Acts' appears as actual content from the magazine.",
+    "latency_ms": 2846,
+    "error": null,
+    "correct": "partial",
+    "timestamp": "2026-05-02T01:15:42.353Z"
+  },
+  {
+    "entry_id": "row_97",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source is an article from The New Yorker, but it does not mention 'Shreve' as an author or any literary works by 'Shreve'. It also does not mention 'The New Republic' or 'The New Criterion'.",
+    "latency_ms": 3402,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:46.782Z"
+  },
+  {
+    "entry_id": "row_99",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 558,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:48.351Z"
+  },
+  {
+    "entry_id": "row_99",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 484,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:15:49.843Z"
+  },
+  {
+    "entry_id": "row_99",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "The source discusses Latin music's mainstream breakthrough starting around 2017 with 'Despacito' and traces reggaeton's origins to the early 1990s in Puerto Rico. It describes how the internet and streaming platforms in the 21st century enabled Latin music's global expansion. However, it does not specifically address or mention the 1950s and 1960s as a period when Latin music became intertwined with American culture.",
+    "latency_ms": 3963,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:15:54.813Z"
+  },
+  {
+    "entry_id": "row_99",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source states that Latin music developed a significant presence in North American markets 'since 2015' and pinpoints 2017 as the moment it 'hit the mainstream', directly contradicting the claim's timeframe of the 1950s and 1960s.",
+    "latency_ms": 3921,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:15:59.742Z"
+  },
+  {
+    "entry_id": "row_100",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 548,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:01.297Z"
+  },
+  {
+    "entry_id": "row_100",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 580,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:02.881Z"
+  },
+  {
+    "entry_id": "row_100",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Supported",
+    "confidence": 85,
+    "comments": "Source states: 'أعلن محمد البشير اليوم الثلاثاء في بيان تلفزيوني، أنه كلف بتولي رئاسة حكومة انتقالية في سوريا حتى الأول من مارس (آذار) 2025' (Muhammad al-Bashir announced on Tuesday in a televised statement that he was tasked with assuming the presidency of a transitional government in Syria until March 1, 2025). However, the claim is about 'Minister of Interior' while the source only confirms his role as head of the transitional government, not specifically as Minister of Interior.",
+    "latency_ms": 4849,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:08.736Z"
+  },
+  {
+    "entry_id": "row_100",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source states that Mohammad al-Bashir was tasked with heading a transitional government in Syria as of December 10, 2024, not as the Minister of Interior. The claim specifies the role as 'Minister of Interior', which is contradicted by the source stating 'رئاسة حكومة انتقالية' (heading a transitional government).",
+    "latency_ms": 3402,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:16:13.145Z"
+  },
+  {
+    "entry_id": "row_101",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 551,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:14.704Z"
+  },
+  {
+    "entry_id": "row_101",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 507,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:16.219Z"
+  },
+  {
+    "entry_id": "row_101",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source text ends abruptly mid-sentence with 'In February 2021' without completing the information. The claim mentions something has been 'extended indefinitely' but without context about what specific thing is being referenced, and the source does not appear to contain information about anything being extended indefinitely. The incomplete nature of the source and lack of context for the claim make proper verification impossible.",
+    "latency_ms": 4103,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:21.328Z"
+  },
+  {
+    "entry_id": "row_101",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source details various prison sentences, temporary releases, and re-imprisonments of Nasrin Sotoudeh, but it does not mention anything being 'extended indefinitely'.",
+    "latency_ms": 3123,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:16:25.457Z"
+  },
+  {
+    "entry_id": "row_102",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 1112,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:27.572Z"
+  },
+  {
+    "entry_id": "row_102",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 558,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:29.138Z"
+  },
+  {
+    "entry_id": "row_102",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "The source shows Ohio University-Main Campus is classified as 'Doctoral Universities: High Research Activity', not 'R1: Doctoral Universities – Very high research activity' as claimed. The classification shown is one tier below R1.",
+    "latency_ms": 3076,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:33.219Z"
+  },
+  {
+    "entry_id": "row_102",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Partially supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 95,
+    "comments": "The source classifies Ohio University-Main Campus as 'Doctoral Universities: High Research Activity', not 'R1: Doctoral Universities – Very high research activity' as claimed.",
+    "latency_ms": 1735,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:35.960Z"
+  },
+  {
+    "entry_id": "row_103",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 522,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:37.489Z"
+  },
+  {
+    "entry_id": "row_103",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 997,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:39.494Z"
+  },
+  {
+    "entry_id": "row_103",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 25,
+    "comments": "The source confirms that 'Animal' crossed Rs 425 crore globally in 4 days and mentions it entered the '400-crore club', which is significantly lower than the claimed ₹9 billion (₹900 crore). The source does not mention 'Varisu' at all, nor does it confirm either film ranking among the highest-grossing Indian films of all time. The actual box office figure provided (Rs 425 crore in 4 days) is far below the claimed ₹9 billion total.",
+    "latency_ms": 3981,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:44.483Z"
+  },
+  {
+    "entry_id": "row_103",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "The source mentions 'Animal' crossing Rs 425 crore (₹4.25 billion) globally in 4 days, which is less than the claimed ₹9 billion. It does not state that 'Animal' ranks among the highest-grossing Indian films of all time, nor does it mention 'Varisu' at all.",
+    "latency_ms": 3627,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:16:49.118Z"
+  },
+  {
+    "entry_id": "row_104",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 573,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:50.696Z"
+  },
+  {
+    "entry_id": "row_104",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 458,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:16:52.164Z"
+  },
+  {
+    "entry_id": "row_104",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "Source states 'Only 5 locations are still in operation' with locations listed as 'Circleville, Lancaster, Ironton in Ohio, Harlan Kentucky, and Joliet Illinois' - this is 5 total locations (3 in Ohio, 1 in Kentucky, 1 in Illinois), not the 6 locations claimed (4 in Ohio, 1 in Kentucky, 1 in Illinois). The source appears to be from an earlier date and does not reflect December 2024 status.",
+    "latency_ms": 3300,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:16:56.473Z"
+  },
+  {
+    "entry_id": "row_104",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 40,
+    "comments": "The source states 'Only 5 locations are still in operation' and lists them as 'Circleville, Lancaster, Ironton in Ohio, Harlan Kentucky, and Joliet Illinois.' This confirms one location in Illinois and one in Kentucky, but only three in Ohio, not four, and a total of five locations, not six, as claimed.",
+    "latency_ms": 3318,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:00.800Z"
+  },
+  {
+    "entry_id": "row_105",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 544,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:02.352Z"
+  },
+  {
+    "entry_id": "row_105",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 601,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:03.961Z"
+  },
+  {
+    "entry_id": "row_105",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 25,
+    "comments": "Source confirms Harris owned property in the Bahamas ('Wise property investments, especially in the Bahamas - where he once won an estate in a bet') but does not mention cremation or ashes being scattered there",
+    "latency_ms": 2452,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:07.422Z"
+  },
+  {
+    "entry_id": "row_105",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 65,
+    "comments": "The source states that Richard Harris made 'Wise property investments, especially in the Bahamas - where he once won an estate in a bet', confirming he owned property there. However, it does not mention his body being cremated or his ashes being scattered.",
+    "latency_ms": 2577,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:11.006Z"
+  },
+  {
+    "entry_id": "row_106",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 579,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:12.593Z"
+  },
+  {
+    "entry_id": "row_106",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 493,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:14.089Z"
+  },
+  {
+    "entry_id": "row_106",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Supported",
+    "confidence": 95,
+    "comments": "The source explicitly confirms that 'Histoire de l'œil entered the public domain on January 1, 2024.' While the source does not provide details about the book's content, author, or pseudonym, it directly verifies the specific claim about the public domain date. The source states in its introduction: 'On January 1, 2024, thousands of copyrighted works from 1928 will enter the US public domain' and the page is specifically about works from 1928 entering the public domain in 2024.",
+    "latency_ms": 3695,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:18.790Z"
+  },
+  {
+    "entry_id": "row_106",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Partially supported",
+    "confidence": 0,
+    "comments": "Failed to parse JSON response",
+    "latency_ms": 4965,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:24.764Z"
+  },
+  {
+    "entry_id": "row_107",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 546,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:26.319Z"
+  },
+  {
+    "entry_id": "row_107",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 1009,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:28.331Z"
+  },
+  {
+    "entry_id": "row_107",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source is a tag/category page from Adweek listing articles related to Standard Media Index, but does not contain information about the company's founding, CEO, or Jane Fennessy. The page only shows article headlines and brief excerpts about advertising data from SMI, without biographical or company history details.",
+    "latency_ms": 3958,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:33.295Z"
+  },
+  {
+    "entry_id": "row_107",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source is a tag page for 'Standard Media Index' on Adweek, listing articles that reference SMI data. It does not contain any information about Fennessy, who founded SMI, or who served as its CEO during any period.",
+    "latency_ms": 1535,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:17:35.838Z"
+  },
+  {
+    "entry_id": "row_108",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 510,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:37.356Z"
+  },
+  {
+    "entry_id": "row_108",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 508,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:38.872Z"
+  },
+  {
+    "entry_id": "row_108",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "The source is about financial regulation in Ireland by the Central Bank of Ireland. It contains no information about a magazine, insider sources, or a Goldhawk phone line. This appears to be an incorrect source citation for the Wikipedia claim.",
+    "latency_ms": 3040,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:42.924Z"
+  },
+  {
+    "entry_id": "row_108",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source discusses financial regulation by the Central Bank of Ireland and does not mention any magazine, 'insider' sources for a magazine, or a 'Goldhawk phone line'.",
+    "latency_ms": 1884,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:17:45.817Z"
+  },
+  {
+    "entry_id": "row_109",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 533,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:47.360Z"
+  },
+  {
+    "entry_id": "row_109",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 463,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:48.832Z"
+  },
+  {
+    "entry_id": "row_109",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Source unavailable",
+    "confidence": 0,
+    "comments": "This source is a library catalog entry from the Australian War Memorial showing only bibliographic metadata for a 2016 book by Wes Olson. It does not contain the actual book content or information about when Olson began his research or when his first book was published in 2000. The catalog entry is for a 2016 publication, not the 2000 book mentioned in the claim.",
+    "latency_ms": 3691,
+    "error": null,
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:17:53.531Z"
+  },
+  {
+    "entry_id": "row_109",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 15,
+    "comments": "The source is a library catalog entry for a book by Wes Olson about HMAS Sydney (II). It confirms Olson as the author and the subject matter. However, it states the publication year as 2016, not 2000, and lists the publisher as 'Wesley John Olson', not 'UWA Publishing'. It also does not mention the duration of his research or if it was his first book.",
+    "latency_ms": 3047,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:17:57.586Z"
+  },
+  {
+    "entry_id": "row_110",
+    "provider": "apertus-70b",
+    "model": "swiss-ai/apertus-70b-instruct",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 1637,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:18:00.231Z"
+  },
+  {
+    "entry_id": "row_110",
+    "provider": "qwen-sealion",
+    "model": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "ERROR",
+    "confidence": 0,
+    "comments": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "latency_ms": 530,
+    "error": "HTTP 402: {\"error\":{\"message\":\"Insufficient wallet balance. Please add credits to your account.\",\"type\":\"insufficient_balance\",\"current_balance\":\"-0.08\"}}",
+    "correct": "wrong",
+    "timestamp": "2026-05-02T01:18:01.769Z"
+  },
+  {
+    "entry_id": "row_110",
+    "provider": "claude-sonnet-4-5",
+    "model": "claude-sonnet-4-5-20250929",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 5,
+    "comments": "Source indicates the song was written by Mack Gordon (lyrics) and Harry Warren (music), and made famous by Alice Faye from the films 'Four Jills In A Jeep' (1944) and 'Hello, Frisco, Hello' (1943). There is no mention of Dorothy Fern Norris, a poem, or an Oklahoma war bride as the basis for the song.",
+    "latency_ms": 2871,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:18:05.644Z"
+  },
+  {
+    "entry_id": "row_110",
+    "provider": "gemini-2.5-flash",
+    "model": "gemini-2.5-flash",
+    "ground_truth": "Not supported",
+    "predicted_verdict": "Not supported",
+    "confidence": 10,
+    "comments": "The source explicitly states the lyrics are by Mack Gordon and the music by Harry Warren. It makes no mention of a poem, Dorothy Fern Norris, or an Oklahoma war bride as the basis for the song.",
+    "latency_ms": 2163,
+    "error": null,
+    "correct": "exact",
+    "timestamp": "2026-05-02T01:18:08.818Z"
   }
 ]
