@@ -20,7 +20,7 @@ import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { generateSystemPrompt, generateUserPrompt as coreGenerateUserPrompt } from '../core/prompts.js';
+import { generateSystemPrompt as coreGenerateSystemPrompt, generateUserPrompt as coreGenerateUserPrompt } from '../core/prompts.js';
 import { loadRows, loadMetadata, writeWithMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -106,6 +106,25 @@ function generateUserPrompt(claimText, sourceText, sourceUrl) {
         ? `Source URL: ${sourceUrl}\n\nSource Content:\n${sourceText}`
         : `Source Content:\n${sourceText}`;
     return coreGenerateUserPrompt(claimText, sourceInfo);
+}
+
+/**
+ * Resolve the system prompt at run time. Defaults to core/prompts.js
+ * (single source of truth shared with main.js + cli/verify.js).
+ *
+ * Set BENCHMARK_PROMPT_OVERRIDE_FILE=<path> to load the system prompt
+ * from a file instead — used for the historical-replay experiment that
+ * scores past userscript prompts (recovered via `git show <sha>:core/prompts.js`
+ * or `git show <sha>:main.js` for pre-#118 dates) against the current dataset.
+ *
+ * See benchmark/historical-runs/README.md for a worked example.
+ */
+function getSystemPrompt() {
+    const override = process.env.BENCHMARK_PROMPT_OVERRIDE_FILE;
+    if (override) {
+        return fs.readFileSync(override, 'utf-8');
+    }
+    return coreGenerateSystemPrompt();
 }
 
 /**
@@ -413,13 +432,17 @@ async function main() {
     }
 
     // Generate prompts
-    const systemPrompt = generateSystemPrompt();
+    const systemPrompt = getSystemPrompt();
 
     // Run-time metadata captured once and written into the results file header.
     // See benchmark/README.md "Reproducibility metadata" for the schema.
+    // For historical-replay runs, set BENCHMARK_PROMPT_DATE=YYYY-MM-DD to
+    // record the effective date of the overridden prompt; otherwise prompt_date
+    // is today (the assumption being core/prompts.js was at HEAD).
     const runMetadata = {
         run_at: new Date().toISOString(),
-        prompt_date: todayIso(),
+        prompt_date: process.env.BENCHMARK_PROMPT_DATE || todayIso(),
+        prompt_source: process.env.BENCHMARK_PROMPT_OVERRIDE_FILE || 'core/prompts.js',
         dataset_extracted_at: datasetMetadata.extracted_at || null,
         dataset_version_filter: VERSION_FILTER
     };

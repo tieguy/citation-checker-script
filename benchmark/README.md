@@ -195,6 +195,33 @@ Frozen historical snapshots (`dataset_v1.json`, `results_v1.json`,
 both shapes via `benchmark/io.js`'s `loadRows()` helper, so older snapshots
 keep working without migration.
 
+### Historical-prompt replay
+
+To score a past userscript prompt against the current dataset (the "Q2
+reproducibility" question — "what would real users at time X have seen?"),
+recover the prompt from git and run the benchmark with two env vars:
+
+```bash
+# 1. Recover the prompt at a historical SHA
+git show 16f365a:main.js | \
+  awk '/generateSystemPrompt/,/^[[:space:]]*}[[:space:]]*$/' | \
+  awk '/return `/,/`;/' | sed '1s/^[^`]*`//; $s/`;.*$//' \
+  > /tmp/january-prompt.txt
+
+# 2. Run the benchmark with the override + historical date for metadata
+BENCHMARK_PROMPT_OVERRIDE_FILE=/tmp/january-prompt.txt \
+BENCHMARK_PROMPT_DATE=2026-01-20 \
+  node run_benchmark.js --providers=claude-sonnet-4-5,gemini-2.5-flash --version all
+```
+
+Each result row's `metadata.prompt_date` and `metadata.prompt_source` will
+record the historical date and the override path so the run is attributable.
+
+`benchmark/historical-runs/` contains a worked example: the January 2026 and
+pre-active-April 2026 prompts run against the v1+v2+v3 dataset (5 models,
+zero errors), plus a side-by-side comparison report. See
+`benchmark/historical-runs/README.md`.
+
 ### Where the prompt lives
 
 `core/prompts.js` is the **single source of truth** for both the system
