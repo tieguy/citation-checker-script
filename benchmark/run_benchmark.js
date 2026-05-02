@@ -88,6 +88,79 @@ const versionIndex = args.indexOf('--version');
 // VERSION_FILTER: 'all' | 'v1' | 'v2' | ... — restricts which dataset entries
 // to benchmark, so the original 76-row v1 analysis can be reproduced on demand.
 const VERSION_FILTER = versionIndex !== -1 ? args[versionIndex + 1] : 'all';
+// DRY_RUN skips all provider calls. The runner still iterates and reports
+// which entries would short-circuit deterministically vs. flow to the LLM,
+// so CI can verify the runner's decision distribution without burning API
+// budget. Used by tier 1 / tier 2 of the GitHub Actions workflow.
+const DRY_RUN = args.includes('--dry-run');
+
+/**
+ * Decide how the runner should handle a dataset entry.
+ *
+ * Returns one of:
+ *   - { mode: 'skip' }                  — explicit manual-review flag; not benchmarked
+ *   - { mode: 'deterministic', reason } — runner emits SOURCE UNAVAILABLE without
+ *                                          calling any LLM (mirrors main.js behavior
+ *                                          for rows whose source could not be fetched)
+ *   - { mode: 'llm' }                   — entry should be sent to the providers
+ *
+ * Exported for unit tests in tests/run_benchmark_shortcircuit.test.js.
+ */
+export function shouldRunnerShortCircuit(entry) {
+    if (entry.needs_manual_review === true) {
+        return { mode: 'skip' };
+    }
+    if (entry.extraction_status === 'source_fetch_failed') {
+        return {
+            mode: 'deterministic',
+            reason: 'deterministic: source fetch failed at extraction time',
+        };
+    }
+    return { mode: 'llm' };
+}
+
+/**
+ * Build a synthetic result row for an entry that the runner short-circuited
+ * deterministically. No LLM was called; the verdict is forced.
+ */
+export function buildDeterministicResultRow({ entry, provider, decision }) {
+    return {
+        entry_id: entry.id,
+        provider,
+        model: null,
+        ground_truth: entry.ground_truth,
+        extraction_status: entry.extraction_status,
+        runner_deterministic: true,
+        predicted_verdict: 'SOURCE UNAVAILABLE',
+        confidence: 0,
+        comments: decision.reason,
+        latency_ms: 0,
+        error: null,
+        correct: compareVerdicts('SOURCE UNAVAILABLE', entry.ground_truth),
+        timestamp: new Date().toISOString(),
+    };
+}
+
+/**
+ * Build a result row from an LLM provider's response.
+ */
+export function buildLlmResultRow({ entry, provider, model, providerResult }) {
+    return {
+        entry_id: entry.id,
+        provider,
+        model,
+        ground_truth: entry.ground_truth,
+        extraction_status: entry.extraction_status,
+        runner_deterministic: false,
+        predicted_verdict: providerResult.verdict,
+        confidence: providerResult.confidence,
+        comments: providerResult.comments,
+        latency_ms: providerResult.latency,
+        error: providerResult.error,
+        correct: compareVerdicts(providerResult.verdict, entry.ground_truth),
+        timestamp: new Date().toISOString(),
+    };
+}
 
 /**
  * Generate the system prompt (same as main.js)
@@ -428,9 +501,15 @@ async function main() {
     const dataset = JSON.parse(fs.readFileSync(DATASET_PATH, 'utf-8'));
     console.log(`Loaded ${dataset.length} entries from dataset`);
 
-    // Filter to complete entries only
-    let entries = dataset.filter(e => e.extraction_status === 'complete' && !e.needs_manual_review);
-    console.log(`${entries.length} entries are complete and ready for benchmarking`);
+    // Drop entries explicitly flagged for manual review. Other entries — including
+    // those whose source fetch failed at extraction time — flow through and are
+    // dispatched by shouldRunnerShortCircuit() below: source_fetch_failed rows
+    // get a deterministic SOURCE UNAVAILABLE verdict (no LLM call), the rest go
+    // to providers normally.
+    const totalLoaded = dataset.length;
+    const skippedManualReview = dataset.filter(e => e.needs_manual_review === true).length;
+    let entries = dataset.filter(e => e.needs_manual_review !== true);
+    console.log(`${entries.length} entries ready for benchmarking (skipped ${skippedManualReview} flagged for manual review)`);
 
     if (VERSION_FILTER !== 'all') {
         const before = entries.length;
@@ -448,26 +527,45 @@ async function main() {
         console.log(`Limited to ${LIMIT} entries`);
     }
 
-    // Check available providers
+    // Check available providers. In dry-run we skip the API-key check entirely
+    // because no provider calls are made.
     const availableProviders = selectedProviders.filter(p => {
         const config = PROVIDERS[p];
         if (!config) {
             console.log(`Unknown provider: ${p}`);
             return false;
         }
-        if (config.requiresKey && !process.env[config.keyEnv]) {
+        if (!DRY_RUN && config.requiresKey && !process.env[config.keyEnv]) {
             console.log(`Skipping ${p}: missing ${config.keyEnv}`);
             return false;
         }
         return true;
     });
 
-    if (availableProviders.length === 0) {
+    if (availableProviders.length === 0 && !DRY_RUN) {
         console.error('\nNo providers available. Set API keys as environment variables.');
         process.exit(1);
     }
 
     console.log(`\nProviders to benchmark: ${availableProviders.join(', ')}`);
+
+    // Dry-run: walk the entries, classify each via shouldRunnerShortCircuit, and
+    // print the distribution. No provider calls, no result file written.
+    if (DRY_RUN) {
+        console.log('DRY RUN — dataset summary:');
+        console.log(`  Loaded:        ${totalLoaded}`);
+        console.log(`  Benchmarkable: ${entries.length}`);
+        const decisionCounts = { skip: 0, deterministic: 0, llm: 0 };
+        for (const entry of entries) {
+            const decision = shouldRunnerShortCircuit(entry);
+            decisionCounts[decision.mode]++;
+        }
+        console.log('DRY RUN — entries that would run per decision:');
+        console.log(`  skip (manual-review):           ${skippedManualReview}`);
+        console.log(`  deterministic (no LLM):         ${decisionCounts.deterministic}`);
+        console.log(`  llm (one call per provider):    ${decisionCounts.llm}`);
+        return;
+    }
 
     // Load existing results if resuming
     let results = [];
@@ -489,6 +587,8 @@ async function main() {
     console.log(`\nRunning ${totalTasks} benchmark tasks...\n`);
 
     for (const entry of entries) {
+        const decision = shouldRunnerShortCircuit(entry);
+
         for (const provider of availableProviders) {
             const taskId = `${entry.id}|${provider}`;
 
@@ -496,35 +596,35 @@ async function main() {
                 continue;
             }
 
-            console.log(`[${++completed}/${totalTasks}] ${entry.id} / ${provider}`);
+            console.log(`[${++completed}/${totalTasks}] ${entry.id} / ${provider}${decision.mode === 'deterministic' ? ' (deterministic)' : ''}`);
 
-            const userPrompt = generateUserPrompt(
-                entry.claim_text,
-                entry.source_text,
-                entry.source_url
-            );
+            let resultRow;
+            if (decision.mode === 'deterministic') {
+                resultRow = buildDeterministicResultRow({ entry, provider, decision });
+            } else {
+                const userPrompt = generateUserPrompt(
+                    entry.claim_text,
+                    entry.source_text,
+                    entry.source_url
+                );
+                const providerResult = await callProvider(provider, systemPrompt, userPrompt);
+                resultRow = buildLlmResultRow({
+                    entry,
+                    provider,
+                    model: PROVIDERS[provider].model,
+                    providerResult,
+                });
+            }
 
-            const result = await callProvider(provider, systemPrompt, userPrompt);
-
-            results.push({
-                entry_id: entry.id,
-                provider: provider,
-                model: PROVIDERS[provider].model,
-                ground_truth: entry.ground_truth,
-                predicted_verdict: result.verdict,
-                confidence: result.confidence,
-                comments: result.comments,
-                latency_ms: result.latency,
-                error: result.error,
-                correct: compareVerdicts(result.verdict, entry.ground_truth),
-                timestamp: new Date().toISOString()
-            });
+            results.push(resultRow);
 
             // Save after each result (for resume capability)
             fs.writeFileSync(RESULTS_PATH, JSON.stringify(results, null, 2));
 
-            // Rate limiting between calls
-            await sleep(1000);
+            // Rate limiting only for actual provider calls
+            if (decision.mode !== 'deterministic') {
+                await sleep(1000);
+            }
         }
     }
 
@@ -592,5 +692,8 @@ function printSummary(results, providers) {
     }
 }
 
-// Run
-main().catch(console.error);
+// Run main() only when invoked directly (not when imported by a test).
+const invokedDirectly = import.meta.url === `file://${process.argv[1]}`;
+if (invokedDirectly) {
+    main().catch(console.error);
+}
