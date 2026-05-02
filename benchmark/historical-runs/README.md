@@ -5,11 +5,9 @@ Worked example of the historical-replay capability added in PR #165
 files were generated on 2026-05-02 by running each historical userscript
 prompt against the v1+v2+v3 dataset (187 entries) with a five-model panel:
 
-- **Three open-weight models routed through OpenRouter**, deliberately
-  chosen to match the "Cheap-3" cohort used by the wikidata-SIFT
-  citation-verification project (a separate but similar effort) — useful
-  as a controlled comparison point and as candidates for an ensemble
-  vote:
+- **Three open-weight models routed through OpenRouter** — small enough
+  to be cheap to run, diverse enough that a 3-way majority vote across
+  them is meaningful as an ensemble:
   - `openrouter-mistral-small-3.2`
   - `openrouter-olmo-3.1-32b`
   - `openrouter-deepseek-v3.2`
