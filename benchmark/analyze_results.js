@@ -37,6 +37,11 @@ const REPORT_PATH = flagValue('--output');
 // VERSION_FILTER: 'all' | 'v1' | 'v2' | ... — limit results to entries whose
 // dataset_version matches, so the original 76-row v1 metrics can be re-derived.
 const VERSION_FILTER = flagValue('--version') || 'all';
+// STRICT_MODE makes the analyzer exit 1 if any provider has a must-pass
+// failure (a row with extraction_status === 'source_fetch_failed' that
+// did not resolve to "Source unavailable"). Without --strict, the failure
+// is logged but the process exits 0. CI tier 4 invokes with --strict.
+const STRICT_MODE = args.includes('--strict');
 
 // Configuration (paths are overridable so v1 snapshots can be re-analyzed in place)
 const RESULTS_PATH = path.resolve(__dirname, flagValue('--results') || 'results.json');
@@ -49,6 +54,25 @@ const VERDICT_CATEGORIES = ['Supported', 'Partially supported', 'Not supported',
 /**
  * Normalize verdict to standard categories
  */
+/**
+ * Count must-pass failures for a provider's results.
+ *
+ * Contract: every row that the runner short-circuited deterministically
+ * (extraction_status === 'source_fetch_failed', emitted as SOURCE UNAVAILABLE
+ * with no LLM call) must remain "Source unavailable" in the output. A
+ * non-zero count means the runner contract is broken — an LLM call leaked
+ * onto a row that should have been short-circuited, or the synthetic verdict
+ * was overwritten downstream.
+ *
+ * Exported for unit tests.
+ */
+export function computeMustPassFailures(providerResults) {
+    return providerResults.filter(r =>
+        r.extraction_status === 'source_fetch_failed' &&
+        normalizeVerdict(r.predicted_verdict) !== 'Source unavailable'
+    ).length;
+}
+
 function normalizeVerdict(verdict) {
     if (!verdict) return 'Unknown';
     const v = verdict.toLowerCase().trim();
@@ -318,9 +342,13 @@ function main() {
         providers: {}
     };
 
+    let totalMustPassFailures = 0;
+
     for (const provider of providers) {
         const providerResults = byProvider[provider];
         const metrics = calculateMetrics(providerResults);
+        const mustPassFailures = computeMustPassFailures(providerResults);
+        totalMustPassFailures += mustPassFailures;
 
         // Get provider info from first result
         const firstResult = providerResults[0];
@@ -329,7 +357,8 @@ function main() {
             name: provider.charAt(0).toUpperCase() + provider.slice(1),
             model: firstResult.model,
             sampleCount: providerResults.length,
-            metrics
+            metrics,
+            mustPassFailures
         };
 
         // Print summary
@@ -339,6 +368,9 @@ function main() {
         console.log(`  Binary accuracy: ${(metrics.binaryAccuracy * 100).toFixed(1)}%`);
         console.log(`  Avg latency: ${metrics.latency.avg.toFixed(0)}ms`);
         console.log(`  Errors: ${metrics.errors}/${metrics.total}`);
+        if (mustPassFailures > 0) {
+            console.log(`  MUST-PASS FAILURES: ${mustPassFailures} (rows with extraction_status='source_fetch_failed' that did not resolve to Source unavailable)`);
+        }
         console.log('');
     }
 
@@ -364,7 +396,21 @@ function main() {
         const data = analysis.providers[provider];
         console.log(`${index + 1}. ${data.name}: ${(data.metrics.exactAccuracy * 100).toFixed(1)}%`);
     });
+
+    // Must-pass enforcement: extraction_status === 'source_fetch_failed' rows
+    // are short-circuited deterministically by the runner, so a failure here
+    // means the runner contract is broken. CI tier 4 invokes with --strict.
+    if (totalMustPassFailures > 0) {
+        if (STRICT_MODE) {
+            console.error(`\n[strict] ${totalMustPassFailures} must-pass failure(s) across providers. Exiting 1.`);
+            process.exit(1);
+        }
+        console.warn(`\n[warning] ${totalMustPassFailures} must-pass failure(s) across providers. See analysis.providers[*].mustPassFailures in ${path.basename(ANALYSIS_PATH)}; re-run with --strict to gate CI on this.`);
+    }
 }
 
-// Run
-main();
+// Run main() only when invoked directly, so test files can import the helpers.
+const invokedDirectly = import.meta.url === `file://${process.argv[1]}`;
+if (invokedDirectly) {
+    main();
+}
