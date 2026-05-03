@@ -1,22 +1,29 @@
 #!/usr/bin/env node
 /**
  * compute_ensemble.js — synthesize ensemble-vote rows for the OpenRouter
- * 5-model voting panel.
+ * voting panels.
  *
  * Reads benchmark/results.json (the {metadata, rows} shape introduced in
- * the prompt-unification work) and, for each entry where all five panel
- * members produced a row, appends two synthesized rows:
+ * the prompt-unification work) and, for each panel where every member
+ * produced a row for an entry, appends two synthesized rows:
  *
- *   openrouter-vote-5         — 4-class plurality vote with skeptical-rank
+ *   openrouter-vote-N         — 4-class plurality vote with skeptical-rank
  *                               tiebreaker on tied verdicts.
- *   openrouter-vote-5-binary  — strict-majority support vote (3 of 5);
+ *   openrouter-vote-N-binary  — strict-majority support vote (>N/2);
  *                               sub-majority defaults to "Not supported".
  *                               Materialized as Supported / Not supported
  *                               so analyze_results.js scores it on its
  *                               existing axes.
  *
- * Idempotent: any prior rows with these synthesized provider IDs are
- * stripped before new rows are appended.
+ * Two panels are recognized:
+ *   PANEL_FULL — Mistral + OLMo + Granite + Gemma + Qwen (vote-5 / vote-5-binary)
+ *   PANEL_FAST — Mistral + Granite + Gemma           (vote-3 / vote-3-binary)
+ * The fast set drops the two slowest panel members for smoketesting; the full
+ * set is the headline ensemble.
+ *
+ * Idempotent: any prior rows with synthesized provider IDs (any
+ * openrouter-vote-N or openrouter-vote-N-binary) are stripped before new
+ * rows are appended.
  *
  * Usage:
  *   node compute_ensemble.js              # dry-run, prints what would be added
@@ -33,7 +40,7 @@ import { loadRows, loadMetadata, writeWithMetadata } from './io.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const PANEL = [
+export const PANEL_FULL = [
     'openrouter-mistral-small-3.2',
     'openrouter-olmo-3.1-32b',
     'openrouter-granite-4.1-8b',
@@ -41,8 +48,28 @@ export const PANEL = [
     'openrouter-qwen-3-32b'
 ];
 
-const ENSEMBLE_4CLASS = 'openrouter-vote-5';
-const ENSEMBLE_BINARY = 'openrouter-vote-5-binary';
+// PANEL_FAST drops the two slowest members of the full panel (Qwen and
+// OLMo). Used for smoketesting prompt or pipeline changes — finishes a
+// whole-dataset sweep in ~1/3 of the full-panel wall time while still
+// producing a usable ensemble verdict.
+export const PANEL_FAST = [
+    'openrouter-mistral-small-3.2',
+    'openrouter-granite-4.1-8b',
+    'openrouter-gemma-4-26b-a4b'
+];
+
+// PANEL is the historical name; preserved as an alias to PANEL_FULL so
+// that callers and tests written before the fast-set existed keep working.
+export const PANEL = PANEL_FULL;
+
+function ensembleProviders(panel) {
+    return {
+        fourClass: `openrouter-vote-${panel.length}`,
+        binary: `openrouter-vote-${panel.length}-binary`
+    };
+}
+
+const SYNTH_PROVIDER_RE = /^openrouter-vote-\d+(-binary)?$/;
 
 // Mirror run_benchmark.js compareVerdicts so synthesized rows score on the
 // same axes as native provider rows in analyze_results.js.
@@ -73,7 +100,8 @@ function sumOrNull(values) {
 }
 
 export function buildVoteRows(rows, panel) {
-    const realRows = rows.filter(r => r.provider !== ENSEMBLE_4CLASS && r.provider !== ENSEMBLE_BINARY);
+    const { fourClass: ensemble4Class, binary: ensembleBinary } = ensembleProviders(panel);
+    const realRows = rows.filter(r => !SYNTH_PROVIDER_RE.test(r.provider));
     const byEntry = new Map();
     for (const r of realRows) {
         if (!byEntry.has(r.entry_id)) byEntry.set(r.entry_id, {});
@@ -94,8 +122,8 @@ export function buildVoteRows(rows, panel) {
         const verdict4 = computeNClassVote(verdicts);
         synthesized.push({
             entry_id: entryId,
-            provider: ENSEMBLE_4CLASS,
-            model: 'plurality-5',
+            provider: ensemble4Class,
+            model: `plurality-${panel.length}`,
             ground_truth: groundTruth,
             predicted_verdict: verdict4,
             confidence: 0,
@@ -112,8 +140,8 @@ export function buildVoteRows(rows, panel) {
         const verdictBinary = computeBinaryVoteN(verdicts);
         synthesized.push({
             entry_id: entryId,
-            provider: ENSEMBLE_BINARY,
-            model: 'majority-5-binary',
+            provider: ensembleBinary,
+            model: `majority-${panel.length}-binary`,
             ground_truth: groundTruth,
             predicted_verdict: verdictBinary,
             confidence: 0,
@@ -144,21 +172,31 @@ function main() {
     }
     const rows = loadRows(RESULTS_PATH);
     const metadata = loadMetadata(RESULTS_PATH);
-    const realRows = rows.filter(r => r.provider !== ENSEMBLE_4CLASS && r.provider !== ENSEMBLE_BINARY);
-    const synthesized = buildVoteRows(rows, PANEL);
-
-    const entryCount = new Set(synthesized.map(r => r.entry_id)).size;
-    console.log(`Synthesizing ensemble rows from ${realRows.length} real rows across ${PANEL.length} panel members.`);
-    console.log(`Entries with complete panel: ${entryCount}`);
-    console.log(`Synthesized rows to add: ${synthesized.length} (${entryCount} ${ENSEMBLE_4CLASS} + ${entryCount} ${ENSEMBLE_BINARY})`);
+    const realRows = rows.filter(r => !SYNTH_PROVIDER_RE.test(r.provider));
     const stripped = rows.length - realRows.length;
+
+    // Synthesize both panels where their members are present. buildVoteRows
+    // skips entries with incomplete panels, so a results.json that only has
+    // the fast-set's three providers will get vote-3 rows and zero vote-5.
+    const panels = [
+        { name: 'PANEL_FULL', members: PANEL_FULL },
+        { name: 'PANEL_FAST', members: PANEL_FAST }
+    ];
+    const allSynthesized = [];
+    for (const { name, members } of panels) {
+        const synth = buildVoteRows(realRows, members);
+        const entryCount = new Set(synth.map(r => r.entry_id)).size;
+        const { fourClass, binary } = ensembleProviders(members);
+        console.log(`${name} (${members.length} members → ${fourClass} / ${binary}): ${entryCount} entries with complete panel, ${synth.length} synthesized rows.`);
+        allSynthesized.push(...synth);
+    }
     if (stripped > 0) console.log(`Prior synthesized rows stripped: ${stripped}`);
 
     if (!WRITE) {
         console.log('\nDry-run. Re-run with --write to append to results.json.');
         return;
     }
-    const next = [...realRows, ...synthesized];
+    const next = [...realRows, ...allSynthesized];
     writeWithMetadata(RESULTS_PATH, metadata, next);
     console.log(`\nWrote ${next.length} rows to ${RESULTS_PATH}.`);
 }

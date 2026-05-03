@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildVoteRows, PANEL } from '../benchmark/compute_ensemble.js';
+import { buildVoteRows, PANEL, PANEL_FULL, PANEL_FAST } from '../benchmark/compute_ensemble.js';
 
 // Helper: build a row matching the shape produced by run_benchmark.js.
 function row(entry_id, provider, predicted_verdict, ground_truth, opts = {}) {
@@ -149,4 +149,118 @@ test('PANEL constant matches the chosen 5-model panel', () => {
         'openrouter-olmo-3.1-32b',
         'openrouter-qwen-3-32b'
     ]);
+});
+
+test('PANEL re-exports PANEL_FULL for backward compatibility', () => {
+    assert.deepEqual([...PANEL].sort(), [...PANEL_FULL].sort());
+});
+
+// PANEL_FAST drops Qwen-3-32b (~9s/call) and OLMo-3.1-32b (~2.5s/call but
+// individually weakest). The remaining three — Mistral, Granite, Gemma —
+// stay near the panel-leader band on accuracy and run sub-3.5s each, so the
+// fast set finishes whole-dataset sweeps in roughly 1/3 of the full-panel
+// time. Used for smoketesting prompt or pipeline changes without paying the
+// full-panel latency.
+
+test('PANEL_FAST is a 3-member panel (Mistral, Granite, Gemma)', () => {
+    assert.equal(PANEL_FAST.length, 3);
+    assert.deepEqual([...PANEL_FAST].sort(), [
+        'openrouter-gemma-4-26b-a4b',
+        'openrouter-granite-4.1-8b',
+        'openrouter-mistral-small-3.2'
+    ]);
+});
+
+test('PANEL_FAST excludes the slow/weakest panel members', () => {
+    assert.ok(!PANEL_FAST.includes('openrouter-qwen-3-32b'),
+        'Qwen-3-32b is the slowest panel member, must be excluded from fast set');
+    assert.ok(!PANEL_FAST.includes('openrouter-olmo-3.1-32b'),
+        'OLMo-3.1-32b is the weakest panel member, must be excluded from fast set');
+});
+
+function fastPanelRows(entry_id, ground_truth, verdicts, costs = []) {
+    return PANEL_FAST.map((p, i) => row(entry_id, p, verdicts[i], ground_truth, {
+        cost_usd: costs[i] ?? 0.0001
+    }));
+}
+
+test('buildVoteRows with PANEL_FAST synthesizes openrouter-vote-3 + openrouter-vote-3-binary', () => {
+    const input = fastPanelRows('row_1', 'Supported',
+        ['Supported', 'Supported', 'Not supported']);
+    const synth = buildVoteRows(input, PANEL_FAST);
+    assert.equal(synth.length, 2);
+    const providers = synth.map(r => r.provider).sort();
+    assert.deepEqual(providers, ['openrouter-vote-3', 'openrouter-vote-3-binary']);
+});
+
+test('buildVoteRows with PANEL_FAST picks plurality on 2-1 split', () => {
+    const input = fastPanelRows('row_1', 'Supported',
+        ['Supported', 'Supported', 'Not supported']);
+    const synth = buildVoteRows(input, PANEL_FAST);
+    const v3 = synth.find(r => r.provider === 'openrouter-vote-3');
+    assert.equal(v3.predicted_verdict, 'Supported');
+});
+
+test('buildVoteRows with PANEL_FAST applies skeptical tiebreaker on 1-1-1 ties', () => {
+    // Three different verdicts, all tied at count=1. Skeptical rank picks
+    // Partially > Not > Supported, so Partially wins.
+    const input = fastPanelRows('row_1', 'Partially supported',
+        ['Supported', 'Partially supported', 'Not supported']);
+    const synth = buildVoteRows(input, PANEL_FAST);
+    const v3 = synth.find(r => r.provider === 'openrouter-vote-3');
+    assert.equal(v3.predicted_verdict, 'Partially supported');
+});
+
+test('buildVoteRows with PANEL_FAST binary returns Supported on 2-of-3 support class', () => {
+    const input = fastPanelRows('row_1', 'Supported',
+        ['Supported', 'Partially supported', 'Not supported']);
+    const synth = buildVoteRows(input, PANEL_FAST);
+    const binary = synth.find(r => r.provider === 'openrouter-vote-3-binary');
+    assert.equal(binary.predicted_verdict, 'Supported');
+});
+
+test('buildVoteRows with PANEL_FAST binary returns Not supported on 1-of-3 support class', () => {
+    const input = fastPanelRows('row_1', 'Not supported',
+        ['Supported', 'Not supported', 'Source unavailable']);
+    const synth = buildVoteRows(input, PANEL_FAST);
+    const binary = synth.find(r => r.provider === 'openrouter-vote-3-binary');
+    assert.equal(binary.predicted_verdict, 'Not supported');
+});
+
+test('buildVoteRows skips entries where any PANEL_FAST member is missing', () => {
+    const input = fastPanelRows('row_1', 'Supported',
+        ['Supported', 'Supported', 'Not supported']).slice(0, 2);
+    const synth = buildVoteRows(input, PANEL_FAST);
+    assert.equal(synth.length, 0);
+});
+
+test('buildVoteRows strip filter removes prior vote-3 AND vote-5 synthesized rows', () => {
+    // Mix fast-panel rows with stale vote-3 + vote-5 + vote-5-binary leftovers
+    // from a prior run. buildVoteRows(PANEL_FAST) should ignore all four
+    // synthesized providers when reading input (otherwise stale-rebuilt rows
+    // would feed back into a future panel computation).
+    const fastRows = fastPanelRows('row_1', 'Supported',
+        ['Supported', 'Supported', 'Supported']);
+    const stale = [
+        row('row_1', 'openrouter-vote-3', 'Not supported', 'Supported'),
+        row('row_1', 'openrouter-vote-3-binary', 'Not supported', 'Supported'),
+        row('row_1', 'openrouter-vote-5', 'Not supported', 'Supported'),
+        row('row_1', 'openrouter-vote-5-binary', 'Not supported', 'Supported')
+    ];
+    const input = [...fastRows, ...stale];
+    const synth = buildVoteRows(input, PANEL_FAST);
+    assert.equal(synth.length, 2);
+    const v3 = synth.find(r => r.provider === 'openrouter-vote-3');
+    assert.equal(v3.predicted_verdict, 'Supported');
+});
+
+test('buildVoteRows synthesized vote-3 sums cost across just the 3 fast-panel members', () => {
+    const input = fastPanelRows('row_1', 'Supported',
+        ['Supported', 'Supported', 'Supported'],
+        [0.0001, 0.0002, 0.0003]);
+    const synth = buildVoteRows(input, PANEL_FAST);
+    const v3 = synth.find(r => r.provider === 'openrouter-vote-3');
+    // Float-precision: 0.0001 + 0.0002 + 0.0003 = 0.6e-3 in math but ~6.000…01e-4 in IEEE-754.
+    assert.ok(Math.abs(v3.cost_usd - 0.0006) < 1e-9,
+        `expected cost_usd ~0.0006, got ${v3.cost_usd}`);
 });

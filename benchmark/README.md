@@ -349,22 +349,51 @@ The ensemble script is idempotent and supports a dry-run preview:
 npm run ensemble                      # print what would be added, no writes
 ```
 
-This produces two synthetic providers per entry where all five panel
-members responded:
+`compute_ensemble.js` recognizes two panels and synthesizes whichever
+ones have complete coverage in `results.json`:
 
-- `openrouter-vote-5` — 4-class plurality vote with skeptical-rank
+- **`PANEL_FULL`** (the headline 5-model panel): produces
+  `openrouter-vote-5` and `openrouter-vote-5-binary`.
+- **`PANEL_FAST`** (3-model fast set: Mistral + Granite + Gemma):
+  produces `openrouter-vote-3` and `openrouter-vote-3-binary`. See
+  the fast-set section below for when to use it.
+
+For each synthesized provider:
+
+- `openrouter-vote-N` — 4-class plurality vote with skeptical-rank
   tiebreaker on the verdicts tied at the maximum vote count. Skeptical
   rank: Partially supported > Not supported > Source unavailable >
   Supported.
-- `openrouter-vote-5-binary` — strict-majority support vote (3 of 5);
-  sub-majority and 2-of-5 votes default to "Not supported", materialized
-  in the row as `Supported` or `Not supported` so `analyze_results.js`
+- `openrouter-vote-N-binary` — strict-majority support vote (>N/2);
+  sub-majority and ties default to "Not supported", materialized in
+  the row as `Supported` or `Not supported` so `analyze_results.js`
   can score it normally.
 
 The synthesized rows carry summed `cost_usd`, `latency_ms`, and token
 counts from the panel members so per-entry economics roll up correctly.
-The script is idempotent — prior synthesized rows are stripped before
+The script is idempotent — prior synthesized rows (any
+`openrouter-vote-N` or `openrouter-vote-N-binary`) are stripped before
 new ones are appended.
+
+### Fast set for smoketesting
+
+`PANEL_FAST` drops the two slowest panel members (Qwen-3-32b and
+OLMo-3.1-32b) and runs only Mistral + Granite + Gemma. Per-citation wall
+time is roughly one-third of `PANEL_FULL`, which makes it the right
+choice for validating prompt or pipeline changes without paying the full
+~18s/citation latency:
+
+```bash
+npm run benchmark:openrouter-fast    # 3-model sweep: Mistral + Granite + Gemma
+npm run ensemble:write               # appends vote-3 + vote-3-binary rows
+npm run analyze
+```
+
+The fast set is not a replacement for the full panel as a final
+accuracy measurement — `vote-3` loses the OLMo + Qwen disagreement
+signal that lifts `vote-5-binary` above any individual model — but it
+is a cheap, fast surface for catching regressions before paying for a
+full-panel run.
 
 The voting helpers themselves (`computeNClassVote`, `computeBinaryVoteN`)
 live in `benchmark/voting.js` and are unit-tested in
