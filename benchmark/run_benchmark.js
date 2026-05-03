@@ -24,6 +24,7 @@ import {
     callOpenAICompatibleChat,
     callClaudeAPI,
     callGeminiAPI,
+    callOpenRouterAPI,
 } from '../core/providers.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
 
@@ -82,6 +83,56 @@ const PROVIDERS = {
         requiresKey: true,
         keyEnv: 'GEMINI_API_KEY',
         type: 'gemini'
+    },
+    // Open-weights candidates via OpenRouter for the voting-panel selection sweep.
+    // All five carry an OSI-compliant license (Apache 2.0 or MIT).
+    'openrouter-mistral-small-3.2': {
+        name: 'Mistral Small 3.2 24B (OpenRouter)',
+        model: 'mistralai/mistral-small-3.2-24b-instruct',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-olmo-3.1-32b': {
+        name: 'OLMo 3.1 32B (OpenRouter)',
+        model: 'allenai/olmo-3.1-32b-instruct',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-deepseek-v3.2': {
+        name: 'DeepSeek V3.2 (OpenRouter)',
+        model: 'deepseek/deepseek-v3.2',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-granite-4.1-8b': {
+        name: 'Granite 4.1 8B (OpenRouter)',
+        model: 'ibm-granite/granite-4.1-8b',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-gemma-4-26b-a4b': {
+        name: 'Gemma 4 26B-A4B (OpenRouter)',
+        model: 'google/gemma-4-26b-a4b-it',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-qwen-3-32b': {
+        name: 'Qwen 3 32B Instruct (OpenRouter)',
+        model: 'qwen/qwen3-32b',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
     }
 };
 
@@ -176,10 +227,11 @@ export async function callProvider(provider, systemPrompt, userPrompt) {
     try {
         const result = await withRetry(() => {
             switch (config.type) {
-                case 'publicai': return callPublicAI(config, systemPrompt, userPrompt);
-                case 'claude':   return callClaude(config, systemPrompt, userPrompt);
-                case 'openai':   return callOpenAI(config, systemPrompt, userPrompt);
-                case 'gemini':   return callGemini(config, systemPrompt, userPrompt);
+                case 'publicai':   return callPublicAI(config, systemPrompt, userPrompt);
+                case 'claude':     return callClaude(config, systemPrompt, userPrompt);
+                case 'openai':     return callOpenAI(config, systemPrompt, userPrompt);
+                case 'gemini':     return callGemini(config, systemPrompt, userPrompt);
+                case 'openrouter': return callOpenRouter(config, systemPrompt, userPrompt);
                 default: throw new Error(`Unknown provider type: ${config.type}`);
             }
         });
@@ -268,6 +320,19 @@ async function callGemini(config, systemPrompt, userPrompt) {
         maxTokens: BENCHMARK_MAX_TOKENS,
         temperature: BENCHMARK_TEMPERATURE,
         useStructuredPrompt: BENCHMARK_GEMINI_STRUCTURED,
+    }));
+}
+
+async function callOpenRouter(config, systemPrompt, userPrompt) {
+    const apiKey = process.env[config.keyEnv];
+    if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
+    return shapeResult(await callOpenRouterAPI({
+        apiKey,
+        model: config.model,
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        temperature: BENCHMARK_TEMPERATURE,
     }));
 }
 
@@ -602,12 +667,25 @@ function printSummary(results, providers) {
         const errors = providerResults.filter(r => r.error).length;
         const avgLatency = providerResults.reduce((sum, r) => sum + r.latency_ms, 0) / providerResults.length;
 
+        const costRows = providerResults.filter(r => typeof r.cost_usd === 'number');
+        const totalCost = costRows.reduce((sum, r) => sum + r.cost_usd, 0);
+
         console.log(`${PROVIDERS[provider].name} (${PROVIDERS[provider].model}):`);
         console.log(`  Exact match: ${exact}/${providerResults.length} (${(exact/providerResults.length*100).toFixed(1)}%)`);
         console.log(`  Partial match: ${partial}/${providerResults.length}`);
         console.log(`  Wrong: ${wrong}/${providerResults.length}`);
         console.log(`  Errors: ${errors}/${providerResults.length}`);
         console.log(`  Avg latency: ${avgLatency.toFixed(0)}ms`);
+        if (costRows.length > 0) {
+            const meanCost = totalCost / costRows.length;
+            const correctCount = costRows.filter(r => r.correct === 'exact').length;
+            const costPerCorrect = correctCount > 0 ? totalCost / correctCount : null;
+            console.log(`  Total cost: $${totalCost.toFixed(6)} (over ${costRows.length} priced calls)`);
+            console.log(`  Mean cost/call: $${meanCost.toFixed(6)}`);
+            if (costPerCorrect !== null) {
+                console.log(`  Cost per correct (exact): $${costPerCorrect.toFixed(6)}`);
+            }
+        }
         console.log('');
     }
 }
