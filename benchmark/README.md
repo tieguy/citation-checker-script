@@ -333,14 +333,20 @@ into each result row as `cost_usd`, alongside `prompt_tokens` and
 call, and cost per correct (exact) verdict for every provider that emits
 cost data.
 
-### Voting and ensemble synthesis
+### Running the panel + voting and ensemble synthesis
 
-After running the panel through `run_benchmark.js`, synthesize the ensemble
-verdicts:
+End-to-end maintainer workflow once `OPENROUTER_API_KEY` is set:
 
 ```bash
-node compute_ensemble.js              # dry-run: print what would be added
-node compute_ensemble.js --write      # append synthesized rows to results.json
+npm run benchmark:openrouter-panel    # 187-row sweep across the 5 panel models
+npm run ensemble:write                # append vote-5 + vote-5-binary rows
+npm run analyze                       # score everything, including the panel
+```
+
+The ensemble script is idempotent and supports a dry-run preview:
+
+```bash
+npm run ensemble                      # print what would be added, no writes
 ```
 
 This produces two synthetic providers per entry where all five panel
