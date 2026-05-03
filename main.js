@@ -1602,6 +1602,12 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                         background: #3a3a1a !important;
                         color: #e0c060 !important;
                     }
+                    html.skin-theme-clientpref-os .verifier-truncation-warning,
+                    html.skin-theme-clientpref-os .report-card-truncated {
+                        background: #3a3a1a !important;
+                        color: #e0c060 !important;
+                        border-color: #5a5a2a !important;
+                    }
                     html.skin-theme-clientpref-os .report-card-verdict.not-supported {
                         background: #3a1a1a !important;
                         color: #e06060 !important;
