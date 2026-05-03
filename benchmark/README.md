@@ -57,7 +57,7 @@ Before running benchmarks, review `dataset_review.csv`:
 Set API keys as environment variables:
 
 ```bash
-export PUBLICAI_API_KEY="..."     # Required for PublicAI models
+export PUBLICAI_API_KEY="..."   # Required for PublicAI models
 export ANTHROPIC_API_KEY="sk-ant-..."
 export OPENAI_API_KEY="sk-..."
 export GEMINI_API_KEY="..."
@@ -80,12 +80,12 @@ node run_benchmark.js --limit 10
 node run_benchmark.js --resume
 ```
 
-Available provider types:
-- `publicai` - Apertus / SEA-LION / OLMo via PublicAI (uses `PUBLICAI_API_KEY`)
-- `claude` - Anthropic Claude (uses `ANTHROPIC_API_KEY`)
-- `openai` - OpenAI (uses `OPENAI_API_KEY`)
-- `gemini` - Google Gemini (uses `GEMINI_API_KEY`)
-- `openrouter` - Open-weights models hosted via OpenRouter (uses `OPENROUTER_API_KEY`); see "Open-weights voting panel" below for the current set
+Available providers:
+- `publicai` - Free tier, requires PUBLICAI_API_KEY (Apertus / SEA-LION / OLMo)
+- `claude` - Requires ANTHROPIC_API_KEY
+- `openai` - Requires OPENAI_API_KEY
+- `gemini` - Requires GEMINI_API_KEY
+- `openrouter` - Requires OPENROUTER_API_KEY (open-weights models; see "Open-weights voting panel" below for the current set)
 
 ### Step 4: Analyze Results
 
@@ -380,8 +380,14 @@ newprovider: {
     model: 'model-name',
     endpoint: 'https://api.example.com/v1/chat',
     requiresKey: true,
-    keyEnv: 'NEW_PROVIDER_API_KEY'
+    keyEnv: 'NEW_PROVIDER_API_KEY',
+    type: 'newprovidertype'  // matches the dispatcher case below
 }
 ```
 
-Then implement a `callNewProvider()` function following the pattern of existing providers.
+Then implement a `callNewProvider()` function (typically modeled on
+`callOpenAI` for OpenAI-compatible APIs) and register it in
+`callProvider()`'s `switch (config.type)`. If the provider returns
+per-call cost or token-usage data on its responses, propagate
+`cost_usd`, `prompt_tokens`, and `completion_tokens` to the result row
+alongside the verdict — see `callOpenRouter` for an example.
