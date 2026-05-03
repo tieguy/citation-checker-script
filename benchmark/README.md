@@ -57,10 +57,11 @@ Before running benchmarks, review `dataset_review.csv`:
 Set API keys as environment variables:
 
 ```bash
-export PUBLICAI_API_KEY="..."   # Required for PublicAI models
+export PUBLICAI_API_KEY="..."     # Required for PublicAI models
 export ANTHROPIC_API_KEY="sk-ant-..."
 export OPENAI_API_KEY="sk-..."
 export GEMINI_API_KEY="..."
+export OPENROUTER_API_KEY="sk-or-..."  # Required for openrouter-* providers
 ```
 
 Run benchmark:
@@ -79,11 +80,12 @@ node run_benchmark.js --limit 10
 node run_benchmark.js --resume
 ```
 
-Available providers:
-- `publicai` - Free, no API key required
-- `claude` - Requires ANTHROPIC_API_KEY
-- `openai` - Requires OPENAI_API_KEY
-- `gemini` - Requires GEMINI_API_KEY
+Available provider types:
+- `publicai` - Apertus / SEA-LION / OLMo via PublicAI (uses `PUBLICAI_API_KEY`)
+- `claude` - Anthropic Claude (uses `ANTHROPIC_API_KEY`)
+- `openai` - OpenAI (uses `OPENAI_API_KEY`)
+- `gemini` - Google Gemini (uses `GEMINI_API_KEY`)
+- `openrouter` - Open-weights models hosted via OpenRouter (uses `OPENROUTER_API_KEY`); see "Open-weights voting panel" below for the current set
 
 ### Step 4: Analyze Results
 
@@ -303,6 +305,64 @@ Example in dataset.json:
   "claim_text": "Second claim citing [5]..."
 }
 ```
+
+## Open-weights voting panel
+
+`run_benchmark.js` ships with five OpenRouter providers chosen as a voting
+panel for the citation-verification task. All five carry an OSI-compliant
+weights license and are not reasoning-tuned, so they emit short JSON
+verdicts that fit comfortably within the runner's token budget.
+
+| Provider key | Model | License |
+|---|---|---|
+| `openrouter-mistral-small-3.2` | `mistralai/mistral-small-3.2-24b-instruct` | Apache 2.0 |
+| `openrouter-olmo-3.1-32b` | `allenai/olmo-3.1-32b-instruct` | Apache 2.0 |
+| `openrouter-granite-4.1-8b` | `ibm-granite/granite-4.1-8b` | Apache 2.0 |
+| `openrouter-gemma-4-26b-a4b` | `google/gemma-4-26b-a4b-it` | Apache 2.0 |
+| `openrouter-qwen-3-32b` | `qwen/qwen3-32b` | Apache 2.0 |
+
+A sixth provider, `openrouter-deepseek-v3.2` (MIT), is wired up for
+historical comparison but is not part of the panel.
+
+### Cost capture
+
+OpenRouter populates `usage.cost` (USD) on every chat-completions response
+as of 2026 — no opt-in flag is required. The benchmark threads this value
+into each result row as `cost_usd`, alongside `prompt_tokens` and
+`completion_tokens`. `printSummary()` reports total spend, mean cost per
+call, and cost per correct (exact) verdict for every provider that emits
+cost data.
+
+### Voting and ensemble synthesis
+
+After running the panel through `run_benchmark.js`, synthesize the ensemble
+verdicts:
+
+```bash
+node compute_ensemble.js              # dry-run: print what would be added
+node compute_ensemble.js --write      # append synthesized rows to results.json
+```
+
+This produces two synthetic providers per entry where all five panel
+members responded:
+
+- `openrouter-vote-5` — 4-class plurality vote with skeptical-rank
+  tiebreaker on the verdicts tied at the maximum vote count. Skeptical
+  rank: Partially supported > Not supported > Source unavailable >
+  Supported.
+- `openrouter-vote-5-binary` — strict-majority support vote (3 of 5);
+  sub-majority and 2-of-5 votes default to "Not supported", materialized
+  in the row as `Supported` or `Not supported` so `analyze_results.js`
+  can score it normally.
+
+The synthesized rows carry summed `cost_usd`, `latency_ms`, and token
+counts from the panel members so per-entry economics roll up correctly.
+The script is idempotent — prior synthesized rows are stripped before
+new ones are appended.
+
+The voting helpers themselves (`computeNClassVote`, `computeBinaryVoteN`)
+live in `benchmark/voting.js` and are unit-tested in
+`tests/voting.test.js` and `tests/compute_ensemble.test.js`.
 
 ## Adding New LLM Providers
 
