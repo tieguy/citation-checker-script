@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   callPublicAIAPI,
   callClaudeAPI,
+  callGeminiAPI,
   callProviderAPI,
 } from '../core/providers.js';
 
@@ -90,6 +91,33 @@ test('callProviderAPI throws on unknown provider', async () => {
     () => callProviderAPI('nope', {}),
     /Unknown provider: nope/
   );
+});
+
+test('callGeminiAPI requests JSON-only output via responseMimeType', async () => {
+  // Issue #75: Gemini occasionally emits prose, markdown-fenced JSON, or
+  // truncated JSON which the verdict parser then fails to read. Setting
+  // responseMimeType: application/json constrains Gemini to emit syntactically
+  // valid JSON, recovering parse-failed rows.
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: '{"verdict":"Supported"}' }] } }],
+      usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5 },
+    }),
+  }));
+  try {
+    await callGeminiAPI({
+      apiKey: 'k',
+      model: 'gemini-2.5-flash',
+      systemPrompt: 's',
+      userContent: 'u',
+    });
+    const body = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(body.generationConfig.responseMimeType, 'application/json');
+  } finally {
+    mock.restore();
+  }
 });
 
 test('callClaudeAPI throws on non-ok response', async () => {

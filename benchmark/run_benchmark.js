@@ -248,7 +248,10 @@ async function callGemini(config, systemPrompt, userPrompt) {
         }],
         generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 1000
+            maxOutputTokens: 1000,
+            // Constrains Gemini to emit syntactically valid JSON only;
+            // see issue #75.
+            responseMimeType: 'application/json'
         }
     });
 
