@@ -145,7 +145,7 @@ export function classifyProviderError(err) {
 
 const PROVIDER_MODELS = {
     publicai:    'aisingapore/Qwen-SEA-LION-v4-32B-IT',
-    huggingface: 'meta-llama/Llama-3.3-70B-Instruct',
+    huggingface: 'openai/gpt-oss-20b',
     claude:      'claude-sonnet-4-6',
     gemini:      'gemini-flash-latest',
     openai:      'gpt-4o',

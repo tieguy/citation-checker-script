@@ -627,7 +627,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     name: 'HuggingFace (Free)',
                     storageKey: null, // No key needed - proxy injects upstream key
                     color: '#FF9D00', // HF yellow-orange
-                    model: 'meta-llama/Llama-3.3-70B-Instruct',
+                    model: 'openai/gpt-oss-20b',
                     requiresKey: false
                 },
                 claude: {
