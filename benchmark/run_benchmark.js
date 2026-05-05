@@ -21,6 +21,7 @@ import https from 'https';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { generateSystemPrompt as coreGenerateSystemPrompt, generateUserPrompt } from '../core/prompts.js';
+import { augmentWithCitoid } from '../core/citoid.js';
 import { loadRows, loadMetadata, writeWithMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -459,7 +460,16 @@ async function main() {
 
             console.log(`[${++completed}/${totalTasks}] ${entry.id} / ${provider}`);
 
-            const userPrompt = generateUserPrompt(entry.claim_text, entry.source_text);
+            // Augment source text with Citoid bibliographic metadata when enabled
+            // (default ON; set CITOID_AUGMENT=0 to disable). Mirrors the behavior
+            // the userscript uses in production. Failures are silent — the source
+            // text falls back to the unaugmented body.
+            const augmentEnabled = process.env.CITOID_AUGMENT !== '0';
+            const sourceText = augmentEnabled
+                ? await augmentWithCitoid(entry.source_text, entry.source_url)
+                : entry.source_text;
+
+            const userPrompt = generateUserPrompt(entry.claim_text, sourceText);
 
             const result = await callProvider(provider, systemPrompt, userPrompt);
 
