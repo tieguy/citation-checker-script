@@ -143,51 +143,52 @@ function getSystemPrompt() {
 }
 
 /**
- * Make API call to provider, retrying on transient failures (429, 5xx, network).
- * Backoff is exponential with jitter; non-retryable errors fail fast.
+ * Retry `fn` on transient failures (429, 5xx, network) with exponential
+ * backoff + jitter. `sleepFn` is injectable so tests can run instantly.
  */
-async function callProvider(provider, systemPrompt, userPrompt) {
-    const config = PROVIDERS[provider];
-    const startTime = Date.now();
+export async function withRetry(fn, { maxRetries = MAX_RETRIES, sleepFn = sleep } = {}) {
     let lastError = null;
-
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
-            let result;
-            switch (config.type) {
-                case 'publicai':
-                    result = await callPublicAI(config, systemPrompt, userPrompt);
-                    break;
-                case 'claude':
-                    result = await callClaude(config, systemPrompt, userPrompt);
-                    break;
-                case 'openai':
-                    result = await callOpenAI(config, systemPrompt, userPrompt);
-                    break;
-                case 'gemini':
-                    result = await callGemini(config, systemPrompt, userPrompt);
-                    break;
-                default:
-                    throw new Error(`Unknown provider type: ${config.type}`);
-            }
-            return { ...result, latency: Date.now() - startTime, error: null };
+            return await fn();
         } catch (error) {
             lastError = error;
             const retryable = RETRYABLE_STATUS.test(error.message)
                 || RETRYABLE_NETWORK.test(error.message);
-            if (!retryable || attempt === MAX_RETRIES - 1) break;
+            if (!retryable || attempt === maxRetries - 1) break;
             const backoff = Math.min(30000, 1000 * Math.pow(2, attempt)) + Math.random() * 500;
-            await sleep(backoff);
+            await sleepFn(backoff);
         }
     }
+    throw lastError;
+}
 
-    return {
-        verdict: 'ERROR',
-        confidence: 0,
-        comments: lastError.message,
-        latency: Date.now() - startTime,
-        error: lastError.message
-    };
+/**
+ * Make API call to provider, retrying on transient failures.
+ */
+async function callProvider(provider, systemPrompt, userPrompt) {
+    const config = PROVIDERS[provider];
+    const startTime = Date.now();
+    try {
+        const result = await withRetry(() => {
+            switch (config.type) {
+                case 'publicai': return callPublicAI(config, systemPrompt, userPrompt);
+                case 'claude':   return callClaude(config, systemPrompt, userPrompt);
+                case 'openai':   return callOpenAI(config, systemPrompt, userPrompt);
+                case 'gemini':   return callGemini(config, systemPrompt, userPrompt);
+                default: throw new Error(`Unknown provider type: ${config.type}`);
+            }
+        });
+        return { ...result, latency: Date.now() - startTime, error: null };
+    } catch (error) {
+        return {
+            verdict: 'ERROR',
+            confidence: 0,
+            comments: error.message,
+            latency: Date.now() - startTime,
+            error: error.message
+        };
+    }
 }
 
 /**
@@ -384,9 +385,18 @@ function sleep(ms) {
 }
 
 /**
+ * Return the API hostname for a configured provider key. Tasks sharing a
+ * hostname share one concurrency budget, since they share an upstream
+ * rate-limit boundary.
+ */
+export function hostForProvider(provider, providers = PROVIDERS) {
+    return new URL(providers[provider].endpoint).hostname;
+}
+
+/**
  * Run `worker` over `items` with at most `concurrency` in flight at once.
  */
-async function runPool(items, concurrency, worker) {
+export async function runPool(items, concurrency, worker) {
     let cursor = 0;
     const runners = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
         while (cursor < items.length) {
@@ -404,7 +414,7 @@ async function runPool(items, concurrency, worker) {
  * file and are renamed into place so a Ctrl+C mid-write cannot corrupt
  * results.json.
  */
-function makeSaver(filePath, metadata, getData) {
+export function makeSaver(filePath, metadata, getData) {
     let inFlight = null;
     let pending = false;
     const flush = async () => {
@@ -532,7 +542,7 @@ async function main() {
     // multiplying it. Independent hosts run their pools in parallel.
     const tasksByHost = new Map();
     for (const t of allTasks) {
-        const host = new URL(PROVIDERS[t.provider].endpoint).hostname;
+        const host = hostForProvider(t.provider);
         if (!tasksByHost.has(host)) tasksByHost.set(host, []);
         tasksByHost.get(host).push(t);
     }
@@ -657,5 +667,7 @@ function printSummary(results, providers) {
     }
 }
 
-// Run
-main().catch(console.error);
+// Run only when invoked as a script, not when imported by tests.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    main().catch(console.error);
+}
