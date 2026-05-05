@@ -1,29 +1,31 @@
 #!/usr/bin/env node
 /**
- * compute_ensemble.js — synthesize ensemble-vote rows for the OpenRouter
- * voting panels.
+ * compute_ensemble.js — synthesize ensemble-vote rows for voting panels.
  *
  * Reads benchmark/results.json (the {metadata, rows} shape introduced in
  * the prompt-unification work) and, for each panel where every member
  * produced a row for an entry, appends two synthesized rows:
  *
- *   openrouter-vote-N         — 4-class plurality vote with skeptical-rank
- *                               tiebreaker on tied verdicts.
- *   openrouter-vote-N-binary  — strict-majority support vote (>N/2);
- *                               sub-majority defaults to "Not supported".
- *                               Materialized as Supported / Not supported
- *                               so analyze_results.js scores it on its
- *                               existing axes.
+ *   {prefix}-vote-N         — 4-class plurality vote with skeptical-rank
+ *                             tiebreaker on tied verdicts.
+ *   {prefix}-vote-N-binary  — strict-majority support vote (>N/2);
+ *                             sub-majority defaults to "Not supported".
+ *                             Materialized as Supported / Not supported so
+ *                             analyze_results.js scores it on its existing
+ *                             axes.
  *
- * Two panels are recognized:
- *   PANEL_FULL — Mistral + OLMo + Granite + Gemma + Qwen (vote-5 / vote-5-binary)
- *   PANEL_FAST — Mistral + Granite + Gemma           (vote-3 / vote-3-binary)
- * The fast set drops the two slowest panel members for smoketesting; the full
- * set is the headline ensemble.
+ * Three panels are recognized:
+ *   PANEL_FULL — Mistral + OLMo + Granite + Gemma + Qwen (openrouter-vote-5)
+ *   PANEL_FAST — Mistral + Granite + Gemma             (openrouter-vote-3)
+ *   PANEL_HF   — Qwen3-32B + gpt-oss-20b + DeepSeek-V3.2 (hf-vote-3)
+ * PANEL_FAST drops the two slowest OR members for smoketesting; PANEL_HF
+ * is a parallel three-vendor panel routed through Hugging Face Inference
+ * Providers (see benchmark/README.md "Voting panels" for openness +
+ * cost framing).
  *
  * Idempotent: any prior rows with synthesized provider IDs (any
- * openrouter-vote-N or openrouter-vote-N-binary) are stripped before new
- * rows are appended.
+ * {openrouter,hf}-vote-N or -vote-N-binary) are stripped before new rows
+ * are appended.
  *
  * Usage:
  *   node compute_ensemble.js              # dry-run, prints what would be added
@@ -62,14 +64,42 @@ export const PANEL_FAST = [
 // that callers and tests written before the fast-set existed keep working.
 export const PANEL = PANEL_FULL;
 
+// PANEL_HF — three-vendor panel routed through Hugging Face Inference
+// Providers (router.huggingface.co). Architectural diversity for the
+// vote: Qwen3-32B (Alibaba, dense) + gpt-oss-20b (OpenAI, MoE) +
+// DeepSeek-V3.2 (DeepSeek, MoE/MLA). All three are OSI-licensed
+// (Apache 2.0 / MIT). Cost on a personal HF token measures ~0.072¢
+// per single-model call as of 2026-05-05; see benchmark/README.md.
+export const PANEL_HF = [
+    'hf-qwen3-32b',
+    'hf-gpt-oss-20b',
+    'hf-deepseek-v3-2'
+];
+
+// Infer the synthesized-row prefix from panel-member naming. Any panel
+// whose providers all start with `openrouter-` or all start with `hf-`
+// gets that prefix; mixed panels would be ambiguous and error out.
+function inferPrefix(panel) {
+    const prefixes = new Set(panel.map(p => p.split('-')[0]));
+    if (prefixes.size !== 1) {
+        throw new Error(`Cannot infer ensemble prefix from mixed panel: ${panel.join(', ')}`);
+    }
+    const [prefix] = prefixes;
+    if (prefix !== 'openrouter' && prefix !== 'hf') {
+        throw new Error(`Unsupported panel prefix: ${prefix}`);
+    }
+    return prefix;
+}
+
 function ensembleProviders(panel) {
+    const prefix = inferPrefix(panel);
     return {
-        fourClass: `openrouter-vote-${panel.length}`,
-        binary: `openrouter-vote-${panel.length}-binary`
+        fourClass: `${prefix}-vote-${panel.length}`,
+        binary: `${prefix}-vote-${panel.length}-binary`
     };
 }
 
-const SYNTH_PROVIDER_RE = /^openrouter-vote-\d+(-binary)?$/;
+const SYNTH_PROVIDER_RE = /^(openrouter|hf)-vote-\d+(-binary)?$/;
 
 // Mirror run_benchmark.js compareVerdicts so synthesized rows score on the
 // same axes as native provider rows in analyze_results.js.
@@ -175,12 +205,15 @@ function main() {
     const realRows = rows.filter(r => !SYNTH_PROVIDER_RE.test(r.provider));
     const stripped = rows.length - realRows.length;
 
-    // Synthesize both panels where their members are present. buildVoteRows
+    // Synthesize all panels where their members are present. buildVoteRows
     // skips entries with incomplete panels, so a results.json that only has
     // the fast-set's three providers will get vote-3 rows and zero vote-5.
+    // Mixing panels from different vendors (OR + HF) in one results.json
+    // is supported — each panel's vote rows carry its vendor's prefix.
     const panels = [
         { name: 'PANEL_FULL', members: PANEL_FULL },
-        { name: 'PANEL_FAST', members: PANEL_FAST }
+        { name: 'PANEL_FAST', members: PANEL_FAST },
+        { name: 'PANEL_HF', members: PANEL_HF }
     ];
     const allSynthesized = [];
     for (const { name, members } of panels) {

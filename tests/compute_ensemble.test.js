@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildVoteRows, PANEL, PANEL_FULL, PANEL_FAST } from '../benchmark/compute_ensemble.js';
+import { buildVoteRows, PANEL, PANEL_FULL, PANEL_FAST, PANEL_HF } from '../benchmark/compute_ensemble.js';
 
 // Helper: build a row matching the shape produced by run_benchmark.js.
 function row(entry_id, provider, predicted_verdict, ground_truth, opts = {}) {
@@ -263,4 +263,85 @@ test('buildVoteRows synthesized vote-3 sums cost across just the 3 fast-panel me
     // Float-precision: 0.0001 + 0.0002 + 0.0003 = 0.6e-3 in math but ~6.000…01e-4 in IEEE-754.
     assert.ok(Math.abs(v3.cost_usd - 0.0006) < 1e-9,
         `expected cost_usd ~0.0006, got ${v3.cost_usd}`);
+});
+
+// PANEL_HF — three Hugging Face Inference Provider models. Synthesized
+// rows must carry the `hf-` prefix, not `openrouter-`, so analyze_results
+// reports the HF panel separately.
+
+// Build PANEL_HF rows, post-processing to drop cost_usd entirely so the
+// row matches what callHuggingFace produces (HF Inference Providers does
+// not return per-call cost — only token counts).
+function hfPanelRows(entry_id, ground_truth, verdicts) {
+    return PANEL_HF.map((p, i) => {
+        const r = row(entry_id, p, verdicts[i], ground_truth);
+        r.cost_usd = null;
+        return r;
+    });
+}
+
+test('PANEL_HF is a 3-member panel (Qwen3-32B, gpt-oss-20b, DeepSeek-V3.2)', () => {
+    assert.equal(PANEL_HF.length, 3);
+    assert.deepEqual([...PANEL_HF].sort(), [
+        'hf-deepseek-v3-2',
+        'hf-gpt-oss-20b',
+        'hf-qwen3-32b'
+    ]);
+});
+
+test('buildVoteRows with PANEL_HF synthesizes hf-vote-3 + hf-vote-3-binary', () => {
+    const input = hfPanelRows('row_1', 'Supported',
+        ['Supported', 'Supported', 'Not supported']);
+    const synth = buildVoteRows(input, PANEL_HF);
+    assert.equal(synth.length, 2);
+    const providers = synth.map(r => r.provider).sort();
+    assert.deepEqual(providers, ['hf-vote-3', 'hf-vote-3-binary']);
+});
+
+test('buildVoteRows with PANEL_HF picks plurality on 2-1 split', () => {
+    const input = hfPanelRows('row_1', 'Supported',
+        ['Supported', 'Supported', 'Not supported']);
+    const synth = buildVoteRows(input, PANEL_HF);
+    const v3 = synth.find(r => r.provider === 'hf-vote-3');
+    assert.equal(v3.predicted_verdict, 'Supported');
+});
+
+test('buildVoteRows with PANEL_HF binary returns Supported on 2-of-3 support class', () => {
+    const input = hfPanelRows('row_1', 'Supported',
+        ['Supported', 'Partially supported', 'Not supported']);
+    const synth = buildVoteRows(input, PANEL_HF);
+    const binary = synth.find(r => r.provider === 'hf-vote-3-binary');
+    assert.equal(binary.predicted_verdict, 'Supported');
+});
+
+test('buildVoteRows with PANEL_HF skips entries where any HF panel member is missing', () => {
+    const input = hfPanelRows('row_1', 'Supported',
+        ['Supported', 'Supported', 'Not supported']).slice(0, 2);
+    const synth = buildVoteRows(input, PANEL_HF);
+    assert.equal(synth.length, 0);
+});
+
+test('buildVoteRows synthesized hf-vote-3 has cost_usd null when panel members lack cost', () => {
+    // HF panel members have cost_usd: null because HF Inference Providers
+    // does not return per-call cost. The synthesized row's cost should
+    // reflect that — sumOrNull returns null when no member contributed.
+    const input = hfPanelRows('row_1', 'Supported',
+        ['Supported', 'Supported', 'Supported']);
+    const synth = buildVoteRows(input, PANEL_HF);
+    const v3 = synth.find(r => r.provider === 'hf-vote-3');
+    assert.equal(v3.cost_usd, null);
+});
+
+test('buildVoteRows strip filter also removes prior hf-vote-N synthesized rows', () => {
+    const hfRows = hfPanelRows('row_1', 'Supported',
+        ['Supported', 'Supported', 'Supported']);
+    const stale = [
+        row('row_1', 'hf-vote-3', 'Not supported', 'Supported'),
+        row('row_1', 'hf-vote-3-binary', 'Not supported', 'Supported')
+    ];
+    const input = [...hfRows, ...stale];
+    const synth = buildVoteRows(input, PANEL_HF);
+    assert.equal(synth.length, 2);
+    const v3 = synth.find(r => r.provider === 'hf-vote-3');
+    assert.equal(v3.predicted_verdict, 'Supported');
 });

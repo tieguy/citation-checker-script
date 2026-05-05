@@ -399,6 +399,49 @@ The voting helpers themselves (`computeNClassVote`, `computeBinaryVoteN`)
 live in `benchmark/voting.js` and are unit-tested in
 `tests/voting.test.js` and `tests/compute_ensemble.test.js`.
 
+### Hugging Face Inference voting panel
+
+`PANEL_HF` is a parallel three-vendor panel routed through Hugging Face
+Inference Providers (`router.huggingface.co`). Same OpenAI-compatible
+request shape as the OpenRouter panel, different vendor mix. Useful when
+testing whether HF Inference's auto-routing across backends (Groq,
+Together, PublicAI, etc.) holds up against the OpenRouter-only baseline,
+or when a WMF-funded inference path becomes available through the proxy.
+
+| Provider key | Model | License |
+|---|---|---|
+| `hf-qwen3-32b` | `Qwen/Qwen3-32B` | Apache 2.0 |
+| `hf-gpt-oss-20b` | `openai/gpt-oss-20b` | Apache 2.0 |
+| `hf-deepseek-v3-2` | `deepseek-ai/DeepSeek-V3.2` | MIT |
+
+Set `HF_TOKEN` (Hugging Face access token with serverless-inference
+permissions, plus the relevant backend providers enabled in your account
+settings at https://huggingface.co/settings/inference-providers) and run:
+
+```bash
+npm run benchmark:hf-panel    # 3-model sweep, ~2-4s per call
+npm run ensemble:write        # appends hf-vote-3 + hf-vote-3-binary rows
+npm run analyze
+```
+
+`PANEL_HF` is architecturally diverse on purpose — Qwen3-32B is a dense
+Alibaba model, gpt-oss-20b is an OpenAI MoE, DeepSeek-V3.2 is a DeepSeek
+MLA-attention MoE. The vote benefits from disagreement across training
+stacks rather than redundant signal from same-lineage models.
+
+#### Cost shape
+
+HF Inference Providers does not return per-call cost in the API
+response — only `usage.prompt_tokens` and `usage.completion_tokens`.
+`callHuggingFace` captures the token counts and leaves `cost_usd` null.
+An empirical run on the v1+v2+v3 dataset (187 rows × 2 paid providers)
+measured **$0.27 for 374 calls = ~0.072¢ per single-model call** in
+early May 2026, which puts a 3-vote panel call at roughly **0.14–0.22¢
+per citation** (lower bound assumes one leg rides on a free-to-caller
+proxy path; upper bound is all three legs on a personal HF token). This
+is the order-of-magnitude useful for "is this affordable to run at
+deployment scale" framing.
+
 ## Adding New LLM Providers
 
 Edit `run_benchmark.js` and add to the `PROVIDERS` object:

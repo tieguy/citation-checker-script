@@ -25,6 +25,7 @@ import {
     callClaudeAPI,
     callGeminiAPI,
     callOpenRouterAPI,
+    callHuggingFaceAPI,
 } from '../core/providers.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
 
@@ -133,6 +134,36 @@ const PROVIDERS = {
         requiresKey: true,
         keyEnv: 'OPENROUTER_API_KEY',
         type: 'openrouter'
+    },
+    // Hugging Face Inference Providers — routed through router.huggingface.co.
+    // Same OpenAI-compatible request shape as OpenRouter; the per-provider
+    // backend (Groq, Together, Fireworks, PublicAI, etc.) is auto-selected
+    // by HF based on which providers the token has enabled. HF's response
+    // does not include a per-call cost field, so cost_usd is left null and
+    // token counts are captured for external rate-table computation.
+    'hf-qwen3-32b': {
+        name: 'Qwen3-32B (HF Inference)',
+        model: 'Qwen/Qwen3-32B',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface'
+    },
+    'hf-gpt-oss-20b': {
+        name: 'gpt-oss-20b (HF Inference)',
+        model: 'openai/gpt-oss-20b',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface'
+    },
+    'hf-deepseek-v3-2': {
+        name: 'DeepSeek-V3.2 (HF Inference)',
+        model: 'deepseek-ai/DeepSeek-V3.2',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface'
     }
 };
 
@@ -227,11 +258,12 @@ export async function callProvider(provider, systemPrompt, userPrompt) {
     try {
         const result = await withRetry(() => {
             switch (config.type) {
-                case 'publicai':   return callPublicAI(config, systemPrompt, userPrompt);
-                case 'claude':     return callClaude(config, systemPrompt, userPrompt);
-                case 'openai':     return callOpenAI(config, systemPrompt, userPrompt);
-                case 'gemini':     return callGemini(config, systemPrompt, userPrompt);
-                case 'openrouter': return callOpenRouter(config, systemPrompt, userPrompt);
+                case 'publicai':    return callPublicAI(config, systemPrompt, userPrompt);
+                case 'claude':      return callClaude(config, systemPrompt, userPrompt);
+                case 'openai':      return callOpenAI(config, systemPrompt, userPrompt);
+                case 'gemini':      return callGemini(config, systemPrompt, userPrompt);
+                case 'openrouter':  return callOpenRouter(config, systemPrompt, userPrompt);
+                case 'huggingface': return callHuggingFace(config, systemPrompt, userPrompt);
                 default: throw new Error(`Unknown provider type: ${config.type}`);
             }
         });
@@ -327,6 +359,19 @@ async function callOpenRouter(config, systemPrompt, userPrompt) {
     const apiKey = process.env[config.keyEnv];
     if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
     return shapeResult(await callOpenRouterAPI({
+        apiKey,
+        model: config.model,
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        temperature: BENCHMARK_TEMPERATURE,
+    }));
+}
+
+async function callHuggingFace(config, systemPrompt, userPrompt) {
+    const apiKey = process.env[config.keyEnv];
+    if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
+    return shapeResult(await callHuggingFaceAPI({
         apiKey,
         model: config.model,
         systemPrompt,
