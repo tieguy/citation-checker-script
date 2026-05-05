@@ -4,6 +4,7 @@
 - Dataset: v1+v2+v3, 187 rows, ground truth distribution 49.7% Supported / 25.7% Partially / 24.6% Not supported
 - 5-model panel: openrouter-mistral-small-3.2, openrouter-olmo-3.1-32b, openrouter-deepseek-v3.2, claude-sonnet-4-5, gemini-2.5-flash; 0 errors on either run
 - Plus two synthetic ensembles derived from the 3 OpenRouter panel members (`openrouter-vote-3` for 4-class majority, `openrouter-vote-3-binary` for binary collapse)
+- Late addition (2026-05-05): `hf-gpt-oss-20b` (`openai/gpt-oss-20b`) routed through the proxy `/hf` HuggingFace route. 0 API calls failed after retry, but 12 (Jan) and 10 (Apr) responses parsed as malformed JSON and count as wrong in the metrics below.
 
 ## Side-by-side accuracy
 
@@ -13,6 +14,7 @@ All values are %. Δ = April − January (positive = the April prompt helped thi
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | openrouter-vote-3-binary | 64.7 | 65.8 | +1.1 | 85.0 | 86.6 | +1.6 | 85.0 | 86.6 | +1.6 |
 | gemini-2.5-flash | 62.0 | 61.0 | -1.1 | 78.1 | 80.2 | +2.1 | 78.6 | 80.2 | +1.6 |
+| hf-gpt-oss-20b | 52.4 | 54.5 | +2.1 | 68.4 | 67.4 | -1.0 | 69.5 | 68.4 | -1.1 |
 | claude-sonnet-4-5 | 50.8 | 51.3 | +0.5 | 64.7 | 66.3 | +1.6 | 82.4 | 82.9 | +0.5 |
 | openrouter-deepseek-v3.2 | 44.4 | 50.8 | +6.4 | 58.3 | 67.4 | +9.1 | 79.1 | 85.6 | +6.4 |
 | openrouter-mistral-small-3.2 | 46.5 | 50.3 | +3.7 | 68.4 | 72.2 | +3.7 | 84.0 | 84.0 | +0.0 |
