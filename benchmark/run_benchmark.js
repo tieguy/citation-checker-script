@@ -4,7 +4,7 @@
  *
  * Runs the enriched dataset through multiple LLM providers and records results.
  *
- * Usage: node run_benchmark.js [--providers claude,openai,gemini] [--limit N] [--resume] [--version v1|v2|all]
+ * Usage: node run_benchmark.js [--providers claude,openai,gemini] [--limit N] [--resume] [--version v1|v2|v3|all] [--concurrency N]
  *
  * Environment variables for API keys:
  *   ANTHROPIC_API_KEY - Claude API key
@@ -21,10 +21,20 @@ import https from 'https';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { generateSystemPrompt as coreGenerateSystemPrompt, generateUserPrompt } from '../core/prompts.js';
-import { loadRows, loadMetadata, writeWithMetadata, todayIso } from './io.js';
+import { loadRows, loadMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Reuse TCP/TLS connections across requests. Saves ~100–300ms per call (≈3–9%
+// of a typical 3.5s LLM call — inference time dominates), but the main reason
+// to enable it here is to avoid ephemeral-port / connection-tracking pressure
+// when many requests fan out to the same host under per-host parallelism.
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 64 });
+
+const MAX_RETRIES = 5;
+const RETRYABLE_STATUS = /^HTTP (429|500|502|503|504)\b/;
+const RETRYABLE_NETWORK = /timeout|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up/i;
 
 // Configuration
 const DATASET_PATH = path.join(__dirname, 'dataset.json');
@@ -90,6 +100,15 @@ const versionIndex = args.indexOf('--version');
 // VERSION_FILTER: 'all' | 'v1' | 'v2' | ... — restricts which dataset entries
 // to benchmark, so the original 76-row v1 analysis can be reproduced on demand.
 const VERSION_FILTER = versionIndex !== -1 ? args[versionIndex + 1] : 'all';
+const concurrencyArg = args.find(a => a.startsWith('--concurrency='));
+const concurrencyIndex = args.indexOf('--concurrency');
+const CONCURRENCY = (() => {
+    const raw = concurrencyArg
+        ? concurrencyArg.split('=')[1]
+        : (concurrencyIndex !== -1 ? args[concurrencyIndex + 1] : null);
+    const n = raw ? parseInt(raw, 10) : 5;
+    return Number.isFinite(n) && n > 0 ? n : 5;
+})();
 
 // generateSystemPrompt and generateUserPrompt are imported from core/prompts.js
 // (single source of truth shared with main.js and cli/verify.js). The benchmark
@@ -124,46 +143,51 @@ function getSystemPrompt() {
 }
 
 /**
- * Make API call to provider
+ * Make API call to provider, retrying on transient failures (429, 5xx, network).
+ * Backoff is exponential with jitter; non-retryable errors fail fast.
  */
 async function callProvider(provider, systemPrompt, userPrompt) {
     const config = PROVIDERS[provider];
     const startTime = Date.now();
+    let lastError = null;
 
-    try {
-        let result;
-
-        // Route based on provider type
-        switch (config.type) {
-            case 'publicai':
-                result = await callPublicAI(config, systemPrompt, userPrompt);
-                break;
-            case 'claude':
-                result = await callClaude(config, systemPrompt, userPrompt);
-                break;
-            case 'openai':
-                result = await callOpenAI(config, systemPrompt, userPrompt);
-                break;
-            case 'gemini':
-                result = await callGemini(config, systemPrompt, userPrompt);
-                break;
-            default:
-                throw new Error(`Unknown provider type: ${config.type}`);
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+            let result;
+            switch (config.type) {
+                case 'publicai':
+                    result = await callPublicAI(config, systemPrompt, userPrompt);
+                    break;
+                case 'claude':
+                    result = await callClaude(config, systemPrompt, userPrompt);
+                    break;
+                case 'openai':
+                    result = await callOpenAI(config, systemPrompt, userPrompt);
+                    break;
+                case 'gemini':
+                    result = await callGemini(config, systemPrompt, userPrompt);
+                    break;
+                default:
+                    throw new Error(`Unknown provider type: ${config.type}`);
+            }
+            return { ...result, latency: Date.now() - startTime, error: null };
+        } catch (error) {
+            lastError = error;
+            const retryable = RETRYABLE_STATUS.test(error.message)
+                || RETRYABLE_NETWORK.test(error.message);
+            if (!retryable || attempt === MAX_RETRIES - 1) break;
+            const backoff = Math.min(30000, 1000 * Math.pow(2, attempt)) + Math.random() * 500;
+            await sleep(backoff);
         }
-
-        const latency = Date.now() - startTime;
-        return { ...result, latency, error: null };
-
-    } catch (error) {
-        const latency = Date.now() - startTime;
-        return {
-            verdict: 'ERROR',
-            confidence: 0,
-            comments: error.message,
-            latency,
-            error: error.message
-        };
     }
+
+    return {
+        verdict: 'ERROR',
+        confidence: 0,
+        comments: lastError.message,
+        latency: Date.now() - startTime,
+        error: lastError.message
+    };
 }
 
 /**
@@ -318,6 +342,7 @@ function httpPost(url, body, extraHeaders = {}) {
             port: urlObj.port || 443,
             path: urlObj.pathname + urlObj.search,
             method: 'POST',
+            agent: httpsAgent,
             headers: {
                 'Content-Type': 'application/json',
                 ...extraHeaders
@@ -356,6 +381,56 @@ function httpPost(url, body, extraHeaders = {}) {
  */
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Run `worker` over `items` with at most `concurrency` in flight at once.
+ */
+async function runPool(items, concurrency, worker) {
+    let cursor = 0;
+    const runners = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+        while (cursor < items.length) {
+            const idx = cursor++;
+            await worker(items[idx], idx);
+        }
+    });
+    await Promise.all(runners);
+}
+
+/**
+ * Coalesced atomic save: while a save is in flight, one more is queued
+ * and runs once the current one finishes — collapsing N concurrent
+ * `requestSave()` calls into at most 2 disk writes. Writes go to a temp
+ * file and are renamed into place so a Ctrl+C mid-write cannot corrupt
+ * results.json.
+ */
+function makeSaver(filePath, metadata, getData) {
+    let inFlight = null;
+    let pending = false;
+    const flush = async () => {
+        const tmp = `${filePath}.tmp`;
+        await fs.promises.writeFile(tmp, JSON.stringify({ metadata, rows: getData() }, null, 2));
+        await fs.promises.rename(tmp, filePath);
+    };
+    const requestSave = () => {
+        if (inFlight) { pending = true; return inFlight; }
+        inFlight = (async () => {
+            try {
+                do {
+                    pending = false;
+                    await flush();
+                } while (pending);
+            } finally {
+                inFlight = null;
+            }
+        })();
+        return inFlight;
+    };
+    const drain = async () => {
+        if (inFlight) await inFlight;
+        if (pending) await requestSave();
+    };
+    return { requestSave, drain };
 }
 
 /**
@@ -443,49 +518,82 @@ async function main() {
         dataset_version_filter: VERSION_FILTER
     };
 
-    // Run benchmarks
-    const totalTasks = entries.length * availableProviders.length;
-    let completed = completedIds.size;
-
-    console.log(`\nRunning ${totalTasks} benchmark tasks...\n`);
-
+    // Build the task list, skipping anything already completed (resume).
+    const allTasks = [];
     for (const entry of entries) {
         for (const provider of availableProviders) {
-            const taskId = `${entry.id}|${provider}`;
-
-            if (completedIds.has(taskId)) {
-                continue;
-            }
-
-            console.log(`[${++completed}/${totalTasks}] ${entry.id} / ${provider}`);
-
-            const userPrompt = generateUserPrompt(entry.claim_text, entry.source_text);
-
-            const result = await callProvider(provider, systemPrompt, userPrompt);
-
-            results.push({
-                entry_id: entry.id,
-                provider: provider,
-                model: PROVIDERS[provider].model,
-                ground_truth: entry.ground_truth,
-                predicted_verdict: result.verdict,
-                confidence: result.confidence,
-                comments: result.comments,
-                latency_ms: result.latency,
-                error: result.error,
-                correct: compareVerdicts(result.verdict, entry.ground_truth),
-                timestamp: new Date().toISOString()
-            });
-
-            // Save after each result (for resume capability)
-            writeWithMetadata(RESULTS_PATH, runMetadata, results);
-
-            // Rate limiting between calls
-            await sleep(1000);
+            if (completedIds.has(`${entry.id}|${provider}`)) continue;
+            allTasks.push({ entry, provider });
         }
     }
 
-    console.log(`\nBenchmark complete. Results saved to: ${RESULTS_PATH}`);
+    // Group tasks by API host so providers sharing an endpoint (e.g. all PublicAI
+    // models hit api.publicai.co) share a single concurrency budget instead of
+    // multiplying it. Independent hosts run their pools in parallel.
+    const tasksByHost = new Map();
+    for (const t of allTasks) {
+        const host = new URL(PROVIDERS[t.provider].endpoint).hostname;
+        if (!tasksByHost.has(host)) tasksByHost.set(host, []);
+        tasksByHost.get(host).push(t);
+    }
+
+    const totalTasks = entries.length * availableProviders.length;
+    let completed = completedIds.size;
+    const remaining = allTasks.length;
+
+    console.log(`\nRunning ${remaining} benchmark tasks (${totalTasks} total, ${completed} cached)`);
+    console.log(`Concurrency: ${CONCURRENCY} per host across ${tasksByHost.size} host(s)\n`);
+
+    const { requestSave, drain } = makeSaver(RESULTS_PATH, runMetadata, () => results);
+
+    // Flush in-flight writes on Ctrl+C so resume state stays accurate.
+    let interrupted = false;
+    const onSigint = async () => {
+        if (interrupted) process.exit(130);
+        interrupted = true;
+        console.log('\nInterrupted, flushing results...');
+        await drain();
+        process.exit(130);
+    };
+    process.on('SIGINT', onSigint);
+
+    const startedAt = Date.now();
+
+    await Promise.all(
+        [...tasksByHost.entries()].map(([host, hostTasks]) =>
+            runPool(hostTasks, CONCURRENCY, async ({ entry, provider }) => {
+                const userPrompt = generateUserPrompt(entry.claim_text, entry.source_text);
+
+                const result = await callProvider(provider, systemPrompt, userPrompt);
+
+                results.push({
+                    entry_id: entry.id,
+                    provider: provider,
+                    model: PROVIDERS[provider].model,
+                    ground_truth: entry.ground_truth,
+                    predicted_verdict: result.verdict,
+                    confidence: result.confidence,
+                    comments: result.comments,
+                    latency_ms: result.latency,
+                    error: result.error,
+                    correct: compareVerdicts(result.verdict, entry.ground_truth),
+                    timestamp: new Date().toISOString()
+                });
+
+                completed++;
+                const tag = result.error ? ' ERROR' : '';
+                console.log(`[${completed}/${totalTasks}] ${entry.id} / ${provider} (${result.latency}ms)${tag}`);
+
+                requestSave();
+            })
+        )
+    );
+
+    await drain();
+    process.off('SIGINT', onSigint);
+
+    const elapsedSec = ((Date.now() - startedAt) / 1000).toFixed(1);
+    console.log(`\nBenchmark complete in ${elapsedSec}s. Results saved to: ${RESULTS_PATH}`);
 
     // Print quick summary
     printSummary(results, availableProviders);
