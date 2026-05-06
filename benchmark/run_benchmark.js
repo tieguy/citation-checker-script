@@ -17,20 +17,18 @@
 
 import fs from 'fs';
 import path from 'path';
-import https from 'https';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { generateSystemPrompt as coreGenerateSystemPrompt, generateUserPrompt } from '../core/prompts.js';
+import {
+    callOpenAICompatibleChat,
+    callClaudeAPI,
+    callGeminiAPI,
+} from '../core/providers.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Reuse TCP/TLS connections across requests. Saves ~100–300ms per call (≈3–9%
-// of a typical 3.5s LLM call — inference time dominates), but the main reason
-// to enable it here is to avoid ephemeral-port / connection-tracking pressure
-// when many requests fan out to the same host under per-host parallelism.
-const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 64 });
 
 const MAX_RETRIES = 5;
 const RETRYABLE_STATUS = /^HTTP (429|500|502|503|504)\b/;
@@ -164,9 +162,15 @@ export async function withRetry(fn, { maxRetries = MAX_RETRIES, sleepFn = sleep 
 }
 
 /**
- * Make API call to provider, retrying on transient failures.
+ * Make API call to provider. Delegates HTTP transport to core/providers.js
+ * (single source of truth shared with main.js + cli/verify.js); the runner
+ * adds env-var auth, latency timing, retry, and error-to-verdict-shape conversion.
+ *
+ * Return shape: { verdict, confidence, comments, raw_response, usage, latency, error }
+ *   usage: { input, output, cost_usd } — cost_usd is null where the upstream
+ *   API doesn't surface per-call cost (everything except OpenRouter today).
  */
-async function callProvider(provider, systemPrompt, userPrompt) {
+export async function callProvider(provider, systemPrompt, userPrompt) {
     const config = PROVIDERS[provider];
     const startTime = Date.now();
     try {
@@ -191,97 +195,80 @@ async function callProvider(provider, systemPrompt, userPrompt) {
     }
 }
 
-/**
- * Call PublicAI API
- */
+// Shim helper: parse the raw response text into the verdict shape and
+// attach the usage object captured by core/providers.js.
+function shapeResult({ text, usage }) {
+    return { ...parseResponse(text), usage };
+}
+
+// Benchmark-side knobs preserved verbatim from the pre-consolidation runner.
+// core/providers.js has its own defaults tuned for userscript/CLI use; the
+// runner overrides them here so that benchmark numbers stay comparable to
+// past runs until a deliberate re-baselining experiment changes them.
+const BENCHMARK_MAX_TOKENS = 1000;
+const BENCHMARK_TEMPERATURE = 0.1;
+// The pre-consolidation runner concatenated `${systemPrompt}\n\n${userPrompt}`
+// into a single Gemini user turn rather than using the proper systemInstruction
+// + contents shape. callGeminiAPI now defaults to the structured shape; the
+// runner opts back into concatenation here so historical Gemini benchmark
+// numbers stay reproducible. Worth re-evaluating empirically (see GH #179, #181).
+const BENCHMARK_GEMINI_STRUCTURED = false;
+
 async function callPublicAI(config, systemPrompt, userPrompt) {
     const apiKey = process.env[config.keyEnv];
     if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-
-    const response = await httpPost(config.endpoint, {
+    return shapeResult(await callOpenAICompatibleChat({
+        url: config.endpoint,
+        apiKey,
         model: config.model,
-        messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.1,
-        max_tokens: 1000
-    }, {
-        'Authorization': `Bearer ${apiKey}`
-    });
-
-    const content = response.choices?.[0]?.message?.content || '';
-    return parseResponse(content);
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        temperature: BENCHMARK_TEMPERATURE,
+        label: 'PublicAI',
+    }));
 }
 
-/**
- * Call Claude API
- */
 async function callClaude(config, systemPrompt, userPrompt) {
     const apiKey = process.env[config.keyEnv];
     if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-
-    const response = await httpPost(config.endpoint, {
+    return shapeResult(await callClaudeAPI({
+        apiKey,
         model: config.model,
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-    }, {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-    });
-
-    const content = response.content?.[0]?.text || '';
-    return parseResponse(content);
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        // Claude's body has historically not set temperature; preserved unchanged.
+    }));
 }
 
-/**
- * Call OpenAI API
- */
 async function callOpenAI(config, systemPrompt, userPrompt) {
     const apiKey = process.env[config.keyEnv];
     if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-
-    const response = await httpPost(config.endpoint, {
+    return shapeResult(await callOpenAICompatibleChat({
+        url: config.endpoint,
+        apiKey,
         model: config.model,
-        messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.1,
-        max_tokens: 1000
-    }, {
-        'Authorization': `Bearer ${apiKey}`
-    });
-
-    const content = response.choices?.[0]?.message?.content || '';
-    return parseResponse(content);
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        temperature: BENCHMARK_TEMPERATURE,
+        label: 'OpenAI',
+    }));
 }
 
-/**
- * Call Gemini API
- */
 async function callGemini(config, systemPrompt, userPrompt) {
     const apiKey = process.env[config.keyEnv];
     if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-
-    const url = `${config.endpoint}?key=${apiKey}`;
-
-    const response = await httpPost(url, {
-        contents: [{
-            parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
-        }],
-        generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 1000,
-            // Constrains Gemini to emit syntactically valid JSON only;
-            // see issue #75.
-            responseMimeType: 'application/json'
-        }
-    });
-
-    const content = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    return parseResponse(content);
+    return shapeResult(await callGeminiAPI({
+        apiKey,
+        model: config.model,
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        temperature: BENCHMARK_TEMPERATURE,
+        useStructuredPrompt: BENCHMARK_GEMINI_STRUCTURED,
+    }));
 }
 
 /**
@@ -333,51 +320,6 @@ function normalizeVerdict(verdict) {
     if (v.includes('UNAVAILABLE')) return 'Source unavailable';
     if (v.includes('SUPPORTED')) return 'Supported';
     return verdict;
-}
-
-/**
- * HTTP POST helper
- */
-function httpPost(url, body, extraHeaders = {}) {
-    return new Promise((resolve, reject) => {
-        const urlObj = new URL(url);
-        const options = {
-            hostname: urlObj.hostname,
-            port: urlObj.port || 443,
-            path: urlObj.pathname + urlObj.search,
-            method: 'POST',
-            agent: httpsAgent,
-            headers: {
-                'Content-Type': 'application/json',
-                ...extraHeaders
-            }
-        };
-
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    if (res.statusCode >= 400) {
-                        reject(new Error(`HTTP ${res.statusCode}: ${data.substring(0, 200)}`));
-                        return;
-                    }
-                    resolve(JSON.parse(data));
-                } catch (e) {
-                    reject(new Error(`Parse error: ${e.message}`));
-                }
-            });
-        });
-
-        req.on('error', reject);
-        req.setTimeout(60000, () => {
-            req.destroy();
-            reject(new Error('Request timeout'));
-        });
-
-        req.write(JSON.stringify(body));
-        req.end();
-    });
 }
 
 /**
