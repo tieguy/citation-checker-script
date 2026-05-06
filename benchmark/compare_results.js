@@ -235,3 +235,36 @@ export function compareResults({ control, treatment, dataset, options = {} }) {
         flips,
     };
 }
+
+/**
+ * Filter a ComparisonResult post-hoc, returning a new result restricted to
+ * cells matching the predicate. Per-provider stats are re-aggregated over
+ * the filtered cell set; providers with zero matching cells drop out.
+ *
+ * The original result is not mutated.
+ *
+ * @param {ReturnType<typeof compareResults>} result
+ * @param {(cell: { entryId: string, provider: string, datasetEntry: Object, direction: string, controlVerdict: string, treatmentVerdict: string, groundTruth: string }) => boolean} predicate
+ */
+export function filterComparison(result, predicate) {
+    const cells = result.cells.filter(predicate);
+    const cellsByProvider = new Map();
+    for (const cell of cells) {
+        if (!cellsByProvider.has(cell.provider)) cellsByProvider.set(cell.provider, []);
+        cellsByProvider.get(cell.provider).push(cell);
+    }
+    const perProvider = new Map();
+    for (const [provider, providerCells] of cellsByProvider) {
+        perProvider.set(provider, computeProviderStats(providerCells));
+    }
+    const flips = cells.filter(c =>
+        c.direction === 'improvement' || c.direction === 'regression' || c.direction === 'lateral'
+    );
+    return {
+        metadata: { ...result.metadata, filtered: true },
+        coverage: { ...result.coverage, comparedCells: cells.length },
+        cells,
+        perProvider,
+        flips,
+    };
+}

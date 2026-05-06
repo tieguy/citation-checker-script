@@ -258,3 +258,38 @@ test('compareResults builds intersection cells, classifies, aggregates per provi
         assert.ok(['improvement', 'regression', 'lateral'].includes(flip.direction));
     }
 });
+
+import { filterComparison } from '../benchmark/compare_results.js';
+
+test('filterComparison restricts cells to a predicate match and re-aggregates', () => {
+    const result = compareResults({
+        control: FIXTURE_CONTROL,
+        treatment: FIXTURE_TREATMENT,
+        dataset: FIXTURE_DATASET,
+    });
+
+    // Filter to v2 rows only.
+    const v2Only = filterComparison(result, ({ datasetEntry }) =>
+        datasetEntry.dataset_version === 'v2');
+
+    // 3 v2 rows × 2 providers = 6 cells (no vote-3 cell on v2 rows in fixture).
+    assert.equal(v2Only.coverage.comparedCells, 6);
+    assert.equal(v2Only.metadata.filtered, true);
+
+    // Per-provider should re-aggregate over only the v2 cells.
+    assert.equal(v2Only.perProvider.get('mistral').n, 3);
+    assert.equal(v2Only.perProvider.get('granite').n, 3);
+    // vote-3 had no v2 cells; provider drops out entirely.
+    assert.equal(v2Only.perProvider.has('openrouter-vote-3'), false);
+});
+
+test('filterComparison by provider name restricts to single-provider view', () => {
+    const result = compareResults({
+        control: FIXTURE_CONTROL,
+        treatment: FIXTURE_TREATMENT,
+        dataset: FIXTURE_DATASET,
+    });
+    const mistralOnly = filterComparison(result, ({ provider }) => provider === 'mistral');
+    assert.equal(mistralOnly.perProvider.size, 1);
+    assert.equal(mistralOnly.perProvider.get('mistral').n, 5);
+});
