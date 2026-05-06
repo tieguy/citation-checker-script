@@ -72,3 +72,60 @@ test('indexCellsByPair drops rows with error or predicted_verdict ERROR', () => 
     assert.equal(idx.has('row_2:claude'), false);
     assert.equal(idx.has('row_2:gemini'), false);
 });
+
+import { classifyDirection } from '../benchmark/compare_results.js';
+
+test('classifyDirection: improvement when control wrong, treatment correct', () => {
+    assert.equal(
+        classifyDirection({
+            controlVerdict: 'Not supported',
+            treatmentVerdict: 'Supported',
+            groundTruth: 'Supported',
+        }),
+        'improvement',
+    );
+});
+
+test('classifyDirection: regression when control correct, treatment wrong', () => {
+    assert.equal(
+        classifyDirection({
+            controlVerdict: 'Supported',
+            treatmentVerdict: 'Not supported',
+            groundTruth: 'Supported',
+        }),
+        'regression',
+    );
+});
+
+test('classifyDirection: unchanged-correct when both match GT', () => {
+    assert.equal(
+        classifyDirection({
+            controlVerdict: 'Supported',
+            treatmentVerdict: 'Supported',
+            groundTruth: 'Supported',
+        }),
+        'unchanged-correct',
+    );
+});
+
+test('classifyDirection: unchanged-wrong-same when both wrong with same verdict', () => {
+    assert.equal(
+        classifyDirection({
+            controlVerdict: 'Not supported',
+            treatmentVerdict: 'Not supported',
+            groundTruth: 'Supported',
+        }),
+        'unchanged-wrong-same',
+    );
+});
+
+test('classifyDirection: lateral when both wrong but with different verdicts', () => {
+    assert.equal(
+        classifyDirection({
+            controlVerdict: 'Not supported',
+            treatmentVerdict: 'Source unavailable',
+            groundTruth: 'Supported',
+        }),
+        'lateral',
+    );
+});
