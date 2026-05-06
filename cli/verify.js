@@ -11,6 +11,7 @@ import { fetchSourceContent, logVerification } from '../core/worker.js';
 import { generateSystemPrompt, generateUserPrompt } from '../core/prompts.js';
 import { callProviderAPI } from '../core/providers.js';
 import { parseVerificationResult } from '../core/parsing.js';
+import { parseCompareArgs, COMPARE_HELP_TEXT, runCompare } from './compare.js';
 
 const KNOWN_PROVIDERS = ['publicai', 'huggingface', 'claude', 'gemini', 'openai'];
 
@@ -27,7 +28,10 @@ export function parseCliArgs(argv) {
         const opts = parseVerifyArgs(subArgs);
         return { ...opts, subcommand: 'verify' };
     }
-    // 'compare' will be added in Task 4 once cli/compare.js is in place.
+    if (subcommand === 'compare') {
+        const opts = parseCompareArgs(subArgs);
+        return { ...opts, subcommand: 'compare' };
+    }
 
     throw new UsageError(`unknown subcommand: ${subcommand}`);
 }
@@ -385,6 +389,8 @@ export async function main(argv, { stdout = process.stdout, stderr = process.std
     if (opts.help) {
         if (opts.scope === 'verify') {
             stdout.write(VERIFY_HELP_TEXT);
+        } else if (opts.scope === 'compare') {
+            stdout.write(COMPARE_HELP_TEXT);
         } else {
             stdout.write(TOP_LEVEL_HELP_TEXT);
         }
@@ -393,6 +399,10 @@ export async function main(argv, { stdout = process.stdout, stderr = process.std
 
     if (opts.subcommand === 'verify') {
         return await runVerify(opts, { stdout, stderr, env });
+    }
+
+    if (opts.subcommand === 'compare') {
+        return await runCompare(opts, { stdout, stderr });
     }
 
     // Unreachable — parseCliArgs would have thrown.
