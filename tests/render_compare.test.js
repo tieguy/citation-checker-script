@@ -75,3 +75,34 @@ test('renderMarkdown notes when changeAxes are provided', () => {
     assert.match(md, /Change axes: `prompt`, `source_text`/);
     assert.match(md, /Ground truth version: `post-audit-2026-04-30`/);
 });
+
+import { renderHtml } from '../benchmark/render_compare.js';
+
+test('renderHtml emits a self-contained HTML document with headline and flip tables', () => {
+    const result = compareResults({ control: TINY_CONTROL, treatment: TINY_TREATMENT, dataset: TINY_DATASET });
+    const html = renderHtml(result);
+    assert.match(html, /<!DOCTYPE html>/);
+    assert.match(html, /<style>/); // inline CSS
+    assert.match(html, /Headline accuracy/);
+    assert.match(html, /Flips/);
+    assert.match(html, /<td[^>]*>p<\/td>/); // provider name in a row
+    assert.match(html, /improvement/);
+    // Color-coded direction cell present
+    assert.match(html, /background-color:\s*#e6ffe6/);
+});
+
+test('renderHtml escapes claim text and source URLs', () => {
+    const datasetWithDangerousChars = [{
+        id: 'r1', ground_truth: 'Supported',
+        claim_text: '<script>alert("x")</script>',
+        source_url: 'http://x/?a=b&c=d',
+        extraction_status: 'complete', needs_manual_review: false,
+    }];
+    const control = { rows: [{ entry_id: 'r1', provider: 'p', predicted_verdict: 'Not supported', error: null }] };
+    const treatment = { rows: [{ entry_id: 'r1', provider: 'p', predicted_verdict: 'Supported', error: null }] };
+    const result = compareResults({ control, treatment, dataset: datasetWithDangerousChars });
+    const html = renderHtml(result);
+    assert.equal(html.includes('<script>alert'), false);
+    assert.match(html, /&lt;script&gt;alert/);
+    assert.match(html, /a=b&amp;c=d/);
+});
