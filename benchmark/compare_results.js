@@ -79,3 +79,60 @@ export function classifyDirection({ controlVerdict, treatmentVerdict, groundTrut
     }
     return 'lateral';
 }
+
+function pct(num, denom) {
+    return denom > 0 ? (num / denom) * 100 : 0;
+}
+
+/**
+ * Aggregate stats for a list of cells belonging to one provider.
+ * Returns exact + lenient + binary accuracy for control and treatment, deltas,
+ * and flip counts. Lenient treats Partially supported ↔ Supported as a near-miss.
+ *
+ * @param {Array<{direction: string, controlVerdict: string, treatmentVerdict: string, groundTruth: string}>} cells
+ */
+export function computeProviderStats(cells) {
+    const n = cells.length;
+    let cExact = 0, tExact = 0, cLenient = 0, tLenient = 0, cBinary = 0, tBinary = 0;
+    const flips = {
+        improvement: 0,
+        regression: 0,
+        lateral: 0,
+        'unchanged-correct': 0,
+        'unchanged-wrong-same': 0,
+    };
+    for (const cell of cells) {
+        if (verdictsEqualExact(cell.controlVerdict, cell.groundTruth)) cExact++;
+        if (verdictsEqualExact(cell.treatmentVerdict, cell.groundTruth)) tExact++;
+        if (verdictsEqualLenient(cell.controlVerdict, cell.groundTruth)) cLenient++;
+        if (verdictsEqualLenient(cell.treatmentVerdict, cell.groundTruth)) tLenient++;
+        if (verdictsEqualBinary(cell.controlVerdict, cell.groundTruth)) cBinary++;
+        if (verdictsEqualBinary(cell.treatmentVerdict, cell.groundTruth)) tBinary++;
+        flips[cell.direction]++;
+    }
+    return {
+        n,
+        exact: {
+            control: cExact,
+            treatment: tExact,
+            controlPct: pct(cExact, n),
+            treatmentPct: pct(tExact, n),
+            delta: pct(tExact, n) - pct(cExact, n),
+        },
+        lenient: {
+            control: cLenient,
+            treatment: tLenient,
+            controlPct: pct(cLenient, n),
+            treatmentPct: pct(tLenient, n),
+            delta: pct(tLenient, n) - pct(cLenient, n),
+        },
+        binary: {
+            control: cBinary,
+            treatment: tBinary,
+            controlPct: pct(cBinary, n),
+            treatmentPct: pct(tBinary, n),
+            delta: pct(tBinary, n) - pct(cBinary, n),
+        },
+        flips,
+    };
+}

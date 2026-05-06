@@ -129,3 +129,40 @@ test('classifyDirection: lateral when both wrong but with different verdicts', (
         'lateral',
     );
 });
+
+import { computeProviderStats } from '../benchmark/compare_results.js';
+
+test('computeProviderStats aggregates exact + lenient + binary accuracy and flip counts', () => {
+    const cells = [
+        // 2 unchanged-correct, 1 improvement, 1 regression, 1 lateral, plus
+        // a 6th cell exercising lenient: control Supported, treatment Partially supported, GT Supported.
+        // Exact: control correct, treatment wrong (Partial != Support exactly).
+        // Lenient: both correct (Partial↔Support is lenient).
+        // Binary: both correct.
+        // Direction: regression (control correct exact, treatment wrong exact).
+        { direction: 'unchanged-correct', controlVerdict: 'Supported', treatmentVerdict: 'Supported', groundTruth: 'Supported' },
+        { direction: 'unchanged-correct', controlVerdict: 'Not supported', treatmentVerdict: 'Not supported', groundTruth: 'Not supported' },
+        { direction: 'improvement', controlVerdict: 'Not supported', treatmentVerdict: 'Supported', groundTruth: 'Supported' },
+        { direction: 'regression', controlVerdict: 'Supported', treatmentVerdict: 'Not supported', groundTruth: 'Supported' },
+        { direction: 'lateral', controlVerdict: 'Not supported', treatmentVerdict: 'Source unavailable', groundTruth: 'Supported' },
+        { direction: 'regression', controlVerdict: 'Supported', treatmentVerdict: 'Partially supported', groundTruth: 'Supported' },
+    ];
+    const stats = computeProviderStats(cells);
+    assert.equal(stats.n, 6);
+    // Exact: control rows 1, 2, 4, 6 = 4; treatment rows 1, 2, 3 = 3.
+    assert.equal(stats.exact.control, 4);
+    assert.equal(stats.exact.treatment, 3);
+    // Lenient: control rows 1, 2, 4, 6 = 4; treatment rows 1, 2, 3, 6 = 4 (row 6 is Partial vs Support GT, lenient counts it).
+    assert.equal(stats.lenient.control, 4);
+    assert.equal(stats.lenient.treatment, 4);
+    assert.equal(stats.lenient.delta, 0);
+    // Binary: row 1, 2, 4, 6 control correct (4); treatment 1, 2, 3, 6 correct (4).
+    assert.equal(stats.binary.control, 4);
+    assert.equal(stats.binary.treatment, 4);
+    // Flip counts.
+    assert.equal(stats.flips.improvement, 1);
+    assert.equal(stats.flips.regression, 2);
+    assert.equal(stats.flips.lateral, 1);
+    assert.equal(stats.flips['unchanged-correct'], 2);
+    assert.equal(stats.flips['unchanged-wrong-same'], 0);
+});
