@@ -25,7 +25,7 @@ Options:
   --filter <expr>    Post-hoc subset filter. Supported expressions:
                        version=<v1|v2|v3|...>   filter by dataset_version
                        provider=<name>          filter to a single provider
-                       direction=<imp|reg|...>  filter by direction class
+                       direction=<improvement|regression|lateral|unchanged-correct|unchanged-wrong-same>  filter by direction class
   --noise-floor <pp> Annotate per-provider rows whose |Δ| is below this
                      threshold (in percentage points). Default: 5.
   --change-axis <a>  What differs between control and treatment (e.g.,
@@ -100,6 +100,10 @@ function parseFilterExpression(expr) {
         return ({ provider }) => provider === value;
     }
     if (key === 'direction') {
+        const VALID = ['improvement', 'regression', 'lateral', 'unchanged-correct', 'unchanged-wrong-same'];
+        if (!VALID.includes(value)) {
+            throw new UsageError(`unknown direction: ${value} (supported: ${VALID.join(', ')})`);
+        }
         return ({ direction }) => direction === value;
     }
     throw new UsageError(`unknown --filter key: ${key} (supported: version, provider, direction)`);
@@ -107,11 +111,11 @@ function parseFilterExpression(expr) {
 
 function chooseRenderer(reportPath) {
     const lower = reportPath.toLowerCase();
-    if (lower.endsWith('.html'))     return { fn: renderHtml,     mode: 'html' };
+    if (lower.endsWith('.html'))     return renderHtml;
     if (lower.endsWith('.md') || lower.endsWith('.markdown')) {
-        return { fn: renderMarkdown, mode: 'markdown' };
+        return renderMarkdown;
     }
-    if (lower.endsWith('.json'))     return { fn: renderJson,     mode: 'json' };
+    if (lower.endsWith('.json'))     return renderJson;
     return null;
 }
 
@@ -167,12 +171,12 @@ export async function runCompare(opts, { stdout = process.stdout, stderr = proce
         return 0;
     }
 
-    const renderer = chooseRenderer(opts.reportPath);
-    if (!renderer) {
+    const render = chooseRenderer(opts.reportPath);
+    if (!render) {
         stderr.write(`ccs compare: unrecognized report extension (use .html, .md, or .json): ${opts.reportPath}\n`);
         return 2;
     }
-    const rendered = renderer.fn(result, { noiseFloor: opts.noiseFloor });
+    const rendered = render(result, { noiseFloor: opts.noiseFloor });
     fs.writeFileSync(opts.reportPath, rendered, 'utf8');
     stdout.write(`Report written to ${opts.reportPath} (${result.coverage.comparedCells} cells compared)\n`);
     return 0;

@@ -54,7 +54,7 @@ Supported filter keys:
 |---|---|---|
 | `version` | `--filter version=v2` | Restrict to dataset rows with `dataset_version === 'v2'`. |
 | `provider` | `--filter provider=openrouter-vote-3` | Restrict to a single provider/panel. |
-| `direction` | `--filter direction=regression` | Restrict to cells with a specific flip direction (useful for "show me only the regressions"). |
+| `direction` | `--filter direction=regression` | Restrict to cells with a specific flip direction (valid values: `improvement`, `regression`, `lateral`, `unchanged-correct`, `unchanged-wrong-same`). |
 
 Combine filters by running the comparison multiple times with different `--filter` values; the JSON output is small enough that piping through `jq` is also fine for ad-hoc slicing.
 

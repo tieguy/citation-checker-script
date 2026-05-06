@@ -114,12 +114,12 @@ export function renderMarkdown(result, options = {}) {
     if (result.flips.length === 0) {
         lines.push('_No flips — every cell either stayed correct or stayed wrong with the same verdict._');
     } else {
-        lines.push('| Provider | Entry ID | Direction | Control | Treatment | Ground truth | Claim |');
+        lines.push('| Provider | Entry ID | Claim | Control | Treatment | Ground truth | Direction |');
         lines.push('|---|---|---|---|---|---|---|');
         for (const flip of result.flips) {
             const claim = flip.claimText.length > 60 ? flip.claimText.slice(0, 60) + '…' : flip.claimText;
             lines.push(
-                `| ${flip.provider} | ${flip.entryId} | ${flip.direction} | ${flip.controlVerdict} | ${flip.treatmentVerdict} | ${flip.groundTruth} | ${claim.replace(/\|/g, '\\|')} |`
+                `| ${flip.provider} | ${flip.entryId} | ${claim.replace(/\|/g, '\\|')} | ${flip.controlVerdict} | ${flip.treatmentVerdict} | ${flip.groundTruth} | ${flip.direction} |`
             );
         }
     }

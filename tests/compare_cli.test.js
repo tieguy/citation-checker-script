@@ -165,3 +165,18 @@ test('runCompare with --filter version=v2 narrows to v2 rows', async () => {
         for (const f of [c, t, d, reportPath]) try { fs.unlinkSync(f); } catch {}
     }
 });
+
+test('runCompare returns 2 on unknown --filter direction', async () => {
+    const { c, t, d } = setup();
+    const stderr = [];
+    try {
+        const code = await runCompare(
+            { controlPath: c, treatmentPath: t, datasetPath: d, reportPath: null, filter: 'direction=reg', noiseFloor: 5, changeAxes: [], groundTruthVersion: null },
+            { stdout: { write: () => {} }, stderr: { write: (s) => stderr.push(s) } },
+        );
+        assert.equal(code, 2);
+        assert.match(stderr.join(''), /unknown direction: reg/);
+    } finally {
+        for (const f of [c, t, d]) fs.unlinkSync(f);
+    }
+});
