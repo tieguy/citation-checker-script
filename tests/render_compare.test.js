@@ -29,3 +29,23 @@ test('directionColor maps each direction to a distinct shade', () => {
     assert.equal(directionColor('unchanged-correct'), '#ffffff');
     assert.equal(directionColor('unchanged-wrong-same'), '#ffffff');
 });
+
+import { renderJson } from '../benchmark/render_compare.js';
+import { compareResults } from '../benchmark/compare_results.js';
+
+const TINY_DATASET = [
+    { id: 'r1', ground_truth: 'Supported', claim_text: 'c1', source_url: 'http://x/1', extraction_status: 'complete', needs_manual_review: false },
+];
+const TINY_CONTROL = { rows: [{ entry_id: 'r1', provider: 'p', predicted_verdict: 'Not supported', error: null }] };
+const TINY_TREATMENT = { rows: [{ entry_id: 'r1', provider: 'p', predicted_verdict: 'Supported', error: null }] };
+
+test('renderJson serializes a ComparisonResult round-trippable through JSON.parse', () => {
+    const result = compareResults({ control: TINY_CONTROL, treatment: TINY_TREATMENT, dataset: TINY_DATASET });
+    const json = renderJson(result);
+    const parsed = JSON.parse(json);
+    assert.equal(parsed.coverage.comparedCells, 1);
+    assert.equal(parsed.cells[0].direction, 'improvement');
+    // perProvider was a Map; should serialize to a plain object.
+    assert.equal(typeof parsed.perProvider, 'object');
+    assert.equal(parsed.perProvider.p.n, 1);
+});

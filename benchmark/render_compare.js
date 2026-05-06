@@ -33,3 +33,24 @@ export function directionColor(direction) {
         default:            return '#ffffff';
     }
 }
+
+/**
+ * Serialize a ComparisonResult to pretty-printed JSON.
+ * The `perProvider` Map is converted to a plain object.
+ * The `cells` array drops the back-reference to `datasetEntry` to avoid
+ * duplicating dataset content into the report.
+ *
+ * @param {ReturnType<import('./compare_results.js').compareResults>} result
+ * @param {{indent?: number}} [options]
+ */
+export function renderJson(result, options = {}) {
+    const indent = options.indent ?? 2;
+    const serializable = {
+        metadata: result.metadata,
+        coverage: result.coverage,
+        perProvider: Object.fromEntries(result.perProvider),
+        cells: result.cells.map(({ datasetEntry, ...rest }) => rest),
+        flips: result.flips.map(({ datasetEntry, ...rest }) => rest),
+    };
+    return JSON.stringify(serializable, null, indent);
+}
