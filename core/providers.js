@@ -1,8 +1,9 @@
 // LLM provider dispatch. Pure HTTP routing — callers build the prompt.
 
-// Shared call shape for proxy-routed OpenAI-compatible upstreams (PublicAI, HF).
-// The proxy injects upstream API keys; the userscript only specifies the model.
-async function callProxyChatCompletion({ url, model, systemPrompt, userContent, label }) {
+// Shared call shape for OpenAI-compatible chat-completion upstreams.
+// Used by PublicAI/HF (proxy-routed; key injected upstream) and HF when the
+// caller supplies their own bearer token (direct call to the HF router).
+async function callOpenAICompatibleChat({ url, apiKey, model, systemPrompt, userContent, label }) {
     const requestBody = {
         model: model,
         messages: [
@@ -13,9 +14,12 @@ async function callProxyChatCompletion({ url, model, systemPrompt, userContent, 
         temperature: 0.1
     };
 
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
     const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(requestBody)
     });
 
@@ -47,16 +51,23 @@ async function callProxyChatCompletion({ url, model, systemPrompt, userContent, 
 }
 
 export async function callPublicAIAPI({ model, systemPrompt, userContent, workerBase = 'https://publicai-proxy.alaexis.workers.dev' }) {
-    return callProxyChatCompletion({
+    return callOpenAICompatibleChat({
         url: workerBase,
         model, systemPrompt, userContent,
         label: 'PublicAI',
     });
 }
 
-export async function callHuggingFaceAPI({ model, systemPrompt, userContent, workerBase = 'https://publicai-proxy.alaexis.workers.dev' }) {
-    return callProxyChatCompletion({
-        url: `${workerBase}/hf`,
+// HF direct router endpoint, used when the caller supplies an apiKey.
+// Without one, the call falls back to the worker proxy's /hf path, which
+// injects an upstream key on the user's behalf.
+const HF_DIRECT_URL = 'https://router.huggingface.co/v1/chat/completions';
+
+export async function callHuggingFaceAPI({ apiKey, model, systemPrompt, userContent, workerBase = 'https://publicai-proxy.alaexis.workers.dev' }) {
+    const direct = Boolean(apiKey);
+    return callOpenAICompatibleChat({
+        url: direct ? HF_DIRECT_URL : `${workerBase}/hf`,
+        apiKey: direct ? apiKey : undefined,
         model, systemPrompt, userContent,
         label: 'HuggingFace',
     });
