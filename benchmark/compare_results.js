@@ -136,3 +136,102 @@ export function computeProviderStats(cells) {
         flips,
     };
 }
+
+/**
+ * Compare two result sets. Returns a ComparisonResult with per-cell direction
+ * classification, per-provider aggregates, a flips list, and coverage metadata.
+ *
+ * Cells are computed on the intersection of (entry_id, provider) keys present
+ * in both runs — entries dropped by either side fall out. Dataset rows that
+ * are not `extraction_status === 'complete' && !needs_manual_review` also drop
+ * out (matching the runner's filter).
+ *
+ * @param {Object} args
+ * @param {{rows: Array, metadata?: Object} | Array} args.control
+ * @param {{rows: Array, metadata?: Object} | Array} args.treatment
+ * @param {Array} args.dataset
+ * @param {Object} [args.options]
+ * @param {string[]} [args.options.changeAxes] — what differs between control and treatment
+ * @param {string} [args.options.groundTruthVersion] — GT label, recorded in metadata
+ */
+export function compareResults({ control, treatment, dataset, options = {} }) {
+    const datasetById = new Map(dataset.map(row => [row.id, row]));
+    const validIds = new Set(
+        dataset
+            .filter(r => r.extraction_status === 'complete' && !r.needs_manual_review)
+            .map(r => r.id)
+    );
+
+    const controlRows = Array.isArray(control) ? control : control.rows ?? [];
+    const treatmentRows = Array.isArray(treatment) ? treatment : treatment.rows ?? [];
+
+    const controlByPair = indexCellsByPair(controlRows);
+    const treatmentByPair = indexCellsByPair(treatmentRows);
+
+    const intersectionKeys = [...controlByPair.keys()].filter(k => treatmentByPair.has(k));
+    const cells = [];
+    for (const key of intersectionKeys) {
+        const [entryId, provider] = key.split(':');
+        if (!validIds.has(entryId)) continue;
+        const datasetEntry = datasetById.get(entryId);
+        if (!datasetEntry) continue;
+
+        const controlRow = controlByPair.get(key);
+        const treatmentRow = treatmentByPair.get(key);
+        const direction = classifyDirection({
+            controlVerdict: controlRow.predicted_verdict,
+            treatmentVerdict: treatmentRow.predicted_verdict,
+            groundTruth: datasetEntry.ground_truth,
+        });
+
+        cells.push({
+            entryId,
+            provider,
+            controlVerdict: controlRow.predicted_verdict,
+            treatmentVerdict: treatmentRow.predicted_verdict,
+            groundTruth: datasetEntry.ground_truth,
+            direction,
+            claimText: datasetEntry.claim_text,
+            sourceUrl: datasetEntry.source_url,
+            datasetEntry,
+        });
+    }
+
+    const cellsByProvider = new Map();
+    for (const cell of cells) {
+        if (!cellsByProvider.has(cell.provider)) cellsByProvider.set(cell.provider, []);
+        cellsByProvider.get(cell.provider).push(cell);
+    }
+    const perProvider = new Map();
+    for (const [provider, providerCells] of cellsByProvider) {
+        perProvider.set(provider, computeProviderStats(providerCells));
+    }
+
+    const flips = cells.filter(c =>
+        c.direction === 'improvement' || c.direction === 'regression' || c.direction === 'lateral'
+    );
+
+    const controlMeta = Array.isArray(control) ? {} : (control.metadata ?? {});
+    const treatmentMeta = Array.isArray(treatment) ? {} : (treatment.metadata ?? {});
+
+    return {
+        metadata: {
+            controlRunAt: controlMeta.run_at ?? null,
+            treatmentRunAt: treatmentMeta.run_at ?? null,
+            changeAxes: options.changeAxes ?? [],
+            groundTruthVersion: options.groundTruthVersion ?? null,
+            generatedAt: new Date().toISOString(),
+        },
+        coverage: {
+            datasetTotal: dataset.length,
+            datasetValid: validIds.size,
+            controlOnlyCells: [...controlByPair.keys()].filter(k => !treatmentByPair.has(k)).length,
+            treatmentOnlyCells: [...treatmentByPair.keys()].filter(k => !controlByPair.has(k)).length,
+            intersectionCells: intersectionKeys.length,
+            comparedCells: cells.length,
+        },
+        cells,
+        perProvider,
+        flips,
+    };
+}
