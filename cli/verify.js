@@ -153,10 +153,16 @@ const PROVIDER_MODELS = {
 
 const PROVIDER_ENV_VARS = {
     publicai:    null, // routed through the worker proxy; no client-side key
-    huggingface: null, // routed through the worker proxy; no client-side key
+    huggingface: null, // proxy by default; HF_API_KEY (optional) opts into direct
     claude:      'CLAUDE_API_KEY',
     gemini:      'GEMINI_API_KEY',
     openai:      'OPENAI_API_KEY',
+};
+
+// Optional env vars: when present, switch the provider to a direct-call path.
+// Absent is fine — the call falls back to PROVIDER_ENV_VARS' default routing.
+const PROVIDER_OPTIONAL_ENV_VARS = {
+    huggingface: 'HF_API_KEY',
 };
 
 export const HELP_TEXT = `usage: ccs verify <wikipedia-url> <citation-number> [options]
@@ -174,8 +180,9 @@ Options:
   --provider <name>  LLM provider to use. One of:
                        publicai    (default; routed via the worker proxy,
                                     no API key needed)
-                       huggingface (routed via the worker proxy,
-                                    no API key needed)
+                       huggingface (routed via the worker proxy by default;
+                                    set HF_API_KEY to call HF directly and
+                                    unlock any HF-hosted model)
                        claude      (requires CLAUDE_API_KEY)
                        gemini      (requires GEMINI_API_KEY)
                        openai      (requires OPENAI_API_KEY)
@@ -301,11 +308,14 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
     //    include apiKey for publicai (which won't read it).
     const systemPrompt = generateSystemPrompt();
     const userContent = generateUserPrompt(claim, sourceInfo);
+    const optionalEnvVar = PROVIDER_OPTIONAL_ENV_VARS[provider];
     const providerConfig = {
         model: PROVIDER_MODELS[provider],
         systemPrompt,
         userContent,
-        apiKey: envVar ? env[envVar] : undefined,
+        apiKey: envVar
+            ? env[envVar]
+            : (optionalEnvVar ? env[optionalEnvVar] : undefined),
     };
 
     let providerResult;
