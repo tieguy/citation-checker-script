@@ -43,3 +43,32 @@ test('verdictsEqualLenient: Supported↔Partially supported is a near-miss; ever
     assert.equal(verdictsEqualLenient('Partially supported', 'Not supported'), false);
     assert.equal(verdictsEqualLenient('Source unavailable', 'Not supported'), false);
 });
+
+import { indexCellsByPair } from '../benchmark/compare_results.js';
+
+test('indexCellsByPair builds entry_id:provider Map from rows', () => {
+    const rows = [
+        { entry_id: 'row_1', provider: 'claude', predicted_verdict: 'Supported', error: null },
+        { entry_id: 'row_1', provider: 'gemini', predicted_verdict: 'Not supported', error: null },
+        { entry_id: 'row_2', provider: 'claude', predicted_verdict: 'Partially supported', error: null },
+    ];
+    const idx = indexCellsByPair(rows);
+    assert.equal(idx.size, 3);
+    assert.equal(idx.get('row_1:claude').predicted_verdict, 'Supported');
+    assert.equal(idx.get('row_2:claude').predicted_verdict, 'Partially supported');
+});
+
+test('indexCellsByPair drops rows with error or predicted_verdict ERROR', () => {
+    const rows = [
+        { entry_id: 'row_1', provider: 'claude', predicted_verdict: 'Supported', error: null },
+        { entry_id: 'row_1', provider: 'gemini', predicted_verdict: 'ERROR', error: 'rate limit' },
+        { entry_id: 'row_2', provider: 'claude', predicted_verdict: 'ERROR', error: null },
+        { entry_id: 'row_2', provider: 'gemini', predicted_verdict: 'Supported', error: 'timeout' },
+    ];
+    const idx = indexCellsByPair(rows);
+    assert.equal(idx.size, 1);
+    assert.equal(idx.has('row_1:claude'), true);
+    assert.equal(idx.has('row_1:gemini'), false);
+    assert.equal(idx.has('row_2:claude'), false);
+    assert.equal(idx.has('row_2:gemini'), false);
+});

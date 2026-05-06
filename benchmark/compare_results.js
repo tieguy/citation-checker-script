@@ -37,3 +37,22 @@ export function verdictsEqualLenient(a, b) {
     if ((na === 'support' && nb === 'partial') || (na === 'partial' && nb === 'support')) return true;
     return false;
 }
+
+/**
+ * Index result rows by `${entry_id}:${provider}` key.
+ * Drops rows where `error` is truthy or `predicted_verdict === 'ERROR'`
+ * (treating either signal as "no successful prediction").
+ *
+ * @param {Array<Object>} rows
+ * @returns {Map<string, Object>}
+ */
+export function indexCellsByPair(rows) {
+    const out = new Map();
+    for (const row of rows) {
+        if (row.error) continue;
+        if (row.predicted_verdict === 'ERROR') continue;
+        const key = `${row.entry_id}:${row.provider}`;
+        out.set(key, row);
+    }
+    return out;
+}
