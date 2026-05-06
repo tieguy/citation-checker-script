@@ -49,3 +49,29 @@ test('renderJson serializes a ComparisonResult round-trippable through JSON.pars
     assert.equal(typeof parsed.perProvider, 'object');
     assert.equal(parsed.perProvider.p.n, 1);
 });
+
+import { renderMarkdown } from '../benchmark/render_compare.js';
+
+test('renderMarkdown emits a headline accuracy table (exact + lenient + binary) and a flip table', () => {
+    const result = compareResults({ control: TINY_CONTROL, treatment: TINY_TREATMENT, dataset: TINY_DATASET });
+    const md = renderMarkdown(result);
+    // Headline section — header row carries all three metric pairs in order: exact, lenient, binary.
+    assert.match(md, /## Headline accuracy/);
+    assert.match(md, /\| Provider \| n \| Control exact \| Treatment exact \| Δ exact \| Control lenient \| Treatment lenient \| Δ lenient \| Control binary \| Treatment binary \| Δ binary \|/);
+    assert.match(md, /\| p \| 1 \|/);
+    // Flip section
+    assert.match(md, /## Flips/);
+    assert.match(md, /improvement/);
+    // Coverage / metadata block
+    assert.match(md, /Compared cells: \*\*1\*\*/);
+});
+
+test('renderMarkdown notes when changeAxes are provided', () => {
+    const result = compareResults({
+        control: TINY_CONTROL, treatment: TINY_TREATMENT, dataset: TINY_DATASET,
+        options: { changeAxes: ['prompt', 'source_text'], groundTruthVersion: 'post-audit-2026-04-30' },
+    });
+    const md = renderMarkdown(result);
+    assert.match(md, /Change axes: `prompt`, `source_text`/);
+    assert.match(md, /Ground truth version: `post-audit-2026-04-30`/);
+});
