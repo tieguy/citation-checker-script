@@ -86,7 +86,12 @@ export async function callGeminiAPI({ apiKey, model, systemPrompt, userContent }
         systemInstruction: { parts: [{ text: systemPrompt }] },
         generationConfig: {
             maxOutputTokens: 2048,
-            temperature: 0.0
+            temperature: 0.0,
+            // responseMimeType: 'application/json' constrains Gemini to emit
+            // syntactically valid JSON only. Without it, Gemini occasionally
+            // wraps output in markdown fences or emits prose, both of which
+            // the verdict parser fails on. See issue #75.
+            responseMimeType: 'application/json'
         }
     };
 
