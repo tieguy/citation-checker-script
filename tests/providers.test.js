@@ -94,6 +94,48 @@ test('callHuggingFaceAPI posts to workerBase /hf and returns text + usage', asyn
   }
 });
 
+test('callHuggingFaceAPI with apiKey hits HF router with Bearer header', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: 'hf-direct' } }],
+      usage: { prompt_tokens: 30, completion_tokens: 5 },
+    }),
+  }));
+  try {
+    const result = await callHuggingFaceAPI({
+      apiKey: 'hf_test_key',
+      model: 'meta-llama/Llama-3.3-70B-Instruct',
+      systemPrompt: 's',
+      userContent: 'u',
+    });
+    assert.equal(result.text, 'hf-direct');
+    assert.equal(mock.calls[0].url, 'https://router.huggingface.co/v1/chat/completions');
+    assert.equal(mock.calls[0].opts.headers['Authorization'], 'Bearer hf_test_key');
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callHuggingFaceAPI without apiKey omits Authorization header', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: 'ok' } }],
+      usage: {},
+    }),
+  }));
+  try {
+    await callHuggingFaceAPI({ model: 'm', systemPrompt: 's', userContent: 'u' });
+    assert.equal(mock.calls[0].url, 'https://publicai-proxy.alaexis.workers.dev/hf');
+    assert.equal(mock.calls[0].opts.headers['Authorization'], undefined);
+  } finally {
+    mock.restore();
+  }
+});
+
 test('callHuggingFaceAPI surfaces upstream error messages', async () => {
   const mock = withMockFetch(async () => ({
     ok: false,

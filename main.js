@@ -360,9 +360,10 @@ function extractClaimText(refElement) {
 // --- core/providers.js ---
 // LLM provider dispatch. Pure HTTP routing — callers build the prompt.
 
-// Shared call shape for proxy-routed OpenAI-compatible upstreams (PublicAI, HF).
-// The proxy injects upstream API keys; the userscript only specifies the model.
-async function callProxyChatCompletion({ url, model, systemPrompt, userContent, label }) {
+// Shared call shape for OpenAI-compatible chat-completion upstreams.
+// Used by PublicAI/HF (proxy-routed; key injected upstream) and HF when the
+// caller supplies their own bearer token (direct call to the HF router).
+async function callOpenAICompatibleChat({ url, apiKey, model, systemPrompt, userContent, label }) {
     const requestBody = {
         model: model,
         messages: [
@@ -373,9 +374,12 @@ async function callProxyChatCompletion({ url, model, systemPrompt, userContent, 
         temperature: 0.1
     };
 
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
     const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(requestBody)
     });
 
@@ -407,16 +411,23 @@ async function callProxyChatCompletion({ url, model, systemPrompt, userContent, 
 }
 
 async function callPublicAIAPI({ model, systemPrompt, userContent, workerBase = 'https://publicai-proxy.alaexis.workers.dev' }) {
-    return callProxyChatCompletion({
+    return callOpenAICompatibleChat({
         url: workerBase,
         model, systemPrompt, userContent,
         label: 'PublicAI',
     });
 }
 
-async function callHuggingFaceAPI({ model, systemPrompt, userContent, workerBase = 'https://publicai-proxy.alaexis.workers.dev' }) {
-    return callProxyChatCompletion({
-        url: `${workerBase}/hf`,
+// HF direct router endpoint, used when the caller supplies an apiKey.
+// Without one, the call falls back to the worker proxy's /hf path, which
+// injects an upstream key on the user's behalf.
+const HF_DIRECT_URL = 'https://router.huggingface.co/v1/chat/completions';
+
+async function callHuggingFaceAPI({ apiKey, model, systemPrompt, userContent, workerBase = 'https://publicai-proxy.alaexis.workers.dev' }) {
+    const direct = Boolean(apiKey);
+    return callOpenAICompatibleChat({
+        url: direct ? HF_DIRECT_URL : `${workerBase}/hf`,
+        apiKey: direct ? apiKey : undefined,
         model, systemPrompt, userContent,
         label: 'HuggingFace',
     });
@@ -636,11 +647,14 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     requiresKey: false
                 },
                 huggingface: {
-                    name: 'HuggingFace (Free)',
-                    storageKey: null, // No key needed - proxy injects upstream key
+                    name: 'HuggingFace',
+                    // Optional key: free via the proxy without one; direct call
+                    // to HF (any model) when stored.
+                    storageKey: 'hf_api_key',
                     color: '#FF9D00', // HF yellow-orange
                     model: 'openai/gpt-oss-20b',
-                    requiresKey: false
+                    requiresKey: false,
+                    optionalKey: true
                 },
                 claude: {
                     name: 'Claude',
@@ -1828,7 +1842,13 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             
             const provider = this.providers[this.currentProvider];
             if (!provider.requiresKey) {
-                infoEl.textContent = '✓ No API key required - using free PublicAI model';
+                if (provider.optionalKey && this.getCurrentApiKey()) {
+                    infoEl.textContent = `✓ Direct mode — using your ${provider.name} API key`;
+                } else if (provider.optionalKey) {
+                    infoEl.textContent = `✓ Free via the proxy. Optional: set a ${provider.name} API key for direct access.`;
+                } else {
+                    infoEl.textContent = `✓ No API key required — ${provider.name} routed via the proxy`;
+                }
                 infoEl.className = 'free-provider';
             } else if (this.getCurrentApiKey()) {
                 infoEl.textContent = `API key configured for ${provider.name}`;
@@ -1847,7 +1867,8 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             
             const hasKey = this.getCurrentApiKey();
             const requiresKey = this.providerRequiresKey();
-            
+            const optionalKey = this.providers[this.currentProvider].optionalKey;
+
             if (!requiresKey || hasKey) {
                 // Provider is ready to use
                 if (this.reportRunning) {
@@ -1868,10 +1889,16 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 privacyNote.textContent = 'Results are logged for research. Your username is not recorded.';
                 container.appendChild(privacyNote);
 
-                // Only show key management buttons for providers that use user keys
-                if (requiresKey && !this.reportRunning) {
-                    container.appendChild(this.buttons.changeKey.$element[0]);
-                    container.appendChild(this.buttons.removeKey.$element[0]);
+                // Key-management buttons: required-key providers always show
+                // change/remove; optional-key providers show change/remove
+                // when a key is stored, or "set key" when not.
+                if (!this.reportRunning) {
+                    if (requiresKey || (optionalKey && hasKey)) {
+                        container.appendChild(this.buttons.changeKey.$element[0]);
+                        container.appendChild(this.buttons.removeKey.$element[0]);
+                    } else if (optionalKey) {
+                        container.appendChild(this.buttons.setKey.$element[0]);
+                    }
                 }
             } else {
                 // Provider needs a key
@@ -2316,8 +2343,8 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
         
         setApiKey() {
             const provider = this.providers[this.currentProvider];
-            
-            if (!provider.requiresKey) {
+
+            if (!provider.requiresKey && !provider.optionalKey) {
                 this.updateStatus('This provider does not require an API key.');
                 return;
             }
@@ -2374,7 +2401,8 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
         }
         
         removeApiKey() {
-            if (!this.providerRequiresKey()) {
+            const provider = this.providers[this.currentProvider];
+            if (!provider.requiresKey && !provider.optionalKey) {
                 this.updateStatus('This provider does not use a stored API key.');
                 return;
             }
