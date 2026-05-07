@@ -10,13 +10,20 @@ Wikipedia citation verification user script. An AI-powered sidebar tool that let
 
 ```
 main.js                          # Main Wikipedia user script (~2,700 lines, single class)
+package.json                     # Top-level deps + `npm test` / `npm run build` scripts
+core/                            # Shared pure logic, imported by both benchmark/ and main.js (via sync)
+  claim.js, parsing.js, prompts.js, providers.js, urls.js, worker.js
+cli/verify.js                    # Node CLI front-end (verify a single citation from the command line)
+bin/ccs                          # Executable shim for the CLI
+scripts/sync-main.js             # Inlines core/ modules into main.js for the userscript build
+tests/                           # `node --test` suite (run via `npm test`)
 benchmark/
-  package.json                   # Node.js deps (jsdom)
+  package.json                   # Benchmark-only deps
   extract_dataset.js             # Extract claim/source pairs from Wikipedia
-  run_benchmark.js               # Run LLM verification on dataset
+  run_benchmark.js               # Run LLM verification on dataset (parallelized; see Benchmark Suite)
   analyze_results.js             # Calculate metrics and confusion matrices
   generate_comparison.js         # Generate comparison CSV
-  dataset.json                   # 189 claim-citation pairs (v1: 76 + v2: 34 + v3: 79)
+  dataset.json                   # Current dataset (189 entries: v1: 76 + v2: 34 + v3: 79; counts drift as rows are added)
   dataset_v1.json                # Frozen v1 snapshot for reproducing original analysis
   dataset_v3.json                # Frozen v3 snapshot (post strict-rubric audit, 2026-04-30)
   results.json                   # Raw benchmark results
@@ -26,6 +33,7 @@ benchmark/
   analysis_v1.json               # Frozen v1 analysis snapshot
   analysis_v3.json               # Frozen v3 analysis snapshot
 Benchmarking_data_Citations.csv  # Source ground truth data (Dataset version + WMF override columns)
+.github/workflows/               # Scheduled talk-page scraper (not test/build CI)
 docs/                            # Reference docs + design plans (see docs/README.md)
 ```
 
@@ -99,8 +107,8 @@ npm run report                # Generate markdown report
 
 ## Development Workflow
 
-- **No CI/CD** configured
-- **No test framework** — validation is via the benchmark suite against 110 human-labeled citation pairs (76 v1 + 34 v2)
+- **Tests:** `node --test` via `npm test` from the repo root, runs everything in `tests/**/*.test.js`. New helpers should get a sibling `*.test.js` file. Behavioral validation also goes through the benchmark suite against the human-labeled citation dataset.
+- **No test/build CI** is wired up (the only GitHub Actions workflow is a scheduled talk-page scraper).
 - **No linter** configured
 - **Branching:** Feature branches off `main`, merged via pull requests
 - **Deployment:** Deployed as a Wikipedia User Script (`User:Alaexis/AI_Source_Verification`) with USync for auto-updates
@@ -121,3 +129,5 @@ npm run report                # Generate markdown report
 **Adding a new LLM provider:** Add provider config to `this.providers` in the constructor, implement a `callXxxAPI()` method, and add routing in `callProviderAPI()`.
 
 **Updating the benchmark:** Edit `dataset.json` or re-extract with `npm run extract`, then run `npm run benchmark` and `npm run analyze`.
+
+**Running tests:** `npm test` from the repo root. Tests use `node:test` + `node:assert/strict` and import the modules they cover directly — a script that runs work on import (e.g. `main()` at module load) needs to gate that behind `if (process.argv[1] === fileURLToPath(import.meta.url))` so importing it for tests doesn't trigger the runner. `extract_dataset.js` and `benchmark/run_benchmark.js` follow this pattern.
