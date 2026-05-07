@@ -61,6 +61,7 @@ export PUBLICAI_API_KEY="..."   # Required for PublicAI models
 export ANTHROPIC_API_KEY="sk-ant-..."
 export OPENAI_API_KEY="sk-..."
 export GEMINI_API_KEY="..."
+export OPENROUTER_API_KEY="sk-or-..."  # Required for openrouter-* providers
 ```
 
 Run benchmark:
@@ -80,10 +81,11 @@ node run_benchmark.js --resume
 ```
 
 Available providers:
-- `publicai` - Free, no API key required
+- `publicai` - Free tier, requires PUBLICAI_API_KEY (Apertus / SEA-LION / OLMo)
 - `claude` - Requires ANTHROPIC_API_KEY
 - `openai` - Requires OPENAI_API_KEY
 - `gemini` - Requires GEMINI_API_KEY
+- `openrouter` - Requires OPENROUTER_API_KEY (open-weights models; see "Open-weights voting panel" below for the current set)
 
 ### Step 4: Analyze Results
 
@@ -304,6 +306,142 @@ Example in dataset.json:
 }
 ```
 
+## Open-weights voting panel
+
+`run_benchmark.js` ships with five OpenRouter providers chosen as a voting
+panel for the citation-verification task. All five carry an OSI-compliant
+weights license and are not reasoning-tuned, so they emit short JSON
+verdicts that fit comfortably within the runner's token budget.
+
+| Provider key | Model | License |
+|---|---|---|
+| `openrouter-mistral-small-3.2` | `mistralai/mistral-small-3.2-24b-instruct` | Apache 2.0 |
+| `openrouter-olmo-3.1-32b` | `allenai/olmo-3.1-32b-instruct` | Apache 2.0 |
+| `openrouter-granite-4.1-8b` | `ibm-granite/granite-4.1-8b` | Apache 2.0 |
+| `openrouter-gemma-4-26b-a4b` | `google/gemma-4-26b-a4b-it` | Apache 2.0 |
+| `openrouter-qwen-3-32b` | `qwen/qwen3-32b` | Apache 2.0 |
+
+A sixth provider, `openrouter-deepseek-v3.2` (MIT), is wired up for
+historical comparison but is not part of the panel.
+
+### Cost capture
+
+OpenRouter populates `usage.cost` (USD) on every chat-completions response
+as of 2026 — no opt-in flag is required. The benchmark threads this value
+into each result row as `cost_usd`, alongside `prompt_tokens` and
+`completion_tokens`. `printSummary()` reports total spend, mean cost per
+call, and cost per correct (exact) verdict for every provider that emits
+cost data.
+
+### Running the panel + voting and ensemble synthesis
+
+End-to-end maintainer workflow once `OPENROUTER_API_KEY` is set:
+
+```bash
+npm run benchmark:openrouter-panel    # 187-row sweep across the 5 panel models
+npm run ensemble:write                # append vote-5 + vote-5-binary rows
+npm run analyze                       # score everything, including the panel
+```
+
+The ensemble script is idempotent and supports a dry-run preview:
+
+```bash
+npm run ensemble                      # print what would be added, no writes
+```
+
+`compute_ensemble.js` recognizes two panels and synthesizes whichever
+ones have complete coverage in `results.json`:
+
+- **`PANEL_FULL`** (the headline 5-model panel): produces
+  `openrouter-vote-5` and `openrouter-vote-5-binary`.
+- **`PANEL_FAST`** (3-model fast set: Mistral + Granite + Gemma):
+  produces `openrouter-vote-3` and `openrouter-vote-3-binary`. See
+  the fast-set section below for when to use it.
+
+For each synthesized provider:
+
+- `openrouter-vote-N` — 4-class plurality vote with skeptical-rank
+  tiebreaker on the verdicts tied at the maximum vote count. Skeptical
+  rank: Partially supported > Not supported > Source unavailable >
+  Supported.
+- `openrouter-vote-N-binary` — strict-majority support vote (>N/2);
+  sub-majority and ties default to "Not supported", materialized in
+  the row as `Supported` or `Not supported` so `analyze_results.js`
+  can score it normally.
+
+The synthesized rows carry summed `cost_usd`, `latency_ms`, and token
+counts from the panel members so per-entry economics roll up correctly.
+The script is idempotent — prior synthesized rows (any
+`openrouter-vote-N` or `openrouter-vote-N-binary`) are stripped before
+new ones are appended.
+
+### Fast set for smoketesting
+
+`PANEL_FAST` drops the two slowest panel members (Qwen-3-32b and
+OLMo-3.1-32b) and runs only Mistral + Granite + Gemma. Per-citation wall
+time is roughly one-third of `PANEL_FULL`, which makes it the right
+choice for validating prompt or pipeline changes without paying the full
+~18s/citation latency:
+
+```bash
+npm run benchmark:openrouter-fast    # 3-model sweep: Mistral + Granite + Gemma
+npm run ensemble:write               # appends vote-3 + vote-3-binary rows
+npm run analyze
+```
+
+The fast set is not a replacement for the full panel as a final
+accuracy measurement — `vote-3` loses the OLMo + Qwen disagreement
+signal that lifts `vote-5-binary` above any individual model — but it
+is a cheap, fast surface for catching regressions before paying for a
+full-panel run.
+
+The voting helpers themselves (`computeNClassVote`, `computeBinaryVoteN`)
+live in `benchmark/voting.js` and are unit-tested in
+`tests/voting.test.js` and `tests/compute_ensemble.test.js`.
+
+### Hugging Face Inference voting panel
+
+`PANEL_HF` is a parallel three-vendor panel routed through Hugging Face
+Inference Providers (`router.huggingface.co`). Same OpenAI-compatible
+request shape as the OpenRouter panel, different vendor mix. Useful when
+testing whether HF Inference's auto-routing across backends (Groq,
+Together, PublicAI, etc.) holds up against the OpenRouter-only baseline,
+or when a WMF-funded inference path becomes available through the proxy.
+
+| Provider key | Model | License |
+|---|---|---|
+| `hf-qwen3-32b` | `Qwen/Qwen3-32B` | Apache 2.0 |
+| `hf-gpt-oss-20b` | `openai/gpt-oss-20b` | Apache 2.0 |
+| `hf-deepseek-v3-2` | `deepseek-ai/DeepSeek-V3.2` | MIT |
+
+Set `HF_TOKEN` (Hugging Face access token with serverless-inference
+permissions, plus the relevant backend providers enabled in your account
+settings at https://huggingface.co/settings/inference-providers) and run:
+
+```bash
+npm run benchmark:hf-panel    # 3-model sweep, ~2-4s per call
+npm run ensemble:write        # appends hf-vote-3 + hf-vote-3-binary rows
+npm run analyze
+```
+
+`PANEL_HF` is architecturally diverse on purpose — Qwen3-32B is a dense
+Alibaba model, gpt-oss-20b is an OpenAI MoE, DeepSeek-V3.2 is a DeepSeek
+MLA-attention MoE. The vote benefits from disagreement across training
+stacks rather than redundant signal from same-lineage models.
+
+#### Cost shape
+
+HF Inference Providers does not return per-call cost in the API
+response — only `usage.prompt_tokens` and `usage.completion_tokens`.
+`callHuggingFace` captures the token counts and leaves `cost_usd` null.
+An empirical run on the v1+v2+v3 dataset (187 rows × 2 paid providers)
+measured **$0.27 for 374 calls = ~0.072¢ per single-model call** in
+early May 2026, which puts a 3-vote panel call at roughly **0.14–0.22¢
+per citation** (lower bound assumes one leg rides on a free-to-caller
+proxy path; upper bound is all three legs on a personal HF token). This
+is the order-of-magnitude useful for "is this affordable to run at
+deployment scale" framing.
+
 ## Adding New LLM Providers
 
 Edit `run_benchmark.js` and add to the `PROVIDERS` object:
@@ -314,8 +452,14 @@ newprovider: {
     model: 'model-name',
     endpoint: 'https://api.example.com/v1/chat',
     requiresKey: true,
-    keyEnv: 'NEW_PROVIDER_API_KEY'
+    keyEnv: 'NEW_PROVIDER_API_KEY',
+    type: 'newprovidertype'  // matches the dispatcher case below
 }
 ```
 
-Then implement a `callNewProvider()` function following the pattern of existing providers.
+Then implement a `callNewProvider()` function (typically modeled on
+`callOpenAI` for OpenAI-compatible APIs) and register it in
+`callProvider()`'s `switch (config.type)`. If the provider returns
+per-call cost or token-usage data on its responses, propagate
+`cost_usd`, `prompt_tokens`, and `completion_tokens` to the result row
+alongside the verdict — see `callOpenRouter` for an example.

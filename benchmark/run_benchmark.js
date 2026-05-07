@@ -17,20 +17,20 @@
 
 import fs from 'fs';
 import path from 'path';
-import https from 'https';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { generateSystemPrompt as coreGenerateSystemPrompt, generateUserPrompt } from '../core/prompts.js';
+import {
+    callOpenAICompatibleChat,
+    callClaudeAPI,
+    callGeminiAPI,
+    callOpenRouterAPI,
+    callHuggingFaceAPI,
+} from '../core/providers.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Reuse TCP/TLS connections across requests. Saves ~100–300ms per call (≈3–9%
-// of a typical 3.5s LLM call — inference time dominates), but the main reason
-// to enable it here is to avoid ephemeral-port / connection-tracking pressure
-// when many requests fan out to the same host under per-host parallelism.
-const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 64 });
 
 const MAX_RETRIES = 5;
 const RETRYABLE_STATUS = /^HTTP (429|500|502|503|504)\b/;
@@ -84,6 +84,86 @@ const PROVIDERS = {
         requiresKey: true,
         keyEnv: 'GEMINI_API_KEY',
         type: 'gemini'
+    },
+    // Open-weights candidates via OpenRouter for the voting-panel selection sweep.
+    // All five carry an OSI-compliant license (Apache 2.0 or MIT).
+    'openrouter-mistral-small-3.2': {
+        name: 'Mistral Small 3.2 24B (OpenRouter)',
+        model: 'mistralai/mistral-small-3.2-24b-instruct',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-olmo-3.1-32b': {
+        name: 'OLMo 3.1 32B (OpenRouter)',
+        model: 'allenai/olmo-3.1-32b-instruct',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-deepseek-v3.2': {
+        name: 'DeepSeek V3.2 (OpenRouter)',
+        model: 'deepseek/deepseek-v3.2',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-granite-4.1-8b': {
+        name: 'Granite 4.1 8B (OpenRouter)',
+        model: 'ibm-granite/granite-4.1-8b',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-gemma-4-26b-a4b': {
+        name: 'Gemma 4 26B-A4B (OpenRouter)',
+        model: 'google/gemma-4-26b-a4b-it',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-qwen-3-32b': {
+        name: 'Qwen 3 32B Instruct (OpenRouter)',
+        model: 'qwen/qwen3-32b',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    // Hugging Face Inference Providers — routed through router.huggingface.co.
+    // Same OpenAI-compatible request shape as OpenRouter; the per-provider
+    // backend (Groq, Together, Fireworks, PublicAI, etc.) is auto-selected
+    // by HF based on which providers the token has enabled. HF's response
+    // does not include a per-call cost field, so cost_usd is left null and
+    // token counts are captured for external rate-table computation.
+    'hf-qwen3-32b': {
+        name: 'Qwen3-32B (HF Inference)',
+        model: 'Qwen/Qwen3-32B',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface'
+    },
+    'hf-gpt-oss-20b': {
+        name: 'gpt-oss-20b (HF Inference)',
+        model: 'openai/gpt-oss-20b',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface'
+    },
+    'hf-deepseek-v3-2': {
+        name: 'DeepSeek-V3.2 (HF Inference)',
+        model: 'deepseek-ai/DeepSeek-V3.2',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface'
     }
 };
 
@@ -164,18 +244,26 @@ export async function withRetry(fn, { maxRetries = MAX_RETRIES, sleepFn = sleep 
 }
 
 /**
- * Make API call to provider, retrying on transient failures.
+ * Make API call to provider. Delegates HTTP transport to core/providers.js
+ * (single source of truth shared with main.js + cli/verify.js); the runner
+ * adds env-var auth, latency timing, retry, and error-to-verdict-shape conversion.
+ *
+ * Return shape: { verdict, confidence, comments, raw_response, usage, latency, error }
+ *   usage: { input, output, cost_usd } — cost_usd is null where the upstream
+ *   API doesn't surface per-call cost (everything except OpenRouter today).
  */
-async function callProvider(provider, systemPrompt, userPrompt) {
+export async function callProvider(provider, systemPrompt, userPrompt) {
     const config = PROVIDERS[provider];
     const startTime = Date.now();
     try {
         const result = await withRetry(() => {
             switch (config.type) {
-                case 'publicai': return callPublicAI(config, systemPrompt, userPrompt);
-                case 'claude':   return callClaude(config, systemPrompt, userPrompt);
-                case 'openai':   return callOpenAI(config, systemPrompt, userPrompt);
-                case 'gemini':   return callGemini(config, systemPrompt, userPrompt);
+                case 'publicai':    return callPublicAI(config, systemPrompt, userPrompt);
+                case 'claude':      return callClaude(config, systemPrompt, userPrompt);
+                case 'openai':      return callOpenAI(config, systemPrompt, userPrompt);
+                case 'gemini':      return callGemini(config, systemPrompt, userPrompt);
+                case 'openrouter':  return callOpenRouter(config, systemPrompt, userPrompt);
+                case 'huggingface': return callHuggingFace(config, systemPrompt, userPrompt);
                 default: throw new Error(`Unknown provider type: ${config.type}`);
             }
         });
@@ -191,97 +279,106 @@ async function callProvider(provider, systemPrompt, userPrompt) {
     }
 }
 
-/**
- * Call PublicAI API
- */
+// Shim helper: parse the raw response text into the verdict shape and
+// attach the usage object captured by core/providers.js.
+function shapeResult({ text, usage }) {
+    return { ...parseResponse(text), usage };
+}
+
+// Benchmark-side knobs preserved verbatim from the pre-consolidation runner.
+// core/providers.js has its own defaults tuned for userscript/CLI use; the
+// runner overrides them here so that benchmark numbers stay comparable to
+// past runs until a deliberate re-baselining experiment changes them.
+const BENCHMARK_MAX_TOKENS = 1000;
+const BENCHMARK_TEMPERATURE = 0.1;
+// The pre-consolidation runner concatenated `${systemPrompt}\n\n${userPrompt}`
+// into a single Gemini user turn rather than using the proper systemInstruction
+// + contents shape. callGeminiAPI now defaults to the structured shape; the
+// runner opts back into concatenation here so historical Gemini benchmark
+// numbers stay reproducible. Worth re-evaluating empirically (see GH #179, #181).
+const BENCHMARK_GEMINI_STRUCTURED = false;
+
 async function callPublicAI(config, systemPrompt, userPrompt) {
     const apiKey = process.env[config.keyEnv];
     if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-
-    const response = await httpPost(config.endpoint, {
+    return shapeResult(await callOpenAICompatibleChat({
+        url: config.endpoint,
+        apiKey,
         model: config.model,
-        messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.1,
-        max_tokens: 1000
-    }, {
-        'Authorization': `Bearer ${apiKey}`
-    });
-
-    const content = response.choices?.[0]?.message?.content || '';
-    return parseResponse(content);
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        temperature: BENCHMARK_TEMPERATURE,
+        label: 'PublicAI',
+    }));
 }
 
-/**
- * Call Claude API
- */
 async function callClaude(config, systemPrompt, userPrompt) {
     const apiKey = process.env[config.keyEnv];
     if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-
-    const response = await httpPost(config.endpoint, {
+    return shapeResult(await callClaudeAPI({
+        apiKey,
         model: config.model,
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-    }, {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-    });
-
-    const content = response.content?.[0]?.text || '';
-    return parseResponse(content);
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        // Claude's body has historically not set temperature; preserved unchanged.
+    }));
 }
 
-/**
- * Call OpenAI API
- */
 async function callOpenAI(config, systemPrompt, userPrompt) {
     const apiKey = process.env[config.keyEnv];
     if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-
-    const response = await httpPost(config.endpoint, {
+    return shapeResult(await callOpenAICompatibleChat({
+        url: config.endpoint,
+        apiKey,
         model: config.model,
-        messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.1,
-        max_tokens: 1000
-    }, {
-        'Authorization': `Bearer ${apiKey}`
-    });
-
-    const content = response.choices?.[0]?.message?.content || '';
-    return parseResponse(content);
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        temperature: BENCHMARK_TEMPERATURE,
+        label: 'OpenAI',
+    }));
 }
 
-/**
- * Call Gemini API
- */
 async function callGemini(config, systemPrompt, userPrompt) {
     const apiKey = process.env[config.keyEnv];
     if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
+    return shapeResult(await callGeminiAPI({
+        apiKey,
+        model: config.model,
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        temperature: BENCHMARK_TEMPERATURE,
+        useStructuredPrompt: BENCHMARK_GEMINI_STRUCTURED,
+    }));
+}
 
-    const url = `${config.endpoint}?key=${apiKey}`;
+async function callOpenRouter(config, systemPrompt, userPrompt) {
+    const apiKey = process.env[config.keyEnv];
+    if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
+    return shapeResult(await callOpenRouterAPI({
+        apiKey,
+        model: config.model,
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        temperature: BENCHMARK_TEMPERATURE,
+    }));
+}
 
-    const response = await httpPost(url, {
-        contents: [{
-            parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
-        }],
-        generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 1000,
-            // Constrains Gemini to emit syntactically valid JSON only;
-            // see issue #75.
-            responseMimeType: 'application/json'
-        }
-    });
-
-    const content = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    return parseResponse(content);
+async function callHuggingFace(config, systemPrompt, userPrompt) {
+    const apiKey = process.env[config.keyEnv];
+    if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
+    return shapeResult(await callHuggingFaceAPI({
+        apiKey,
+        model: config.model,
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: BENCHMARK_MAX_TOKENS,
+        temperature: BENCHMARK_TEMPERATURE,
+    }));
 }
 
 /**
@@ -333,51 +430,6 @@ function normalizeVerdict(verdict) {
     if (v.includes('UNAVAILABLE')) return 'Source unavailable';
     if (v.includes('SUPPORTED')) return 'Supported';
     return verdict;
-}
-
-/**
- * HTTP POST helper
- */
-function httpPost(url, body, extraHeaders = {}) {
-    return new Promise((resolve, reject) => {
-        const urlObj = new URL(url);
-        const options = {
-            hostname: urlObj.hostname,
-            port: urlObj.port || 443,
-            path: urlObj.pathname + urlObj.search,
-            method: 'POST',
-            agent: httpsAgent,
-            headers: {
-                'Content-Type': 'application/json',
-                ...extraHeaders
-            }
-        };
-
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    if (res.statusCode >= 400) {
-                        reject(new Error(`HTTP ${res.statusCode}: ${data.substring(0, 200)}`));
-                        return;
-                    }
-                    resolve(JSON.parse(data));
-                } catch (e) {
-                    reject(new Error(`Parse error: ${e.message}`));
-                }
-            });
-        });
-
-        req.on('error', reject);
-        req.setTimeout(60000, () => {
-            req.destroy();
-            reject(new Error('Request timeout'));
-        });
-
-        req.write(JSON.stringify(body));
-        req.end();
-    });
 }
 
 /**
@@ -660,12 +712,25 @@ function printSummary(results, providers) {
         const errors = providerResults.filter(r => r.error).length;
         const avgLatency = providerResults.reduce((sum, r) => sum + r.latency_ms, 0) / providerResults.length;
 
+        const costRows = providerResults.filter(r => typeof r.cost_usd === 'number');
+        const totalCost = costRows.reduce((sum, r) => sum + r.cost_usd, 0);
+
         console.log(`${PROVIDERS[provider].name} (${PROVIDERS[provider].model}):`);
         console.log(`  Exact match: ${exact}/${providerResults.length} (${(exact/providerResults.length*100).toFixed(1)}%)`);
         console.log(`  Partial match: ${partial}/${providerResults.length}`);
         console.log(`  Wrong: ${wrong}/${providerResults.length}`);
         console.log(`  Errors: ${errors}/${providerResults.length}`);
         console.log(`  Avg latency: ${avgLatency.toFixed(0)}ms`);
+        if (costRows.length > 0) {
+            const meanCost = totalCost / costRows.length;
+            const correctCount = costRows.filter(r => r.correct === 'exact').length;
+            const costPerCorrect = correctCount > 0 ? totalCost / correctCount : null;
+            console.log(`  Total cost: $${totalCost.toFixed(6)} (over ${costRows.length} priced calls)`);
+            console.log(`  Mean cost/call: $${meanCost.toFixed(6)}`);
+            if (costPerCorrect !== null) {
+                console.log(`  Cost per correct (exact): $${costPerCorrect.toFixed(6)}`);
+            }
+        }
         console.log('');
     }
 }

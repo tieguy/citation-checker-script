@@ -5,6 +5,7 @@ import {
   callHuggingFaceAPI,
   callClaudeAPI,
   callGeminiAPI,
+  callOpenRouterAPI,
   callProviderAPI,
 } from '../core/providers.js';
 
@@ -136,6 +137,25 @@ test('callHuggingFaceAPI without apiKey omits Authorization header', async () =>
   }
 });
 
+test('callHuggingFaceAPI returns usage.cost_usd: null (HF does not surface per-call cost)', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: 'ok' } }],
+      usage: { prompt_tokens: 40, completion_tokens: 8 },
+    }),
+  }));
+  try {
+    const result = await callHuggingFaceAPI({ model: 'm', systemPrompt: 's', userContent: 'u' });
+    assert.equal(result.usage.cost_usd, null);
+    assert.equal(result.usage.input, 40);
+    assert.equal(result.usage.output, 8);
+  } finally {
+    mock.restore();
+  }
+});
+
 test('callHuggingFaceAPI surfaces upstream error messages', async () => {
   const mock = withMockFetch(async () => ({
     ok: false,
@@ -221,6 +241,316 @@ test('callGeminiAPI requests JSON-only output via responseMimeType', async () =>
     });
     const body = JSON.parse(mock.calls[0].opts.body);
     assert.equal(body.generationConfig.responseMimeType, 'application/json');
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callOpenRouterAPI hits OpenRouter API with attribution headers and surfaces cost', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: 'or-verdict' } }],
+      usage: { prompt_tokens: 80, completion_tokens: 12, cost: 0.000345 },
+    }),
+  }));
+  try {
+    const result = await callOpenRouterAPI({
+      apiKey: 'or_test_key',
+      model: 'qwen/qwen3-32b',
+      systemPrompt: 's',
+      userContent: 'u',
+    });
+    assert.equal(result.text, 'or-verdict');
+    assert.equal(result.usage.input, 80);
+    assert.equal(result.usage.output, 12);
+    assert.equal(result.usage.cost_usd, 0.000345);
+    assert.equal(mock.calls[0].url, 'https://openrouter.ai/api/v1/chat/completions');
+    assert.equal(mock.calls[0].opts.headers['Authorization'], 'Bearer or_test_key');
+    assert.ok(mock.calls[0].opts.headers['HTTP-Referer']);
+    assert.ok(mock.calls[0].opts.headers['X-Title']);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callOpenRouterAPI returns cost_usd: null when usage.cost missing', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: 'no-cost' } }],
+      usage: { prompt_tokens: 10, completion_tokens: 2 },
+    }),
+  }));
+  try {
+    const result = await callOpenRouterAPI({
+      apiKey: 'k',
+      model: 'm',
+      systemPrompt: 's',
+      userContent: 'u',
+    });
+    assert.equal(result.usage.cost_usd, null);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callOpenRouterAPI surfaces upstream error messages', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: false,
+    status: 402,
+    text: async () => JSON.stringify({ error: { message: 'insufficient credits' } }),
+  }));
+  try {
+    await assert.rejects(
+      () => callOpenRouterAPI({ apiKey: 'k', model: 'm', systemPrompt: 's', userContent: 'u' }),
+      /OpenRouter API request failed \(402\): insufficient credits/
+    );
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callProviderAPI dispatches openrouter to OpenRouter API', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: 'via-dispatcher' } }],
+      usage: {},
+    }),
+  }));
+  try {
+    const result = await callProviderAPI('openrouter', {
+      apiKey: 'k',
+      model: 'm',
+      systemPrompt: 's',
+      userContent: 'u',
+    });
+    assert.equal(result.text, 'via-dispatcher');
+    assert.ok(mock.calls[0].url.startsWith('https://openrouter.ai/'));
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callPublicAIAPI honors maxTokens parameter (overrides default)', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: 'ok' } }],
+      usage: {},
+    }),
+  }));
+  try {
+    await callPublicAIAPI({
+      model: 'm',
+      systemPrompt: 's',
+      userContent: 'u',
+      maxTokens: 500,
+    });
+    const sent = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(sent.max_tokens, 500);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callClaudeAPI honors maxTokens parameter', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      content: [{ text: 'ok' }],
+      usage: { input_tokens: 0, output_tokens: 0 },
+    }),
+  }));
+  try {
+    await callClaudeAPI({
+      apiKey: 'k',
+      model: 'm',
+      systemPrompt: 's',
+      userContent: 'u',
+      maxTokens: 750,
+    });
+    const sent = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(sent.max_tokens, 750);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callGeminiAPI honors maxTokens parameter (maps to maxOutputTokens)', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: 'ok' }] } }],
+      usageMetadata: {},
+    }),
+  }));
+  try {
+    await callGeminiAPI({
+      apiKey: 'k',
+      model: 'm',
+      systemPrompt: 's',
+      userContent: 'u',
+      maxTokens: 1100,
+    });
+    const sent = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(sent.generationConfig.maxOutputTokens, 1100);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callOpenAIAPI honors maxTokens parameter', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: 'ok' } }],
+      usage: {},
+    }),
+  }));
+  try {
+    const { callOpenAIAPI } = await import('../core/providers.js');
+    await callOpenAIAPI({
+      apiKey: 'k',
+      model: 'm',
+      systemPrompt: 's',
+      userContent: 'u',
+      maxTokens: 600,
+    });
+    const sent = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(sent.max_tokens, 600);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callOpenAICompatibleChat-based providers honor temperature parameter (default 0.1)', async () => {
+  // Default temperature = 0.1
+  let mock = withMockFetch(async () => ({
+    ok: true, status: 200,
+    json: async () => ({ choices: [{ message: { content: 'ok' } }], usage: {} }),
+  }));
+  try {
+    await callPublicAIAPI({ model: 'm', systemPrompt: 's', userContent: 'u' });
+    let sent = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(sent.temperature, 0.1);
+  } finally {
+    mock.restore();
+  }
+
+  // Override via temperature parameter
+  mock = withMockFetch(async () => ({
+    ok: true, status: 200,
+    json: async () => ({ choices: [{ message: { content: 'ok' } }], usage: {} }),
+  }));
+  try {
+    await callPublicAIAPI({ model: 'm', systemPrompt: 's', userContent: 'u', temperature: 0.5 });
+    let sent = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(sent.temperature, 0.5);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callOpenAIAPI honors temperature parameter (default 0.1, override works)', async () => {
+  const { callOpenAIAPI } = await import('../core/providers.js');
+  const mock = withMockFetch(async () => ({
+    ok: true, status: 200,
+    json: async () => ({ choices: [{ message: { content: 'ok' } }], usage: {} }),
+  }));
+  try {
+    await callOpenAIAPI({
+      apiKey: 'k', model: 'm', systemPrompt: 's', userContent: 'u', temperature: 0.3,
+    });
+    const sent = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(sent.temperature, 0.3);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callGeminiAPI default temperature is 0.1 (was 0.0; aligned with other providers)', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true, status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: 'ok' }] } }],
+      usageMetadata: {},
+    }),
+  }));
+  try {
+    await callGeminiAPI({
+      apiKey: 'k', model: 'm', systemPrompt: 's', userContent: 'u',
+    });
+    const body = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(body.generationConfig.temperature, 0.1);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callGeminiAPI honors temperature parameter override', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true, status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: 'ok' }] } }],
+      usageMetadata: {},
+    }),
+  }));
+  try {
+    await callGeminiAPI({
+      apiKey: 'k', model: 'm', systemPrompt: 's', userContent: 'u', temperature: 0.7,
+    });
+    const body = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(body.generationConfig.temperature, 0.7);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callGeminiAPI uses structured systemInstruction + contents by default', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true, status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: 'ok' }] } }],
+      usageMetadata: {},
+    }),
+  }));
+  try {
+    await callGeminiAPI({
+      apiKey: 'k', model: 'm', systemPrompt: 'SYS', userContent: 'USR',
+    });
+    const body = JSON.parse(mock.calls[0].opts.body);
+    assert.deepEqual(body.systemInstruction, { parts: [{ text: 'SYS' }] });
+    assert.deepEqual(body.contents, [{ parts: [{ text: 'USR' }] }]);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callGeminiAPI with useStructuredPrompt:false concatenates system+user', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true, status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: 'ok' }] } }],
+      usageMetadata: {},
+    }),
+  }));
+  try {
+    await callGeminiAPI({
+      apiKey: 'k', model: 'm', systemPrompt: 'SYS', userContent: 'USR',
+      useStructuredPrompt: false,
+    });
+    const body = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(body.systemInstruction, undefined);
+    assert.deepEqual(body.contents, [{ parts: [{ text: 'SYS\n\nUSR' }] }]);
   } finally {
     mock.restore();
   }
