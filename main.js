@@ -689,7 +689,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     // Optional key: free via the proxy without one; direct call
                     // to HF (any model) when stored.
                     storageKey: 'hf_api_key',
-                    color: '#FF9D00', // HF yellow-orange
+                    color: '#6B21A8', // HF yellow-orange
                     model: 'Qwen/Qwen3-32B',
                     requiresKey: false,
                     optionalKey: true
