@@ -923,6 +923,10 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     background: #e8f5e9;
                     color: #2e7d32;
                 }
+                #verifier-provider-info.free-provider a {
+                    color: inherit;
+                    text-decoration: underline;
+                }
                 #verifier-buttons-container {
                     display: flex;
                     flex-direction: column;
@@ -1879,13 +1883,22 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             if (!infoEl) return;
             
             const provider = this.providers[this.currentProvider];
+            infoEl.textContent = '';
             if (!provider.requiresKey) {
                 if (provider.optionalKey && this.getCurrentApiKey()) {
-                    infoEl.textContent = `✓ Direct mode — using your ${provider.name} API key`;
+                    infoEl.textContent = `✓ Using your ${provider.name} API key`;
                 } else if (provider.optionalKey) {
-                    infoEl.textContent = `✓ Free via the proxy. Optional: set a ${provider.name} API key for direct access.`;
+                    infoEl.appendChild(document.createTextNode('✓ Free to use. Optional: '));
+                    const link = document.createElement('a');
+                    link.href = '#';
+                    link.textContent = `add your ${provider.name} API key`;
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.setApiKey();
+                    });
+                    infoEl.appendChild(link);
                 } else {
-                    infoEl.textContent = `✓ No API key required — ${provider.name} routed via the proxy`;
+                    infoEl.textContent = '✓ Free to use';
                 }
                 infoEl.className = 'free-provider';
             } else if (this.getCurrentApiKey()) {
@@ -1929,13 +1942,13 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
 
                 // Key-management buttons: required-key providers always show
                 // change/remove; optional-key providers show change/remove
-                // when a key is stored, or "set key" when not.
+                // when a key is stored. The "set key" affordance for the
+                // optional-no-key case lives as an inline link inside
+                // updateProviderInfo() so it doesn't compete with Verify.
                 if (!this.reportRunning) {
                     if (requiresKey || (optionalKey && hasKey)) {
                         container.appendChild(this.buttons.changeKey.$element[0]);
                         container.appendChild(this.buttons.removeKey.$element[0]);
-                    } else if (optionalKey) {
-                        container.appendChild(this.buttons.setKey.$element[0]);
                     }
                 }
             } else {
