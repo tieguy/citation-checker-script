@@ -678,7 +678,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
         constructor() {
             this.providers = {
                 publicai: {
-                    name: 'PublicAI (Free)',
+                    name: 'PublicAI',
                     storageKey: null, // No key needed - uses built-in key
                     color: '#6B21A8', // Purple for PublicAI
                     model: 'aisingapore/Qwen-SEA-LION-v4-32B-IT',
@@ -2949,6 +2949,8 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             let modelDesc;
             if (this.currentProvider === 'publicai') {
                 modelDesc = 'a PublicAI-hosted open-source LLM';
+            } else if (this.currentProvider === 'huggingface') {
+                modelDesc = `a HuggingFace-hosted open-source LLM (${provider.model})`;
             } else {
                 modelDesc = provider.model;
             }
