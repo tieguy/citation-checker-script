@@ -678,7 +678,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
         constructor() {
             this.providers = {
                 publicai: {
-                    name: 'PublicAI (Free)',
+                    name: 'PublicAI',
                     storageKey: null, // No key needed - uses built-in key
                     color: '#6B21A8',
                     model: 'aisingapore/Qwen-SEA-LION-v4-32B-IT',
@@ -689,8 +689,8 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     // Optional key: free via the proxy without one; direct call
                     // to HF (any model) when stored.
                     storageKey: 'hf_api_key',
-                    color: '#6B21A8',
-                    model: 'openai/gpt-oss-20b',
+                    color: '#FF9D00', // HF yellow-orange
+                    model: 'Qwen/Qwen3-32B',
                     requiresKey: false,
                     optionalKey: true
                 },
@@ -717,13 +717,14 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 }
             };
             
-            // Handle migration from old 'apertus' name to 'publicai'
+            // Migrate legacy provider selections ('apertus', 'publicai') to
+            // the current default ('huggingface').
             let storedProvider = localStorage.getItem('source_verifier_provider');
-            if (storedProvider === 'apertus') {
-                storedProvider = 'publicai';
-                localStorage.setItem('source_verifier_provider', 'publicai');
+            if (storedProvider === 'apertus' || storedProvider === 'publicai') {
+                storedProvider = 'huggingface';
+                localStorage.setItem('source_verifier_provider', 'huggingface');
             }
-            this.currentProvider = storedProvider || 'publicai';
+            this.currentProvider = storedProvider || 'huggingface';
             this.sidebarWidth = localStorage.getItem('verifier_sidebar_width') || '400px';
             this.isVisible = localStorage.getItem('verifier_sidebar_visible') === 'true';
             this.buttons = {};
@@ -2948,6 +2949,8 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             let modelDesc;
             if (this.currentProvider === 'publicai') {
                 modelDesc = 'a PublicAI-hosted open-source LLM';
+            } else if (this.currentProvider === 'huggingface') {
+                modelDesc = `a HuggingFace-hosted open-source LLM (${provider.model})`;
             } else {
                 modelDesc = provider.model;
             }

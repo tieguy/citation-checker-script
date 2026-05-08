@@ -24,7 +24,7 @@ export function parseCliArgs(argv) {
     const { values, positionals } = parseArgs({
         args: raw,
         options: {
-            provider: { type: 'string', default: 'publicai' },
+            provider: { type: 'string', default: 'huggingface' },
             'no-log': { type: 'boolean', default: false },
             help:     { type: 'boolean', short: 'h', default: false },
         },
@@ -145,7 +145,7 @@ export function classifyProviderError(err) {
 
 const PROVIDER_MODELS = {
     publicai:    'aisingapore/Qwen-SEA-LION-v4-32B-IT',
-    huggingface: 'openai/gpt-oss-20b',
+    huggingface: 'Qwen/Qwen3-32B',
     claude:      'claude-sonnet-4-6',
     gemini:      'gemini-flash-latest',
     openai:      'gpt-4o',
@@ -178,11 +178,12 @@ Arguments:
 
 Options:
   --provider <name>  LLM provider to use. One of:
-                       publicai    (default; routed via the worker proxy,
+                       huggingface (default; routed via the worker proxy,
+                                    no API key needed; set HF_API_KEY to
+                                    call HF directly and unlock any
+                                    HF-hosted model)
+                       publicai    (routed via the worker proxy,
                                     no API key needed)
-                       huggingface (routed via the worker proxy by default;
-                                    set HF_API_KEY to call HF directly and
-                                    unlock any HF-hosted model)
                        claude      (requires CLAUDE_API_KEY)
                        gemini      (requires GEMINI_API_KEY)
                        openai      (requires OPENAI_API_KEY)
