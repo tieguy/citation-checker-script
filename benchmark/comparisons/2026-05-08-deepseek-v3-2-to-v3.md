@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-08
 **Change:** Replace `hf-deepseek-v3-2` (`deepseek-ai/DeepSeek-V3.2`) with `hf-deepseek-v3` (`deepseek-ai/DeepSeek-V3`) as the DeepSeek member of `PANEL_HF`.
-**Data:** [`2026-05-08-deepseek-v3-2-to-v3-results.json`](./2026-05-08-deepseek-v3-2-to-v3-results.json) — 374 rows (187 per model), trunk system prompt, v1+v2+v3 dataset.
+**Data:** [`2026-05-08-deepseek-v3-2-to-v3-results.json`](./2026-05-08-deepseek-v3-2-to-v3-results.json) — 561 rows total: 187 V3.2 via HF (trunk prompt), 187 V3 via HF (trunk prompt), 187 V3.2 via OpenRouter (April-19 historical prompt — included to make the route discrepancy from PR #182's stand-in reproducible).
 
 ## TL;DR
 
@@ -44,6 +44,14 @@ Verdict distribution on V3:
 | Source unavailable | 53 | 28.3% |
 | Partially supported | 16 | 8.6% |
 | Not supported | 6 | 3.2% |
+
+## Why this didn't surface in PR #182
+
+PR #182 (which added `PANEL_HF`) reported `hf-deepseek-v3-2` at 50.8% / 85.6% accuracy. Those numbers came from `openrouter-deepseek-v3.2` measured on the April-19 historical prompt, used as a stand-in under a footnoted assumption that *"routing affects cost/latency but not accuracy."* That stand-in was the only V3.2 data available at the time — `hf-deepseek-v3-2` was never measured directly via the HF route in the data committed in PR #182. The first end-to-end HF run was the 2026-05-06 stress-test control included in this artifact.
+
+The routing assumption held for the OR deployment but broke for the HF deployment. OpenRouter's `deepseek/deepseek-v3.2` resolves to a downstream provider that serves V3.2 in non-reasoning mode (clean output, no truncations) — the April-19 stand-in data shows 95/187 = 50.8% with zero parse failures and a clean verdict distribution. HF Inference Providers' `deepseek-ai/DeepSeek-V3.2` resolves to a downstream provider that serves V3.2 in reasoning mode, which is where the 1000-token cap collisions come from.
+
+The stand-in measurement was methodologically sound for the question PR #182 was answering (panel composition + voting works) and the caveat was disclosed in the footnote. It happened to misjudge V3.2 specifically because V3.2's behavior depends on a deployment-time configuration property that the stand-in route differs on. V3 is selected for this swap partly because it removes that dependency: V3 has no thinking-mode capability at all, so the parse-clean property holds regardless of which downstream provider HF routes to.
 
 ## Caveats
 
