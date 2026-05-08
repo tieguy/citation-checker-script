@@ -36,7 +36,7 @@ const __dirname = dirname(__filename);
 const INPUT_CSV = path.join(__dirname, '..', 'Benchmarking_data_Citations.csv');
 const OUTPUT_JSON = path.join(__dirname, 'dataset.json');
 const OUTPUT_REVIEW_CSV = path.join(__dirname, 'dataset_review.csv');
-const PROXY_URL = 'https://publicai-proxy.alaexis.workers.dev/';
+const PROXY_URL = process.env.PAP_URL || 'https://publicai-proxy.alaexis.workers.dev/';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
