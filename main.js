@@ -690,7 +690,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     // to HF (any model) when stored.
                     storageKey: 'hf_api_key',
                     color: '#FF9D00', // HF yellow-orange
-                    model: 'openai/gpt-oss-20b',
+                    model: 'Qwen/Qwen3-32B',
                     requiresKey: false,
                     optionalKey: true
                 },
@@ -723,7 +723,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 storedProvider = 'publicai';
                 localStorage.setItem('source_verifier_provider', 'publicai');
             }
-            this.currentProvider = storedProvider || 'publicai';
+            this.currentProvider = storedProvider || 'huggingface';
             this.sidebarWidth = localStorage.getItem('verifier_sidebar_width') || '400px';
             this.isVisible = localStorage.getItem('verifier_sidebar_visible') === 'true';
             this.buttons = {};

@@ -67,7 +67,8 @@ Run `npx ccs --help` for the full option and exit-code table.
 
 | Provider | Flag value | Env var required |
 | --- | --- | --- |
-| PublicAI (default) | `--provider publicai` | none (routed via the worker proxy) |
+| HuggingFace (default) | `--provider huggingface` | none (routed via the worker proxy; `HF_API_KEY` opts into direct calls) |
+| PublicAI | `--provider publicai` | none (routed via the worker proxy) |
 | Claude | `--provider claude` | `CLAUDE_API_KEY` |
 | Gemini | `--provider gemini` | `GEMINI_API_KEY` |
 | OpenAI | `--provider openai` | `OPENAI_API_KEY` |
