@@ -412,7 +412,7 @@ or when a WMF-funded inference path becomes available through the proxy.
 |---|---|---|
 | `hf-qwen3-32b` | `Qwen/Qwen3-32B` | Apache 2.0 |
 | `hf-gpt-oss-20b` | `openai/gpt-oss-20b` | Apache 2.0 |
-| `hf-deepseek-v3-2` | `deepseek-ai/DeepSeek-V3.2` | MIT |
+| `hf-deepseek-v3` | `deepseek-ai/DeepSeek-V3` | MIT |
 
 Set `HF_TOKEN` (Hugging Face access token with serverless-inference
 permissions, plus the relevant backend providers enabled in your account
@@ -425,9 +425,18 @@ npm run analyze
 ```
 
 `PANEL_HF` is architecturally diverse on purpose — Qwen3-32B is a dense
-Alibaba model, gpt-oss-20b is an OpenAI MoE, DeepSeek-V3.2 is a DeepSeek
+Alibaba model, gpt-oss-20b is an OpenAI MoE, DeepSeek-V3 is a DeepSeek
 MLA-attention MoE. The vote benefits from disagreement across training
 stacks rather than redundant signal from same-lineage models.
+
+DeepSeek-V3 (the original December 2024 release) is the panel choice
+rather than the newer V3.1 or V3.2-Exp because both newer variants emit
+extended chain-of-thought before the JSON envelope and routinely run
+past the 1000-token completion budget, producing unparseable output on
+roughly half the dataset rows. V3 predates DeepSeek's hybrid
+thinking-mode architecture and produces clean structured output
+deterministically. The full delta is in
+`benchmark/comparisons/2026-05-08-deepseek-v3-2-to-v3.md`.
 
 #### Cost shape
 
