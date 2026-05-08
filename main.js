@@ -717,11 +717,12 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 }
             };
             
-            // Handle migration from old 'apertus' name to 'publicai'
+            // Migrate legacy provider selections ('apertus', 'publicai') to
+            // the current default ('huggingface').
             let storedProvider = localStorage.getItem('source_verifier_provider');
-            if (storedProvider === 'apertus') {
-                storedProvider = 'publicai';
-                localStorage.setItem('source_verifier_provider', 'publicai');
+            if (storedProvider === 'apertus' || storedProvider === 'publicai') {
+                storedProvider = 'huggingface';
+                localStorage.setItem('source_verifier_provider', 'huggingface');
             }
             this.currentProvider = storedProvider || 'huggingface';
             this.sidebarWidth = localStorage.getItem('verifier_sidebar_width') || '400px';
