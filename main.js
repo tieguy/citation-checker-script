@@ -680,7 +680,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 publicai: {
                     name: 'PublicAI',
                     storageKey: null, // No key needed - uses built-in key
-                    color: '#6B21A8', // Purple for PublicAI
+                    color: '#6B21A8',
                     model: 'aisingapore/Qwen-SEA-LION-v4-32B-IT',
                     requiresKey: false
                 },
@@ -697,21 +697,21 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 claude: {
                     name: 'Claude',
                     storageKey: 'claude_api_key',
-                    color: '#0645ad',
+                    color: '#6B21A8',
                     model: 'claude-sonnet-4-6',
                     requiresKey: true
                 },
                 gemini: {
                     name: 'Gemini',
                     storageKey: 'gemini_api_key',
-                    color: '#4285F4',
+                    color: '#6B21A8',
                     model: 'gemini-flash-latest',
                     requiresKey: true
                 },
                 openai: {
                     name: 'ChatGPT',
                     storageKey: 'openai_api_key',
-                    color: '#10a37f',
+                    color: '#6B21A8',
                     model: 'gpt-4o',
                     requiresKey: true
                 }
