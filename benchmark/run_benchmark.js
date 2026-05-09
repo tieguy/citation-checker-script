@@ -430,7 +430,7 @@ function normalizeVerdict(verdict) {
     if (v.includes('PARTIALLY')) return 'Partially supported';
     if (v.includes('UNAVAILABLE')) return 'Source unavailable';
     if (v.includes('SUPPORTED')) return 'Supported';
-    return verdict;
+    return 'PARSE_ERROR';
 }
 
 /**
