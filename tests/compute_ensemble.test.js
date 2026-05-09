@@ -280,10 +280,10 @@ function hfPanelRows(entry_id, ground_truth, verdicts) {
     });
 }
 
-test('PANEL_HF is a 3-member panel (Qwen3-32B, gpt-oss-20b, DeepSeek-V3.2)', () => {
+test('PANEL_HF is a 3-member panel (Qwen3-32B, gpt-oss-20b, DeepSeek-V3)', () => {
     assert.equal(PANEL_HF.length, 3);
     assert.deepEqual([...PANEL_HF].sort(), [
-        'hf-deepseek-v3-2',
+        'hf-deepseek-v3',
         'hf-gpt-oss-20b',
         'hf-qwen3-32b'
     ]);

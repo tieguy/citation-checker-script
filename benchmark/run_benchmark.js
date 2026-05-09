@@ -157,9 +157,9 @@ const PROVIDERS = {
         keyEnv: 'HF_TOKEN',
         type: 'huggingface'
     },
-    'hf-deepseek-v3-2': {
-        name: 'DeepSeek-V3.2 (HF Inference)',
-        model: 'deepseek-ai/DeepSeek-V3.2',
+    'hf-deepseek-v3': {
+        name: 'DeepSeek-V3 (HF Inference)',
+        model: 'deepseek-ai/DeepSeek-V3',
         endpoint: 'https://router.huggingface.co/v1/chat/completions',
         requiresKey: true,
         keyEnv: 'HF_TOKEN',

@@ -17,7 +17,7 @@
  * Three panels are recognized:
  *   PANEL_FULL — Mistral + OLMo + Granite + Gemma + Qwen (openrouter-vote-5)
  *   PANEL_FAST — Mistral + Granite + Gemma             (openrouter-vote-3)
- *   PANEL_HF   — Qwen3-32B + gpt-oss-20b + DeepSeek-V3.2 (hf-vote-3)
+ *   PANEL_HF   — Qwen3-32B + gpt-oss-20b + DeepSeek-V3 (hf-vote-3)
  * PANEL_FAST drops the two slowest OR members for smoketesting; PANEL_HF
  * is a parallel three-vendor panel routed through Hugging Face Inference
  * Providers (see benchmark/README.md "Voting panels" for openness +
@@ -67,13 +67,22 @@ export const PANEL = PANEL_FULL;
 // PANEL_HF — three-vendor panel routed through Hugging Face Inference
 // Providers (router.huggingface.co). Architectural diversity for the
 // vote: Qwen3-32B (Alibaba, dense) + gpt-oss-20b (OpenAI, MoE) +
-// DeepSeek-V3.2 (DeepSeek, MoE/MLA). All three are OSI-licensed
+// DeepSeek-V3 (DeepSeek, MoE/MLA). All three are OSI-licensed
 // (Apache 2.0 / MIT). Cost on a personal HF token measures ~0.072¢
 // per single-model call as of 2026-05-05; see benchmark/README.md.
+//
+// DeepSeek slot held DeepSeek-V3.2 until 2026-05-08; replaced with
+// DeepSeek-V3 (original Dec 2024) because the V3.2 chat template emits a
+// long reasoning trace before the JSON envelope and routinely truncates
+// at the 1000-token cap, producing unparseable output on roughly half of
+// the dataset rows. V3 is the non-reasoning predecessor and parses
+// cleanly. Comparison data:
+// benchmark/comparisons/2026-05-08-deepseek-v3-2-to-v3-results.json
+// and the paired markdown summary in the same directory.
 export const PANEL_HF = [
     'hf-qwen3-32b',
     'hf-gpt-oss-20b',
-    'hf-deepseek-v3-2'
+    'hf-deepseek-v3'
 ];
 
 // Infer the synthesized-row prefix from panel-member naming. Any panel
