@@ -3,6 +3,47 @@
 
 export const MAINTENANCE_MARKER_RE = /\[(failed verification|verification needed|citation needed|better source[^\]]*|dubious[^\]]*|unreliable source[^\]]*|clarification needed|disputed[^\]]*|page needed|when\??|where\??|who\??|why\??|by whom\??|according to whom\??|original research[^\]]*|specify[^\]]*|vague|opinion|fact)\]/gi;
 
+// True iff the DOM range strictly between two .reference wrapper elements (in
+// document order: refA before refB) contains no non-whitespace text. This is
+// the rule that defines whether two adjacent citations attach to the same
+// claim — a comma or any other punctuation between them counts as text and
+// breaks the group.
+export function hasTextBetween(refA, refB) {
+    const document = refA.ownerDocument;
+    const range = document.createRange();
+    range.setStartAfter(refA);
+    range.setEndBefore(refB);
+    const between = range.toString().replace(/\s+/g, '').trim();
+    return between.length > 0;
+}
+
+// Returns the contiguous run of .reference wrapper elements (in DOM order)
+// that all attach to the same claim as refElement — i.e. consecutive siblings
+// in the same container with no text between adjacent members. Always returns
+// at least the wrapper of refElement; an isolated citation yields a single-
+// element array.
+export function getCitationGroup(refElement) {
+    const currentRef = refElement.closest('.reference');
+    if (!currentRef) return [];
+
+    const container = currentRef.closest('p, li, td, div, section');
+    if (!container) return [currentRef];
+
+    const refsInContainer = Array.from(container.querySelectorAll('.reference'));
+    const idx = refsInContainer.indexOf(currentRef);
+    if (idx === -1) return [currentRef];
+
+    let start = idx;
+    while (start > 0 && !hasTextBetween(refsInContainer[start - 1], refsInContainer[start])) {
+        start--;
+    }
+    let end = idx;
+    while (end < refsInContainer.length - 1 && !hasTextBetween(refsInContainer[end], refsInContainer[end + 1])) {
+        end++;
+    }
+    return refsInContainer.slice(start, end + 1);
+}
+
 export function extractClaimText(refElement) {
     const document = refElement.ownerDocument;
     const container = refElement.closest('p, li, td, div, section');
@@ -27,30 +68,16 @@ export function extractClaimText(refElement) {
     let claimStartNode = null;
 
     if (currentIndexInContainer > 0) {
-        // There are previous references in this container
-        // Walk backwards to find where the claim actually starts
-
+        // Walk backwards through the consecutive same-claim run; the boundary
+        // is the first previous ref that has actual text between it and its
+        // successor (i.e. it cites a different claim).
         for (let i = currentIndexInContainer - 1; i >= 0; i--) {
             const prevRef = refsInContainer[i];
-
-            // Check if there's actual text between this ref and the next one
-            const range = document.createRange();
-            range.setStartAfter(prevRef);
-
-            if (i === currentIndexInContainer - 1) {
-                range.setEndBefore(currentRef);
-            } else {
-                range.setEndBefore(refsInContainer[i + 1]);
-            }
-
-            const textBetween = range.toString().replace(/\s+/g, '').trim();
-
-            if (textBetween.length > 0) {
-                // Found text before this point - the previous ref is our boundary
+            const nextRef = refsInContainer[i + 1] || currentRef;
+            if (hasTextBetween(prevRef, nextRef)) {
                 claimStartNode = prevRef;
                 break;
             }
-            // No text between these refs - they cite the same claim, keep looking back
         }
     }
 
