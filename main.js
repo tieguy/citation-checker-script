@@ -717,7 +717,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     // to HF (any model) when stored.
                     storageKey: 'hf_api_key',
                     color: '#6B21A8', // HF yellow-orange
-                    model: 'Qwen/Qwen3-32B',
+                    model: 'openai/gpt-oss-20b',
                     requiresKey: false,
                     optionalKey: true
                 },
