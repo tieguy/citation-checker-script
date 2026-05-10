@@ -1,13 +1,14 @@
 // Calls to the Cloudflare Worker proxy: source fetching and verification logging.
 
 import { isGoogleBooksUrl } from './urls.js';
+import { augmentWithCitoid } from './citoid.js';
 
 // claim is optional. When supplied, the proxy may use it to extract
 // claim-relevant excerpts from long sources instead of returning
 // only the first ~12k chars. The proxy MUST gracefully ignore the
 // `query` param if it does not yet support it, so this is safe to
 // ship before the Worker is updated.
-export async function fetchSourceContent(url, pageNum, { claim, workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
+export async function fetchSourceContent(url, pageNum, { claim, augment = true, workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
     if (isGoogleBooksUrl(url)) {
         console.log('[CitationVerifier] Skipping Google Books URL:', url);
         return null;
@@ -44,7 +45,8 @@ export async function fetchSourceContent(url, pageNum, { claim, workerBase = 'ht
             if (isTruncated) {
                 meta += `\nTruncated: true`;
             }
-            return `${meta}\n\nSource Content:\n${data.content}`;
+            const body = augment ? await augmentWithCitoid(data.content, url) : data.content;
+            return `${meta}\n\nSource Content:\n${body}`;
         }
 
         // If PDF was large and we didn't request a specific page, retry
