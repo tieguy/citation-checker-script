@@ -87,9 +87,12 @@ once or when adding a new provider to an existing run.
 The three prompt additions between the January and April-19 versions were
 net-positive at the ensemble level (`openrouter-vote-3-binary` +1.1 pp
 Exact, +1.6 pp Binary), with substantial individual-model gains for
-DeepSeek (+6.4 pp Exact, +9.1 pp Lenient) and Mistral (+3.7 pp Exact),
-roughly flat for Claude / Gemini, and a notable regression for OLMo
-(-6.4 pp Exact). See `comparison-2026-05-02.md` for the full table.
+DeepSeek (+7.5 pp Exact, +9.1 pp Lenient) and Mistral (+4.8 pp Exact),
+roughly flat for Claude (-0.5 pp Exact) and Gemini (-2.7 pp Exact, +2.1
+pp Lenient), and a notable regression for OLMo (-5.3 pp Exact). See
+`comparison-2026-05-02.md` for the full table. Numbers reflect the
+2026-05-09 ground-truth correction (`docs/design-plans/2026-05-08-gt-audit-corrections.md`)
+applied in-place to the historical results files.
 
 ## How to add a new historical-replay run
 
