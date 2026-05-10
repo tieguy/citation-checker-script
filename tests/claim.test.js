@@ -129,6 +129,28 @@ test('getCitationGroup splits when punctuation appears between citations', () =>
   assert.deepEqual(refIds(getCitationGroup(doc.getElementById('cite_ref-2'))), ['cite_ref-2']);
 });
 
+test('getCitationGroup returns distinct wrappers for named-ref reuses', () => {
+  // Wikipedia's named refs (e.g. <ref name="Foo"/> cited twice) produce two
+  // distinct <sup class="reference"> wrappers whose <a> elements share the
+  // same href (#cite_note-Foo). getCitationGroup must return wrapper
+  // elements, not href targets, so a downstream mapping back to per-
+  // occurrence citation entries can stay 1:1 — otherwise mapping by href
+  // collides and one occurrence's group metadata gets dropped or
+  // overwritten by the other group's. Regression: this is the shape that
+  // produced "[1] (group [1][2])" with no group annotation on the [2] row
+  // and a stale [3,5] group on what should have been [3,4].
+  const doc = mkDoc(`
+    <p>Fact A.<sup id="cite_ref-Foo_0" class="reference"><a href="#cite_note-Foo">[1]</a></sup><sup id="cite_ref-2" class="reference"><a href="#cite_note-2">[2]</a></sup> Fact B.<sup id="cite_ref-Foo_1" class="reference"><a href="#cite_note-Foo">[1]</a></sup><sup id="cite_ref-3" class="reference"><a href="#cite_note-3">[3]</a></sup></p>
+  `);
+  const groupA = getCitationGroup(doc.getElementById('cite_ref-Foo_0'));
+  const groupB = getCitationGroup(doc.getElementById('cite_ref-Foo_1'));
+  assert.deepEqual(refIds(groupA), ['cite_ref-Foo_0', 'cite_ref-2']);
+  assert.deepEqual(refIds(groupB), ['cite_ref-Foo_1', 'cite_ref-3']);
+  // The two reuses must surface as distinct DOM wrappers — not the same
+  // element — so downstream code can pair each one with its own citation row.
+  assert.notEqual(groupA[0], groupB[0]);
+});
+
 test('getCitationGroup handles mixed groups and singletons in the same paragraph', () => {
   // text [1][2] more text [3] more text [4][5]  →  three groups: {1,2}, {3}, {4,5}.
   const doc = mkDoc(`

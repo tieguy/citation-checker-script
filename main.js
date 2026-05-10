@@ -2756,24 +2756,32 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
         }
 
         attachGroupMetadata(citations) {
-            const byRefId = new Map(citations.map(c => [c.refId, c]));
+            // Key by the <sup class="reference"> wrapper element, not refId:
+            // named refs (e.g. {{r|Foo}} cited twice) share the same cite_note
+            // href, so a refId-keyed map collides and the second occurrence
+            // overwrites the first. Wrapper elements are unique per occurrence.
+            const byWrapper = new Map();
+            for (const c of citations) {
+                const wrapper = c.refElement.closest('.reference');
+                if (wrapper) byWrapper.set(wrapper, c);
+            }
             const visited = new Set();
             for (const citation of citations) {
-                if (visited.has(citation.refId)) continue;
+                if (visited.has(citation)) continue;
                 const groupRefs = this.getCitationGroup(citation.refElement);
-                // Map .reference wrapper elements back to citation entries via
-                // the anchor's href; entries without a corresponding citation
-                // (e.g. refs that failed claim-text extraction) are dropped.
                 const groupCitations = [];
                 for (const wrapper of groupRefs) {
-                    const anchor = wrapper.querySelector('a[href^="#"]');
-                    if (!anchor) continue;
-                    const id = anchor.getAttribute('href').substring(1);
-                    const c = byRefId.get(id);
+                    const c = byWrapper.get(wrapper);
                     if (c) groupCitations.push(c);
                 }
                 if (groupCitations.length === 0) continue;
-                const groupId = groupCitations[0].refId;
+                // Use the first wrapper's id (cite_ref-X-Y, unique per
+                // occurrence) as the group id so two groups whose first
+                // member is the same named source — e.g. "[3][4]" and a
+                // separate "[3][5]" later in the article — don't collide on
+                // the data-group-id used by the report renderer.
+                const firstWrapper = groupCitations[0].refElement.closest('.reference');
+                const groupId = (firstWrapper && firstWrapper.id) || groupCitations[0].refId;
                 const groupSize = groupCitations.length;
                 const groupCitationNumbers = groupCitations.map(c => c.citationNumber);
                 groupCitations.forEach((c, idx) => {
@@ -2781,7 +2789,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     c.groupSize = groupSize;
                     c.groupIndex = idx;
                     c.groupCitationNumbers = groupCitationNumbers;
-                    visited.add(c.refId);
+                    visited.add(c);
                 });
             }
         }
