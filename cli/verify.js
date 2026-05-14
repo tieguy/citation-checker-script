@@ -309,7 +309,7 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
 
     // 9. Build prompts and call the LLM.
     //    fetchSourceContent returns a string shaped "Source URL: <u>\n\n
-    //    Source Content:\n<body>"; generateUserPrompt parses that shape,
+    //    Source Content:\n<body>"; generateLegacyUserPrompt parses that shape,
     //    so we pass it through unchanged.
     //    callProviderAPI returns { text, usage } on success; extra keys in
     //    providerConfig are ignored by the destructure so it's safe to

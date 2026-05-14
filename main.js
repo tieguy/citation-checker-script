@@ -3241,11 +3241,11 @@ async function rollup(atoms, atomResults, mode, providerConfig, opts = {}) {
          * @returns {string} The system prompt
          */
         generateSystemPrompt() {
-            return generateSystemPrompt();
+            return generateLegacySystemPrompt();
         }
         
         generateUserPrompt(claim, sourceInfo) {
-            return generateUserPrompt(claim, sourceInfo);
+            return generateLegacyUserPrompt(claim, sourceInfo);
         }
 
         logVerification(verdict, confidence) {
@@ -3314,19 +3314,19 @@ async function rollup(atoms, atomResults, mode, providerConfig, opts = {}) {
         }
         
         async callPublicAIAPI(claim, sourceInfo) {
-            return callPublicAIAPI({ model: this.providers.publicai.model, systemPrompt: generateSystemPrompt(), userContent: generateUserPrompt(claim, sourceInfo) });
+            return callPublicAIAPI({ model: this.providers.publicai.model, systemPrompt: generateLegacySystemPrompt(), userContent: generateLegacyUserPrompt(claim, sourceInfo) });
         }
         
         async callClaudeAPI(claim, sourceInfo) {
-            return callClaudeAPI({ apiKey: this.getCurrentApiKey(), model: this.providers.claude.model, systemPrompt: generateSystemPrompt(), userContent: generateUserPrompt(claim, sourceInfo) });
+            return callClaudeAPI({ apiKey: this.getCurrentApiKey(), model: this.providers.claude.model, systemPrompt: generateLegacySystemPrompt(), userContent: generateLegacyUserPrompt(claim, sourceInfo) });
         }
         
         async callGeminiAPI(claim, sourceInfo) {
-            return callGeminiAPI({ apiKey: this.getCurrentApiKey(), model: this.providers.gemini.model, systemPrompt: generateSystemPrompt(), userContent: generateUserPrompt(claim, sourceInfo) });
+            return callGeminiAPI({ apiKey: this.getCurrentApiKey(), model: this.providers.gemini.model, systemPrompt: generateLegacySystemPrompt(), userContent: generateLegacyUserPrompt(claim, sourceInfo) });
         }
         
         async callOpenAIAPI(claim, sourceInfo) {
-            return callOpenAIAPI({ apiKey: this.getCurrentApiKey(), model: this.providers.openai.model, systemPrompt: generateSystemPrompt(), userContent: generateUserPrompt(claim, sourceInfo) });
+            return callOpenAIAPI({ apiKey: this.getCurrentApiKey(), model: this.providers.openai.model, systemPrompt: generateLegacySystemPrompt(), userContent: generateLegacyUserPrompt(claim, sourceInfo) });
         }
         
 	parseVerificationResult(response) {
@@ -3764,7 +3764,7 @@ async function rollup(atoms, atomResults, mode, providerConfig, opts = {}) {
         }
 
         async callProviderAPI(claim, sourceInfo) {
-            return callProviderAPI(this.currentProvider, { apiKey: this.getCurrentApiKey(), model: this.providers[this.currentProvider].model, systemPrompt: generateSystemPrompt(), userContent: generateUserPrompt(claim, sourceInfo) });
+            return callProviderAPI(this.currentProvider, { apiKey: this.getCurrentApiKey(), model: this.providers[this.currentProvider].model, systemPrompt: generateLegacySystemPrompt(), userContent: generateLegacyUserPrompt(claim, sourceInfo) });
         }
 
         async verifyAllCitations() {
