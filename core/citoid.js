@@ -131,3 +131,23 @@ export async function augmentWithCitoid(sourceText, sourceUrl, opts = {}) {
     const header = buildCitoidHeader(citoid, sourceUrl);
     return prependMetadataHeader(header, sourceText);
 }
+
+/**
+ * Like augmentWithCitoid, but returns the structured metadata block
+ * alongside the augmented sourceText so callers can pass metadata into
+ * the atomized verifier's provenance-atom path.
+ *
+ * @param {string} sourceText
+ * @param {string} sourceUrl
+ * @param {object} [opts]
+ * @returns {Promise<{ sourceText: string, metadata: object | null }>}
+ */
+export async function augmentWithCitoidStructured(sourceText, sourceUrl, opts = {}) {
+    const citoidData = await fetchCitoidMetadata(sourceUrl, opts);
+    const header = buildCitoidHeader(citoidData, sourceUrl);
+    if (!header) return { sourceText, metadata: null };
+    return {
+        sourceText: prependMetadataHeader(header, sourceText),
+        metadata: header,
+    };
+}
