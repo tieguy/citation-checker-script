@@ -34,19 +34,19 @@
 // === ATOMIZER ===
 
 function generateAtomizerSystemPrompt() {
-    return `You are decomposing a Wikipedia citation claim into atomic assertions that can each be verified independently.
+    return `You are decomposing a Wikipedia citation claim into atomic assertions that can each be verified independently against the cited source.
 
-A claim may assert multiple distinct facts at once. Your job is to split it into individual assertions ("atoms"), each tagged by kind.
+This serves the Wikipedia policy of text-source integrity (WP:TSI): each part of an article's material should be supported by the cited source. By splitting compound claims into atoms, each part can be checked against the appropriate slice of the source.
 
 There are exactly two kinds of atoms:
 1. content — an assertion about WHAT the source says (events, dates, numbers, names of people, places, things mentioned in the source body).
-2. provenance — an assertion about WHO produced the source or WHEN/WHERE it was published (author name, publication title, publication date). Provenance atoms are verifiable from bibliographic metadata alone, without reading the body.
+2. provenance — an assertion about WHO produced the source or WHEN/WHERE it was published (author name, publication title, publication date). Per WP:INTEXT, claims with in-text attribution ("According to X, Y" / "X argued Y" / "X reported in 2024 that Y") contain both kinds: the provenance components verify against the source's bibliographic metadata; the content components verify against the source body.
 
 Rules:
 1. Each atom should be a single declarative sentence. Do not combine multiple assertions into one atom.
 2. Use the kind tag carefully. "Published in The Guardian" is provenance. "The Guardian editor argued X" is content (it's about what was said, not just where).
-3. Preserve quoted phrases verbatim when the original claim quotes the source.
-4. Do not introduce facts that aren't in the claim. Do not paraphrase away nuance (e.g., "approximately 95 meters" must stay "approximately 95 meters").
+3. Preserve direct quotations from the source verbatim. Per WP:V, direct quotations are material that must be supported by the source as presented; paraphrasing a quoted phrase breaks text-source integrity (WP:STICKTOTHESOURCE: do not change meaning or implication).
+4. Do not introduce facts not present in the claim — that would be original research (WP:NOR). Do not strip qualifiers ("approximately", "reportedly", "allegedly") from the claim — per WP:STICKTOTHESOURCE, paraphrasing must not change meaning or implication, and those qualifiers are part of the claim's meaning.
 5. If the claim is already atomic (one assertion), return a single atom.
 
 Output ONLY a JSON object of this shape, with no surrounding prose:
@@ -125,21 +125,30 @@ ${claim}`;
 // === VERIFIER ===
 
 function generateVerifierSystemPrompt() {
-    return `You are verifying a single atomic assertion against a single source.
+    return `You are verifying a single atomic assertion against a single source. This is text-source integrity (WP:TSI): does THIS source directly support THIS atom?
 
-You receive ONE atom (a single declarative sentence) and the relevant slice of the source. Your job is to decide whether the source supports the atom.
+Per Wikipedia's verifiability policy (WP:V), a source "directly supports" a claim if the information is present explicitly in the source, such that using the source to support the claim is not a violation of WP:NOR (no original research). The reader should not need outside knowledge, synthesis, or novel inference to connect source to atom. (Verifiability, not truth: the question is what the source says, not whether the atom is true.)
 
 There are exactly two verdicts:
-1. supported — the source explicitly states or unambiguously implies the assertion. The reader does not need outside knowledge to connect the source to the assertion.
-2. not_supported — the source does not state the assertion, or the source explicitly contradicts it, or the source is silent on the question.
+1. supported — the source directly supports the atom, in the sense above.
+2. not_supported — the source does not state the atom, or the source explicitly contradicts it, or the source is silent on the question.
 
 Rules:
-1. Use ONLY the provided source slice. Do not use outside knowledge. Do not infer beyond what the source says.
-2. For content atoms (kind=content), evaluate against the article body. Numbers, dates, names, and event descriptions must match the atom; minor wording differences are fine.
-3. For provenance atoms (kind=provenance), evaluate against the metadata block (publication, published, author, title, url). If the metadata is missing or empty, the verdict is not_supported — the source's bibliographic record does not confirm the atom.
-4. "Approximately" and "around" qualifiers in the atom or the source should be matched loosely (within 5%); exact numbers in both should match exactly.
-5. If the source is in a different language, do your best with the cognates and proper nouns; if no useful overlap exists, return not_supported.
-6. Do not hedge. Pick supported or not_supported.
+1. Use only the provided source. Stick to the source (WP:STICKTOTHESOURCE): summarize or rephrase without changing meaning or implication, and do not use the source out of context. Drawing a conclusion not evident in the source is original research, regardless of how reasonable the inference seems. Ambiguous source passages should not be relied on as support — when in doubt, return not_supported.
+
+2. For content atoms (kind=content), evaluate against the article body. The source must clearly support the atom "as presented" (WP:BURDEN). Rewriting the source's wording in different words while retaining substance is not original research (WP:NOR lead) — but changes that alter meaning or implication are.
+
+3. For provenance atoms (kind=provenance), evaluate against the bibliographic metadata block — the fields enumerated in WP:CITEHOW (publication, published, author, title, url). If the metadata block does not contain the field the atom references, the citation as captured does not support the provenance claim — return not_supported.
+
+4. Routine calculations from the source are permitted under WP:CALC and are NOT original research. This includes:
+   - Unit conversions ("5 km" supports "5 kilometers" or "~3.1 miles")
+   - Date equivalence (a "Wednesday" reference in a source dated January 7 supports a January 7 claim)
+   - Basic arithmetic and age calculations
+   Do NOT treat numeric tolerance as a match: if the atom says "95 meters" and the source says "approximately 80 meters", that is NOT a routine calculation — WP:CALC specifically warns that "editors should not compare statistics from sources that use different methodologies." The source must support the atom's specific value as presented.
+
+5. Non-English sources are valid (WP:NONENG). Faithful translation is not original research (WP:TRANSCRIPTION). Attempt to identify supporting content via cognates, proper nouns, and numerals. If the language barrier prevents finding clear support, return not_supported — guessing across languages risks the context-stretching WP:STICKTOTHESOURCE warns against.
+
+6. Do not hedge. Pick supported or not_supported. (Output-format instruction; ambiguous cases resolve to not_supported per Rule 1.)
 
 Output ONLY a JSON object of this shape, with no surrounding prose:
 
@@ -199,7 +208,7 @@ ${sourceText}`;
 // === JUDGE ROLLUP ===
 
 function generateJudgeRollupSystemPrompt() {
-    return `You are composing a single citation-verification verdict from a set of per-atom verdicts.
+    return `You are composing a single citation-verification verdict from a set of per-atom verdicts. This is text-source integrity (WP:TSI) at the claim level: does the cited source, taken as a whole, support this claim?
 
 You receive the original claim and an array of atom-level results. Each result has an atomId, a verdict (supported or not_supported), and an evidence snippet. Your job is to roll them up into a single claim-level verdict.
 
@@ -210,7 +219,7 @@ There are exactly three claim-level verdicts:
 
 Rules:
 1. Apply the rule mechanically when the atoms agree. If they're mixed, return PARTIALLY SUPPORTED.
-2. The exception is when a single not_supported atom carries a high-stakes contradiction (e.g., the source actively says the opposite of a load-bearing atom). In that case PARTIALLY SUPPORTED may understate the problem and NOT SUPPORTED is appropriate. Use this exception sparingly.
+2. Exception: if the source directly contradicts a load-bearing element of the claim (not merely silent on it), NOT SUPPORTED may be more accurate than PARTIALLY SUPPORTED, even when other atoms are supported. WP:BURDEN requires the source to support the material "as presented" — a direct contradiction is stronger evidence of failure than absence, and treating a contradicting source as partial support would be using the source out of context (WP:STICKTOTHESOURCE). Use this exception sparingly.
 3. Use only the three verdicts in the taxonomy. Unusable sources are filtered upstream and won't reach you.
 4. Reason briefly about which atoms drove the verdict.
 
