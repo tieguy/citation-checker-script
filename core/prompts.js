@@ -77,7 +77,16 @@ Claim: "Smith's 2020 study found a 15% reduction in cases among vaccinated child
     { "id": "p2", "assertion": "The source was published in 2020.", "kind": "provenance" },
     { "id": "a1", "assertion": "The study found a 15% reduction in cases among vaccinated children aged 5-11.", "kind": "content" }
   ]
-}`;
+}
+
+Claim: "Languages spoken at the conference included French, Spanish, and Mandarin."
+{
+  "atoms": [
+    { "id": "a1", "assertion": "Languages spoken at the conference included French, Spanish, and Mandarin.", "kind": "content" }
+  ]
+}
+
+(Note: shared-predicate lists are a single atom, not one atom per item. The verifiable unit is "the predicate applied to the list," not each list item individually.)`;
 }
 
 export function generateAtomizerUserPrompt(claim, claimContainer) {
