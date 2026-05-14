@@ -1,4 +1,6 @@
 > **Status (2026-05-08):** Implemented. The seven GT downgrades described below ship in this PR. The two flagged citation-defect categories (structural-fragment / embedded-back-reference, primary-source-carrying-secondary-claim) are filed as separate follow-up issues.
+>
+> **Update (2026-05-14):** A second audit pass — driven by a different prompt-rewrite experiment that surfaced over-strict-looking regressions on multi-atom (c≥2) rows — added four more v1 GT corrections (three `Supported → Partially supported`, one `Supported → Not supported`). Per-row evidence in the "Additional rows (2026-05-14 audit)" section below. The historical-runs side-by-side numbers in `benchmark/historical-runs/comparison-2026-05-02.md` and the headline-finding bullet in `benchmark/historical-runs/README.md` are refreshed to reflect both rounds of corrections.
 
 # Live-page audit of suspected GT calibration drift
 
@@ -104,6 +106,62 @@ Three of five specific assertions confirmed (1996 launch, 6 hours initial, 1999 
 
 These specifics belong in a colonial-history reference, not this short historical-blog piece.
 
+## Additional rows (2026-05-14 audit)
+
+A subsequent prompt-rewrite experiment regrounded the verifier prompt in WP:V / WP:NOR / WP:CITE policy language. The regrounded prompt surfaced apparent regressions on multi-atom (c≥2) rows — claims that the dataset labels `Supported` but where one atomic assertion in the claim is not actually carried by the cited source. Adjudicating each candidate row against its live source (same `curl` + `grep` method as the original seven) found four genuine GT gaps: three `Supported → Partially supported` and one `Supported → Not supported`. The remaining candidates either traced to verifier-side bugs (since fixed) or fell within standard editorial-paraphrase latitude on WP:STICKTOTHESOURCE and are not corrected here.
+
+### `row_29` — Anadolu: Saudi airstrikes on 7 January not in source
+
+**Claim:** "On 7 January 2026, Saudi Arabia launched airstrikes against the UAE-backed STC forces around Aden. The government army first entered the area at Al-Alam and moved into the city from there."
+
+**Source:** [aa.com.tr — Yemen government forces move into Aden as power balance shifts in south](https://www.aa.com.tr/en/middle-east/yemen-government-forces-move-into-aden-as-power-balance-shifts-in-south/3793442)
+
+**Live page (2026-05-14):** "Yemeni government-aligned forces entered the southern city of Aden on Thursday... units of the National Shield Forces advanced into Aden from the neighboring province of Abyan, where local authorities have publicly declared support for the **Saudi-led coalition**... Waddah al-Dubaish, spokesperson for the government-aligned Joint Forces on the western coast, said the first contingents reached the **Al-Alam area, a strategic eastern gateway to the city**... The latest developments come amid **Saudi-led efforts to contain the escalating crisis** in Yemen. Saudi Ambassador to Yemen Mohammed Al Jaber said he met in Riyadh with an STC delegation..."
+
+Zero hits on the live page for "airstrike", "air strike", "7 January", or "January 7". The Saudi presence in the source is mediation and a Riyadh meeting with STC, not military strikes. Second sentence of the claim (government army entering at Al-Alam) is directly supported.
+
+GT: `Supported` → `Partially supported`.
+
+### `row_48` — Al Jazeera: constitutional-drafting motive not in source
+
+**Claim:** "The Houthis continued to apply pressure on the weakened unity government, kidnapping bin Mubarak for several days in January 2015 in an attempt to gain more control over the drafting of a new constitution."
+
+**Source:** [aljazeera.com — Houthis free top aide to Yemen president](http://www.aljazeera.com/news/2015/01/houthis-free-top-aide-yemen-president-150127144552184.html) (URL rotated; Wayback snapshot still serves the original article body)
+
+**Live page (Wayback):** "Houthi rebels have freed President Abd-Rabbu Mansour Hadi's chief of staff... **Mubarak was kidnapped days before the Shia rebel group took over key parts of the capital Sanaa.** He was **previously nominated as prime minister, but his appointment was rejected by the Shia rebel group**..."
+
+Zero hits on the source for "constitution" or "draft". The article frames the dispute as a PM-appointment rejection and broader Houthi pressure on the unity government; the constitutional-drafting motive in the claim is not in the source.
+
+GT: `Supported` → `Partially supported`.
+
+### `row_51` — Nezavisimaya Gazeta: ultimatum direction reversed in source
+
+**Claim:** "On 27 August 1958, Major General Stepanov of the Military Aviation School issued an ultimatum to the local Soviet government that the Chechens must be sent back to Siberia and Central Asia or otherwise his Russians would \"tear (them) to pieces\"."
+
+**Source:** [ng.ru — Русский бунт в Грозном (Russian Riot in Grozny)](http://www.ng.ru/style/2000-08-30/8_bunt.html)
+
+**Live page (Russian):** "Один из активистов, шофер автотранспортной конторы, **предъявил ультиматум** находившемуся в обкоме **начальнику местного военного авиационного училища генерал-майору Степанову**: либо выйти к толпе и выступить перед ней с заявлением о том, что чеченцы будут выселены из Грозного, либо быть через несколько минут растерзанным."
+
+**Independent translation cross-check (Google Translate gtx endpoint):** "One of the activists, a driver of a motor transport office, **presented an ultimatum to the head of the local military aviation school, Major General Stepanov**, who was in the regional committee: either go out to the crowd and make a statement in front of it that the Chechens will be evicted from Grozny, or be torn to pieces in a few minutes."
+
+Every element of the claim's framing is reversed: in the source, an activist/driver issues the ultimatum *to* Stepanov demanding *Stepanov* announce that Chechens will be evicted, or be torn apart by the crowd; the claim has Stepanov issuing an ultimatum *to* the local Soviet government demanding Chechens be sent away or *Stepanov's Russians* will tear them to pieces.
+
+External confirmation: the English Wikipedia article on the [1958 Grozny riots](https://en.wikipedia.org/wiki/1958_Grozny_riots) carries the same claim text against the same ng.ru source and has it tagged `{{failed verification}}` (in category "Articles with failed verification from April 2013"). An English-Wikipedia editor independently flagged the same source-claim mismatch over a decade ago.
+
+This is a factual inversion, not a partial gap. GT: `Supported` → `Not supported`.
+
+### `row_54` — Michigan Daily (Wayback): "Maskhadov started" attribution not in source
+
+**Claim:** "President Maskhadov started a major campaign against hostage-takers, and on 25 October 1998, Shadid Bargishev, Chechnya's top anti-kidnapping official, was killed in a remote controlled car bombing. Bargishev's colleagues then insisted they would not be intimidated by the attack and would go ahead with their offensive. Other anti-kidnapping officials blamed the attack on Bargishev's recent success in securing the release of several hostages, including 24 Russian soldiers and an English couple."
+
+**Source:** [Wayback Michigan Daily "Bomb blast kills Chechnya ofcial"](https://web.archive.org/web/20070630181656/http://www.pub.umich.edu/daily/1998/oct/10-26-98/news/news8.html)
+
+**Live page (entire relevant section):** "GROZNY, Russia — Chechnya's top anti-kidnapping official was killed yesterday when **a bomb tore his car to pieces on the day he was to launch a major offensive on hostage-takers** in the breakaway republic. Shadid Bargishev's two bodyguards were in critical condition... Bargishev died on the operating table... **Chechen President Aslan Maskhadov's office said in a statement.** The remote-controlled bomb was planted just inside the gate to the parking lot... **Bargishev's colleagues insisted they would not be intimidated by the attack and would go ahead with their offensive.** Authorities stepped up security... Other anti-kidnapping officials blamed the attack on Bargishev's recent success in securing the release of several hostages, including 24 Russian soldiers and an English couple."
+
+Bargishev's killing, the colleagues' response, and the hostage-release context are directly supported. Maskhadov appears only as issuing a statement *after* the bombing — the source attributes the offensive to **Bargishev** ("he was to launch"). The claim's opening — "President Maskhadov started a major campaign" — reads "[Maskhadov's] top anti-kidnapping official was about to launch an offensive" as "Maskhadov started a campaign", which requires a chain-of-command inference not in the source.
+
+GT: `Supported` → `Partially supported`.
+
 ## Rows audited but NOT corrected here
 
 ### `row_8` — DHS Table 7: scraper-completeness gap, GT correct
@@ -117,6 +175,27 @@ The MEE article body says "On Wednesday" with publication date 9 January 2026 (F
 ### `row_69` — Britannica Hartford Convention: parenthetical aside
 
 Source confirms the substantive Hartford Convention claim (date, five New England states, secession discussion). The claim's parenthetical "(Maine was still part of Massachusetts at that time)" is well-known historical context — Maine became a state via the 1820 Missouri Compromise. The parenthetical is not in the cited Britannica source (zero hits for "Maine" anywhere on the page), but downgrading GT for an explanatory parenthetical would generalize too aggressively (Wikipedia editors regularly add parentheticals to substantive claims). The cited source does its substantive job. No fixture change.
+
+### `row_132` — MOTOPOLO Famitsu interview: NONENG translation latitude (2026-05-14)
+
+**Claim:** "Based on polo, two players moved miniature motorbikes around inside a cabinet, with each player attempting to knock the balls into the opponent's goal."
+
+**Source:** [Famitsu — Sega 60th anniversary interview](https://www.famitsu.com/news/202006/28200872.html) (Japanese)
+
+**Live page (Japanese):** "1968年に稼働した『MOTOPOLO』というバイクを走らせるエレメカがあったんですが。... 筐体内で動くバイクを使ってピンポン球を弾いて遊ぶという、エアホッケーにちょっと近いようなゲームですね"
+(roughly: "There was an electro-mechanical game called MOTOPOLO that operated in 1968, where you raced motorbikes... A game played by using motorbikes that move inside the cabinet to hit ping-pong balls — a game somewhat similar to air hockey.")
+
+The source confirms motorbikes inside a cabinet hitting balls in a game similar to air hockey. The claim's "knock the balls into the opponent's goal" is a reasonable rendering of "air-hockey-like" gameplay, within WP:NONENG / WP:TRANSCRIPTION latitude on translating an interview that doesn't enumerate goals/slots literally. The verifier's stricter reading here is defensible WP:STICKTOTHESOURCE but penalizes standard editorial paraphrase across a language boundary. No fixture change.
+
+### `row_133` — ABC13 Bettencourt: article-date context for "December 2008" (2026-05-14)
+
+**Claim:** "In December 2008, Bettencourt stepped down from his role shortly after winning reelection, and a day after the Democratic Party levied these allegations."
+
+**Source:** [abc13.com — Pending action against outgoing tax assessor-collector Paul Bettencourt](https://abc13.com/archive/6547770/)
+
+**Live page:** "Pending action against outgoing tax assessor-collector Paul Bettencourt... By ABC13 Wednesday, December 10, 2008 ... **He decided to step down shortly after winning re-election.** The Texas Democratic Party says Bettencourt quit the day after it decided to take legal against his office."
+
+The article doesn't give the exact step-down date verbatim, but the dateline (Wednesday, December 10, 2008) plus the headline characterization ("outgoing tax assessor-collector") supports "December 2008" via routine WP:CALC-style inference from the publication metadata. The verifier's stricter reading ("source doesn't specify the date") would generalize too aggressively to dateline-anchored claims. No fixture change.
 
 ### `row_9`, `row_45`, `row_64` — flagged for higher-layer follow-up
 
