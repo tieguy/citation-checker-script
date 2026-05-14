@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { atomize, parseAtomsResponse } from '../core/atomize.js';
+import { atomize, parseAtomsResponse, resolveMaxTokens } from '../core/atomize.js';
 
 // Imports OK
 test('atomize() and parseAtomsResponse() are exported', () => {
@@ -156,45 +156,39 @@ test('atomize omits container threading when claimContainer is identical to clai
   assert.doesNotMatch(receivedUserPrompt, /Container.*for context/i);
 });
 
-test('atomize honors providerConfig.maxTokens override', async () => {
-  // This test uses a mock transport to verify that the defaultTransport
-  // in atomize.js correctly passes through providerConfig.maxTokens
-  // instead of hardcoding DEFAULT_MAX_TOKENS.
-  let capturedCallConfig = null;
+// === resolveMaxTokens pure function tests ===
 
-  const mockCallProviderAPI = async (type, callConfig) => {
-    capturedCallConfig = callConfig;
-    return { text: '{"atoms":[{"id":"a1","assertion":"x","kind":"content"}]}' };
-  };
+test('resolveMaxTokens: caller-supplied maxTokens wins', () => {
+  assert.equal(resolveMaxTokens({ maxTokens: 999 }, 1024), 999);
+});
 
-  // We need to inject mockCallProviderAPI into defaultTransport.
-  // Since defaultTransport is internal to atomize.js, we use the public
-  // transport injection point to verify the behavior.
+test('resolveMaxTokens: falls back to default when maxTokens is undefined', () => {
+  assert.equal(resolveMaxTokens({}, 1024), 1024);
+});
+
+test('resolveMaxTokens: falls back to default when maxTokens is null', () => {
+  assert.equal(resolveMaxTokens({ maxTokens: null }, 1024), 1024);
+});
+
+test('resolveMaxTokens: respects zero as a valid (though unusual) value', () => {
+  assert.equal(resolveMaxTokens({ maxTokens: 0 }, 1024), 0);
+});
+
+test('resolveMaxTokens: integration with atomize — transport receives correct maxTokens', async () => {
+  let capturedMaxTokens = null;
   const testTransport = async (providerConfig, { systemPrompt, userPrompt, signal, model }) => {
-    // Simulate what defaultTransport should do:
-    // it should use providerConfig.maxTokens if present, otherwise DEFAULT_MAX_TOKENS
-    const callConfig = {
-      ...providerConfig,
-      model: model ?? providerConfig.model,
-      systemPrompt,
-      userContent: userPrompt,
-      maxTokens: providerConfig.maxTokens ?? 1024, // Fallback to DEFAULT_MAX_TOKENS (1024)
-      signal,
-    };
-    capturedCallConfig = callConfig;
+    capturedMaxTokens = resolveMaxTokens(providerConfig, 1024);
     return { text: '{"atoms":[{"id":"a1","assertion":"x","kind":"content"}]}' };
   };
 
-  // Call atomize with a custom maxTokens in providerConfig
   const providerConfig = {
     type: 'claude',
     model: 'claude-sonnet-4-5',
-    maxTokens: 500, // Custom override
+    maxTokens: 500,
   };
 
   await atomize('test claim', providerConfig, { transport: testTransport });
 
-  // The key assertion: maxTokens should be 500 (from providerConfig), not hardcoded DEFAULT_MAX_TOKENS
-  assert.equal(capturedCallConfig.maxTokens, 500,
-    'maxTokens from providerConfig should override hardcoded DEFAULT_MAX_TOKENS');
+  assert.equal(capturedMaxTokens, 500,
+    'atomize must pass providerConfig.maxTokens through to transport');
 });

@@ -418,9 +418,11 @@ function main() {
     }
 
     // Compoundness × verdict stratification (optional, joins against workbench/compound-corpus/labels.json)
+    // Path resolution: from benchmark/analyze_results.js, walk up 4 levels to reach the workspace root
+    // (analyze_results.js → benchmark → .worktrees → citation-checker-script → alex-cite-checker)
     const LABELS_PATH = path.resolve(
         path.dirname(new URL(import.meta.url).pathname),
-        '..', '..', 'workbench', 'compound-corpus', 'labels.json'
+        '..', '..', '..', '..', 'workbench', 'compound-corpus', 'labels.json'
     );
 
     let labelsById = null;

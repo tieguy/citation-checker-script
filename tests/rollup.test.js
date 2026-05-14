@@ -5,6 +5,7 @@ import {
   deterministicVerdict,
   summarizeAtomResults,
   parseJudgeResponse,
+  resolveMaxTokens,
 } from '../core/rollup.js';
 
 test('rollup module exports are available', () => {
@@ -199,4 +200,18 @@ test('rollup: unknown mode throws', async () => {
     () => rollup([], [], 'invalid'),
     /unknown rollup mode/
   );
+});
+
+// === resolveMaxTokens pure function tests ===
+
+test('resolveMaxTokens: caller-supplied maxTokens wins', () => {
+  assert.equal(resolveMaxTokens({ maxTokens: 999 }, 512), 999);
+});
+
+test('resolveMaxTokens: falls back to default when maxTokens is undefined', () => {
+  assert.equal(resolveMaxTokens({}, 512), 512);
+});
+
+test('resolveMaxTokens: falls back to default when maxTokens is null', () => {
+  assert.equal(resolveMaxTokens({ maxTokens: null }, 512), 512);
 });
