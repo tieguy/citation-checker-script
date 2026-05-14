@@ -119,195 +119,13 @@ export async function withRetry(fn, { maxRetries = MAX_RETRIES, sleepFn = sleep 
     throw lastError;
 }
 
-/**
- * Make API call to provider. Delegates HTTP transport to core/providers.js
- * (single source of truth shared with main.js + cli/verify.js); the runner
- * adds env-var auth, latency timing, retry, and error-to-verdict-shape conversion.
- *
- * Return shape: { verdict, confidence, comments, raw_response, usage, latency, error }
- *   usage: { input, output, cost_usd } — cost_usd is null where the upstream
- *   API doesn't surface per-call cost (everything except OpenRouter today).
- */
-export async function callProvider(provider, systemPrompt, userPrompt) {
-    const config = PROVIDERS[provider];
-    const startTime = Date.now();
-    try {
-        const result = await withRetry(() => {
-            switch (config.type) {
-                case 'publicai':    return callPublicAI(config, systemPrompt, userPrompt);
-                case 'claude':      return callClaude(config, systemPrompt, userPrompt);
-                case 'openai':      return callOpenAI(config, systemPrompt, userPrompt);
-                case 'gemini':      return callGemini(config, systemPrompt, userPrompt);
-                case 'openrouter':  return callOpenRouter(config, systemPrompt, userPrompt);
-                case 'huggingface': return callHuggingFace(config, systemPrompt, userPrompt);
-                default: throw new Error(`Unknown provider type: ${config.type}`);
-            }
-        });
-        return { ...result, latency: Date.now() - startTime, error: null };
-    } catch (error) {
-        return {
-            verdict: 'ERROR',
-            confidence: 0,
-            comments: error.message,
-            latency: Date.now() - startTime,
-            error: error.message
-        };
-    }
-}
-
-// Shim helper: parse the raw response text into the verdict shape and
-// attach the usage object captured by core/providers.js.
-function shapeResult({ text, usage }) {
-    return { ...parseResponse(text), usage };
-}
-
 // Benchmark-side knobs preserved verbatim from the pre-consolidation runner.
 // core/providers.js has its own defaults tuned for userscript/CLI use; the
 // runner overrides them here so that benchmark numbers stay comparable to
 // past runs until a deliberate re-baselining experiment changes them.
+// These are threaded through the providerConfig when calling verify().
 const BENCHMARK_MAX_TOKENS = 1000;
 const BENCHMARK_TEMPERATURE = 0.1;
-// The pre-consolidation runner concatenated `${systemPrompt}\n\n${userPrompt}`
-// into a single Gemini user turn rather than using the proper systemInstruction
-// + contents shape. callGeminiAPI now defaults to the structured shape; the
-// runner opts back into concatenation here so historical Gemini benchmark
-// numbers stay reproducible. Worth re-evaluating empirically (see GH #179, #181).
-const BENCHMARK_GEMINI_STRUCTURED = false;
-
-async function callPublicAI(config, systemPrompt, userPrompt) {
-    const apiKey = process.env[config.keyEnv];
-    if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-    return shapeResult(await callOpenAICompatibleChat({
-        url: config.endpoint,
-        apiKey,
-        model: config.model,
-        systemPrompt,
-        userContent: userPrompt,
-        maxTokens: BENCHMARK_MAX_TOKENS,
-        temperature: BENCHMARK_TEMPERATURE,
-        label: 'PublicAI',
-    }));
-}
-
-async function callClaude(config, systemPrompt, userPrompt) {
-    const apiKey = process.env[config.keyEnv];
-    if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-    return shapeResult(await callClaudeAPI({
-        apiKey,
-        model: config.model,
-        systemPrompt,
-        userContent: userPrompt,
-        maxTokens: BENCHMARK_MAX_TOKENS,
-        // Claude's body has historically not set temperature; preserved unchanged.
-    }));
-}
-
-async function callOpenAI(config, systemPrompt, userPrompt) {
-    const apiKey = process.env[config.keyEnv];
-    if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-    return shapeResult(await callOpenAICompatibleChat({
-        url: config.endpoint,
-        apiKey,
-        model: config.model,
-        systemPrompt,
-        userContent: userPrompt,
-        maxTokens: BENCHMARK_MAX_TOKENS,
-        temperature: BENCHMARK_TEMPERATURE,
-        label: 'OpenAI',
-    }));
-}
-
-async function callGemini(config, systemPrompt, userPrompt) {
-    const apiKey = process.env[config.keyEnv];
-    if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-    return shapeResult(await callGeminiAPI({
-        apiKey,
-        model: config.model,
-        systemPrompt,
-        userContent: userPrompt,
-        maxTokens: BENCHMARK_MAX_TOKENS,
-        temperature: BENCHMARK_TEMPERATURE,
-        useStructuredPrompt: BENCHMARK_GEMINI_STRUCTURED,
-    }));
-}
-
-async function callOpenRouter(config, systemPrompt, userPrompt) {
-    const apiKey = process.env[config.keyEnv];
-    if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-    return shapeResult(await callOpenRouterAPI({
-        apiKey,
-        model: config.model,
-        systemPrompt,
-        userContent: userPrompt,
-        maxTokens: BENCHMARK_MAX_TOKENS,
-        temperature: BENCHMARK_TEMPERATURE,
-        responseFormat: config.responseFormat,
-    }));
-}
-
-async function callHuggingFace(config, systemPrompt, userPrompt) {
-    const apiKey = process.env[config.keyEnv];
-    if (!apiKey) throw new Error(`Missing ${config.keyEnv}`);
-    return shapeResult(await callHuggingFaceAPI({
-        apiKey,
-        model: config.model,
-        systemPrompt,
-        userContent: userPrompt,
-        maxTokens: BENCHMARK_MAX_TOKENS,
-        temperature: BENCHMARK_TEMPERATURE,
-    }));
-}
-
-/**
- * Parse LLM response to extract verdict
- */
-function parseResponse(content) {
-    // Try to extract JSON from response
-    let jsonStr = content;
-
-    // Handle markdown code blocks
-    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (jsonMatch) {
-        jsonStr = jsonMatch[1];
-    }
-
-    // Try to find JSON object
-    const objMatch = jsonStr.match(/\{[\s\S]*\}/);
-    if (objMatch) {
-        jsonStr = objMatch[0];
-    }
-
-    try {
-        const parsed = JSON.parse(jsonStr);
-        return {
-            verdict: normalizeVerdict(parsed.verdict || ''),
-            confidence: parsed.confidence || 0,
-            comments: parsed.comments || '',
-            raw_response: content
-        };
-    } catch (e) {
-        // Fallback: try to extract verdict from text
-        const verdictMatch = content.match(/verdict["\s:]+([A-Z_ ]+)/i);
-        return {
-            verdict: verdictMatch ? normalizeVerdict(verdictMatch[1]) : 'PARSE_ERROR',
-            confidence: 0,
-            comments: 'Failed to parse JSON response',
-            raw_response: content
-        };
-    }
-}
-
-/**
- * Normalize verdict string
- */
-function normalizeVerdict(verdict) {
-    const v = verdict.toUpperCase().trim();
-    if (v.includes('NOT SUPPORTED') || v.includes('NOT_SUPPORTED')) return 'Not supported';
-    if (v.includes('PARTIALLY')) return 'Partially supported';
-    if (v.includes('UNAVAILABLE')) return 'Source unavailable';
-    if (v.includes('SUPPORTED')) return 'Supported';
-    return verdict;
-}
 
 /**
  * Sleep helper
@@ -540,15 +358,25 @@ async function main() {
                 let result;
                 const startTime = Date.now();
                 try {
+                    const verifyOpts = {
+                        atomized: false,
+                        claimContainer: entry.claim_container,
+                    };
+                    if (process.env.BENCHMARK_PROMPT_OVERRIDE_FILE) {
+                        verifyOpts.systemPromptOverride = systemPrompt;
+                    }
+                    const augmentedConfig = {
+                        ...providerConfig,
+                        apiKey,
+                        maxTokens: BENCHMARK_MAX_TOKENS,
+                        temperature: BENCHMARK_TEMPERATURE,
+                    };
                     const verifyResult = await verify(
                         entry.claim_text,
                         sourceText,
                         metadata,
-                        { ...providerConfig, apiKey },
-                        {
-                            atomized: false,
-                            claimContainer: entry.claim_container,
-                        }
+                        augmentedConfig,
+                        verifyOpts
                     );
                     result = {
                         verdict: verifyResult.verdict,

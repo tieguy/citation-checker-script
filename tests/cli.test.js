@@ -531,7 +531,7 @@ test('runVerify: logs article title with literal percent character correctly', a
   try {
     // %25 is the URL-encoded form of %; it decodes to literal "100%"
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/100%25', citationNumber: 1, provider: 'apertus-70b', atomized: false, noLog: false, atomized: false },
+      { url: 'https://en.wikipedia.org/wiki/100%25', citationNumber: 1, provider: 'apertus-70b', atomized: false, noLog: false },
       { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 0, `stderr: ${stderr.value()}`);
@@ -594,7 +594,7 @@ test('runVerify: DOM traversal chain works against a realistic Wikipedia fixture
   const stderr = mkStream();
   try {
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Boiling_point', citationNumber: 2, provider: 'apertus-70b', atomized: false, noLog: true, atomized: false },
+      { url: 'https://en.wikipedia.org/wiki/Boiling_point', citationNumber: 2, provider: 'apertus-70b', atomized: false, noLog: true },
       { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 0, `stderr: ${stderr.value()}`);
@@ -616,12 +616,14 @@ test('HELP_TEXT: documents --no-log', () => {
   assert.match(HELP_TEXT, /--no-log/);
 });
 
-test('HELP_TEXT: documents the API key requirement', () => {
+test('HELP_TEXT: documents the API key requirement and at least 2 real provider keys', () => {
   assert.match(HELP_TEXT, /requires/i);
-  // that explicitly so users don't go looking for a PUBLICAI_API_KEY.
-  // Use [\s\S] (not [^\n]*) so the match can span the line break between
-  // "publicai" and "no API key" in the formatted block.
-  assert.match(HELP_TEXT, /publicai[\s\S]*?no API key/i);
+  // At least 2 provider keys should be documented (e.g., claude-sonnet-4-5, gemini-2.5-flash)
+  assert.match(HELP_TEXT, /claude-sonnet-4-5/);
+  assert.match(HELP_TEXT, /gemini-2.5-flash/);
+  // Environment variable mappings should be documented
+  assert.match(HELP_TEXT, /ANTHROPIC_API_KEY/);
+  assert.match(HELP_TEXT, /GEMINI_API_KEY/);
 });
 
 test('HELP_TEXT: documents every exit code from the error table', () => {
@@ -640,5 +642,16 @@ test('main() with --help writes HELP_TEXT to the injected stdout and returns 0',
   assert.equal(code, 0, `stderr: ${stderr.value()}`);
   assert.match(stdout.value(), /ccs verify/);
   assert.match(stdout.value(), /Exit codes:/);
+});
+
+test('runVerify with unknown provider returns exit code 2', async () => {
+  const stdout = mkStream();
+  const stderr = mkStream();
+  const code = await runVerify(
+    { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'no-such-provider', atomized: false, noLog: true },
+    { stdout, stderr, env: {} },
+  );
+  assert.equal(code, 2, 'should exit with code 2 for unknown provider');
+  assert.match(stderr.value(), /unknown provider/i);
 });
 

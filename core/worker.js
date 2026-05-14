@@ -111,11 +111,12 @@ export function logVerification(payload, { workerBase = 'https://publicai-proxy.
  * @param {string} sourceText
  * @param {object} providerConfig — PROVIDERS[name] entry
  * @param {object} [opts]
+ * @param {string} [opts.systemPromptOverride] — use this system prompt instead of core/prompts.js
  * @param {AbortSignal} [opts.signal]
  * @returns {Promise<{verdict, comments, confidence}>}
  */
 export async function verifyClaim(claim, sourceText, providerConfig, opts = {}) {
-    const systemPrompt = generateLegacySystemPrompt();
+    const systemPrompt = opts.systemPromptOverride ?? generateLegacySystemPrompt();
     const userPrompt = generateLegacyUserPrompt(claim, sourceText);
     const apiResult = await callProviderAPI(providerConfig.type, {
         ...providerConfig,
@@ -188,8 +189,11 @@ export async function verifyClaimAtomized(claim, sourceText, metadata, providerC
  * @param {boolean} [opts.useSmallAtomizer]
  * @param {string} [opts.claimContainer] — surrounding sentence/paragraph context;
  *   passed to verifyClaimAtomized() and ignored by verifyClaim().
+ * @param {string} [opts.systemPromptOverride] — use this system prompt instead of core/prompts.js;
+ *   only applies to the legacy verifyClaim() path.
  * @param {AbortSignal} [opts.signal]
- * @returns {Promise<{verdict, comments, ...}>}
+ * @returns {Promise<{verdict, comments, confidence, atoms?, atomResults?, rollupMode?}>}
+ *   Note: confidence is populated only by the legacy verifyClaim() path.
  */
 export async function verify(claim, sourceText, metadata, providerConfig, opts = {}) {
     const wantAtomized = opts.atomized !== undefined

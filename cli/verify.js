@@ -22,6 +22,9 @@ export function parseCliArgs(argv) {
     const { values, positionals } = parseArgs({
         args: raw,
         options: {
+            // Default provider requires HF_TOKEN to be set. Users without HF access
+            // should specify --provider with a different model. See --help for env var
+            // mappings and available providers.
             provider:           { type: 'string', default: 'hf-qwen3-32b' },
             'no-log':           { type: 'boolean', default: false },
             atomized:           { type: 'boolean', default: true },
@@ -139,16 +142,14 @@ Arguments:
                      in the rendered article (positive integer).
 
 Options:
-  --provider <name>  LLM provider to use. One of:
-                       huggingface (default; routed via the worker proxy,
-                                    no API key needed; set HF_API_KEY to
-                                    call HF directly and unlock any
-                                    HF-hosted model)
-                       publicai    (routed via the worker proxy,
-                                    no API key needed)
-                       claude      (requires CLAUDE_API_KEY)
-                       gemini      (requires GEMINI_API_KEY)
-                       openai      (requires OPENAI_API_KEY)
+  --provider <name>  LLM provider to use (default: hf-qwen3-32b).
+                     Examples (use any PROVIDERS registry key):
+                       - claude-sonnet-4-5     (requires ANTHROPIC_API_KEY)
+                       - gemini-2.5-flash      (requires GEMINI_API_KEY)
+                       - apertus-70b           (requires PUBLICAI_API_KEY)
+                       - hf-qwen3-32b          (requires HF_TOKEN)
+                       - openrouter-mistral-small-3.2 (requires OPENROUTER_API_KEY)
+                     See --help for all available providers.
   --no-log           Do not log the verification to the worker proxy's
                      /log endpoint.
   --atomized         Use the atomized verification pipeline (default).
@@ -157,6 +158,13 @@ Options:
   --use-small-atomizer
                      Use providerConfig.smallModel for atomize() call.
   --help, -h         Show this help and exit.
+
+Environment Variables:
+  ANTHROPIC_API_KEY  For claude-sonnet-4-5
+  GEMINI_API_KEY     For gemini-2.5-flash
+  PUBLICAI_API_KEY   For apertus-70b, olmo-32b, qwen-sealion, etc.
+  HF_TOKEN           For hf-qwen3-32b and other HuggingFace-routed models
+  OPENROUTER_API_KEY For openrouter-* models
 
 Exit codes:
   0   success
@@ -173,8 +181,9 @@ Exit codes:
 
 Examples:
   ccs verify https://en.wikipedia.org/wiki/Great_Migration_(African_American) 14
-  ccs verify https://en.wikipedia.org/wiki/Foo 3 --provider claude
+  ccs verify https://en.wikipedia.org/wiki/Foo 3 --provider claude-sonnet-4-5
   ccs verify https://en.wikipedia.org/wiki/Foo?oldid=1234567 3 --no-log
+  ccs verify https://en.wikipedia.org/wiki/Foo 5 --provider apertus-70b --no-atomized
 `;
 
 async function fetchWikipediaHtml(restUrl) {
