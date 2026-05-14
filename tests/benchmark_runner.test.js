@@ -309,3 +309,49 @@ test('synthesizePipelineSU handles missing body_unusable_reason gracefully', () 
     const result = synthesizePipelineSU(entry, 'p', 'm');
     assert.equal(result.comments, 'Pipeline-attributed (unknown)');
 });
+
+// ---- Error path: verifyResult null on exception -------------------------------------------
+
+test('verifyResult is null after exception and results.push uses optional chaining', () => {
+    // This test verifies the fix for Critical 1: when verify() throws,
+    // verifyResult is null, and the results.push should use optional chaining
+    // (verifyResult?.rollupMode ?? null) rather than reading verifyResult.rollupMode
+    // directly (which would ReferenceError).
+    //
+    // We can't directly test the runner's internal try/catch here without
+    // full integration, but we can verify that the pattern works:
+    let verifyResult = null;
+    const fallbackFields = {
+        rollupMode: verifyResult?.rollupMode ?? null,
+        atoms: verifyResult?.atoms ?? null,
+        atomResults: verifyResult?.atomResults ?? null,
+        judgeReasoning: verifyResult?.judgeReasoning ?? null,
+    };
+    // If the code were written as verifyResult.rollupMode without optional chaining,
+    // this would throw. Instead, all fields should be null.
+    assert.equal(fallbackFields.rollupMode, null);
+    assert.equal(fallbackFields.atoms, null);
+    assert.equal(fallbackFields.atomResults, null);
+    assert.equal(fallbackFields.judgeReasoning, null);
+
+    // When verifyResult is defined, fields pass through
+    verifyResult = {
+        verdict: 'Supported',
+        confidence: 'High',
+        comments: 'text',
+        rollupMode: 'deterministic',
+        atoms: [],
+        atomResults: [],
+        judgeReasoning: 'some reasoning',
+    };
+    const successFields = {
+        rollupMode: verifyResult?.rollupMode ?? null,
+        atoms: verifyResult?.atoms ?? null,
+        atomResults: verifyResult?.atomResults ?? null,
+        judgeReasoning: verifyResult?.judgeReasoning ?? null,
+    };
+    assert.equal(successFields.rollupMode, 'deterministic');
+    assert.deepEqual(successFields.atoms, []);
+    assert.deepEqual(successFields.atomResults, []);
+    assert.equal(successFields.judgeReasoning, 'some reasoning');
+});

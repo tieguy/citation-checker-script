@@ -1499,13 +1499,24 @@ async function verify(claim, sourceText, metadata, providerConfig, opts = {}) {
 
 const DEFAULT_MAX_TOKENS = 1024;
 
+/**
+ * Resolve the effective maxTokens value, preferring providerConfig.maxTokens
+ * if set, falling back to the default. Exported for unit testing.
+ * @param {object} providerConfig
+ * @param {number} fallback — the default value (usually DEFAULT_MAX_TOKENS)
+ * @returns {number}
+ */
+function resolveMaxTokens(providerConfig, fallback) {
+    return providerConfig.maxTokens ?? fallback;
+}
+
 async function defaultTransport(providerConfig, { systemPrompt, userPrompt, signal, model }) {
     const callConfig = {
         ...providerConfig,
         model: model ?? providerConfig.model,
         systemPrompt,
         userContent: userPrompt,
-        maxTokens: providerConfig.maxTokens ?? DEFAULT_MAX_TOKENS,
+        maxTokens: resolveMaxTokens(providerConfig, DEFAULT_MAX_TOKENS),
         signal,
     };
     return await callProviderAPI(providerConfig.type, callConfig);
@@ -1611,12 +1622,23 @@ function parseAtomsResponse(text) {
 
 const DEFAULT_MAX_TOKENS = 512;
 
+/**
+ * Resolve the effective maxTokens value, preferring providerConfig.maxTokens
+ * if set, falling back to the default. Exported for unit testing.
+ * @param {object} providerConfig
+ * @param {number} fallback — the default value (usually DEFAULT_MAX_TOKENS)
+ * @returns {number}
+ */
+function resolveMaxTokens(providerConfig, fallback) {
+    return providerConfig.maxTokens ?? fallback;
+}
+
 async function defaultTransport(providerConfig, { systemPrompt, userPrompt, signal }) {
     const callConfig = {
         ...providerConfig,
         systemPrompt,
         userContent: userPrompt,
-        maxTokens: providerConfig.maxTokens ?? DEFAULT_MAX_TOKENS,
+        maxTokens: resolveMaxTokens(providerConfig, DEFAULT_MAX_TOKENS),
         signal,
     };
     return await callProviderAPI(providerConfig.type, callConfig);
@@ -1723,12 +1745,23 @@ async function verifyAtoms(atoms, sourceText, metadata, providerConfig, opts = {
 
 const DEFAULT_MAX_TOKENS = 512;
 
+/**
+ * Resolve the effective maxTokens value, preferring providerConfig.maxTokens
+ * if set, falling back to the default. Exported for unit testing.
+ * @param {object} providerConfig
+ * @param {number} fallback — the default value (usually DEFAULT_MAX_TOKENS)
+ * @returns {number}
+ */
+function resolveMaxTokens(providerConfig, fallback) {
+    return providerConfig.maxTokens ?? fallback;
+}
+
 async function defaultTransport(providerConfig, { systemPrompt, userPrompt, signal }) {
     const callConfig = {
         ...providerConfig,
         systemPrompt,
         userContent: userPrompt,
-        maxTokens: providerConfig.maxTokens ?? DEFAULT_MAX_TOKENS,
+        maxTokens: resolveMaxTokens(providerConfig, DEFAULT_MAX_TOKENS),
         signal,
     };
     return await callProviderAPI(providerConfig.type, callConfig);

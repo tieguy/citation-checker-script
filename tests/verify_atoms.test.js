@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { verifyAtoms, parseAtomResultResponse } from '../core/verify-atoms.js';
+import { verifyAtoms, parseAtomResultResponse, resolveMaxTokens } from '../core/verify-atoms.js';
 
 // === parseAtomResultResponse ===
 
@@ -126,4 +126,18 @@ test('verifyAtoms with no atoms returns empty array (no calls)', async () => {
   const results = await verifyAtoms([], 'body', null, { type: 'claude', model: 'm' }, { transport });
   assert.deepEqual(results, []);
   assert.equal(calls.length, 0);
+});
+
+// === resolveMaxTokens pure function tests ===
+
+test('resolveMaxTokens: caller-supplied maxTokens wins', () => {
+  assert.equal(resolveMaxTokens({ maxTokens: 999 }, 512), 999);
+});
+
+test('resolveMaxTokens: falls back to default when maxTokens is undefined', () => {
+  assert.equal(resolveMaxTokens({}, 512), 512);
+});
+
+test('resolveMaxTokens: falls back to default when maxTokens is null', () => {
+  assert.equal(resolveMaxTokens({ maxTokens: null }, 512), 512);
 });

@@ -43,6 +43,47 @@ const RETRYABLE_NETWORK = /timeout|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|sock
 const DATASET_PATH = path.join(__dirname, 'dataset.json');
 const RESULTS_PATH = path.join(__dirname, 'results.json');
 
+/**
+ * Parse atomized-pipeline flags from command-line arguments.
+ * Supported forms:
+ *   --no-atomized          → wantAtomized: false (default is true)
+ *   --rollup-mode=deterministic|judge  → rollupMode set accordingly
+ *   --use-small-atomizer   → useSmallAtomizer: true
+ *
+ * @param {string[]} args - process.argv.slice(2) or equivalent
+ * @returns {object} { ok: boolean, wantAtomized, rollupMode, useSmallAtomizer, exitCode?, message? }
+ *   When ok === true: { ok: true, wantAtomized, rollupMode, useSmallAtomizer }
+ *   When ok === false: { ok: false, exitCode, message } — caller should exit(exitCode) after printing message
+ */
+export function parseAtomizedFlags(args) {
+    const wantAtomized = !args.includes('--no-atomized');
+
+    const rollupModeArg = args.find(a => a.startsWith('--rollup-mode='));
+    let rollupMode = 'deterministic';
+    if (rollupModeArg) {
+        const value = rollupModeArg.split('=')[1];
+        if (!value) {
+            return {
+                ok: false,
+                exitCode: 2,
+                message: 'Invalid or missing --rollup-mode value. Use \'deterministic\' or \'judge\'.',
+            };
+        }
+        if (value !== 'deterministic' && value !== 'judge') {
+            return {
+                ok: false,
+                exitCode: 2,
+                message: `Invalid --rollup-mode: ${value}. Use 'deterministic' or 'judge'.`,
+            };
+        }
+        rollupMode = value;
+    }
+
+    const useSmallAtomizer = args.includes('--use-small-atomizer');
+
+    return { ok: true, wantAtomized, rollupMode, useSmallAtomizer };
+}
+
 // Parse command line arguments
 const args = process.argv.slice(2);
 const providerArg = args.find(a => a.startsWith('--providers='));
@@ -66,20 +107,13 @@ const CONCURRENCY = (() => {
     return Number.isFinite(n) && n > 0 ? n : 5;
 })();
 
-// New: atomized-pipeline flags. Default --atomized so the benchmark
-// exercises the new pipeline by default; --no-atomized re-enables the
-// single-pass path for Cell 1 (rules-only ablation).
-const wantAtomized = !args.includes('--no-atomized');
-const rollupModeArg = args.find(a => a.startsWith('--rollup-mode='));
-const rollupMode = rollupModeArg
-    ? rollupModeArg.split('=')[1]
-    : 'deterministic';
-if (rollupMode !== 'deterministic' && rollupMode !== 'judge') {
-    console.error(`Invalid --rollup-mode: ${rollupMode}. Use 'deterministic' or 'judge'.`);
-    process.exit(2);
+// Parse atomized-pipeline flags (--no-atomized, --rollup-mode=deterministic|judge, --use-small-atomizer)
+const atomizedFlagsParsed = parseAtomizedFlags(args);
+if (!atomizedFlagsParsed.ok) {
+    console.error(atomizedFlagsParsed.message);
+    process.exit(atomizedFlagsParsed.exitCode);
 }
-// Flag name matches the CLI's --use-small-atomizer for symmetry.
-const useSmallAtomizer = args.includes('--use-small-atomizer');
+const { wantAtomized, rollupMode, useSmallAtomizer } = atomizedFlagsParsed;
 
 // generateSystemPrompt and generateUserPrompt are imported from core/prompts.js
 // (single source of truth shared with main.js and cli/verify.js). The benchmark
@@ -371,6 +405,7 @@ async function main() {
                 const apiKey = providerConfig.keyEnv ? process.env[providerConfig.keyEnv] : undefined;
 
                 let result;
+                let verifyResult = null;
                 const startTime = Date.now();
                 try {
                     const verifyOpts = {
@@ -388,7 +423,7 @@ async function main() {
                         maxTokens: BENCHMARK_MAX_TOKENS,
                         temperature: BENCHMARK_TEMPERATURE,
                     };
-                    const verifyResult = await verify(
+                    verifyResult = await verify(
                         entry.claim_text,
                         sourceText,
                         metadata,
@@ -427,10 +462,10 @@ async function main() {
                     timestamp: new Date().toISOString(),
                     // New atomized-pipeline fields:
                     atomized: wantAtomized,
-                    rollupMode: verifyResult.rollupMode,
-                    atoms: verifyResult.atoms ?? null,
-                    atomResults: verifyResult.atomResults ?? null,
-                    judgeReasoning: verifyResult.judgeReasoning ?? null,
+                    rollupMode: verifyResult?.rollupMode ?? null,
+                    atoms: verifyResult?.atoms ?? null,
+                    atomResults: verifyResult?.atomResults ?? null,
+                    judgeReasoning: verifyResult?.judgeReasoning ?? null,
                 });
 
                 completed++;
