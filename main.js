@@ -780,6 +780,169 @@ async function callProviderAPI(name, config) {
     }
 }
 
+// Provider metadata registry. Source of truth for atomized-pipeline
+// orchestration (atomize, verifyAtoms, rollup) and for the benchmark
+// runner. The userscript (main.js) keeps its own UI-facing registry in
+// the WikipediaSourceVerifier constructor — that one carries BYOK key
+// names, colors, and display labels. This one carries model IDs and
+// the atomized-pipeline knobs (`smallModel`, `supportsAtomize`,
+// `responseFormat`).
+//
+// Conventions:
+//   - `smallModel` names the cheap variant for atomizer/judge calls.
+//     When unset, the atomizer uses `model`.
+//   - `supportsAtomize` defaults true. Flip to false per-provider if
+//     Cell 1 vs Cell 2 ablation shows atomizer-quality issues; the
+//     dispatcher in core/worker.js will fall back to the single-pass
+//     verifier for those.
+//   - `responseFormat` is forwarded to the OpenAI-compatible upstream
+//     when present. Granite-4.1-8B opts in to JSON-mode this way.
+const PROVIDERS = {
+    // Open-source models via PublicAI (direct API)
+    'apertus-70b': {
+        name: 'Apertus 70B',
+        model: 'swiss-ai/apertus-70b-instruct',
+        endpoint: 'https://api.publicai.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'PUBLICAI_API_KEY',
+        type: 'publicai',
+        supportsAtomize: true
+    },
+    'qwen-sealion': {
+        name: 'Qwen SEA-LION v4',
+        model: 'aisingapore/Qwen-SEA-LION-v4-32B-IT',
+        endpoint: 'https://api.publicai.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'PUBLICAI_API_KEY',
+        type: 'publicai',
+        supportsAtomize: true
+    },
+    'olmo-32b': {
+        name: 'OLMo 3.1 32B',
+        model: 'allenai/Olmo-3.1-32B-Instruct',
+        endpoint: 'https://api.publicai.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'PUBLICAI_API_KEY',
+        type: 'publicai',
+        supportsAtomize: true
+    },
+    // Claude
+    'claude-sonnet-4-5': {
+        name: 'Claude Sonnet 4.5',
+        model: 'claude-sonnet-4-5-20250929',
+        endpoint: 'https://api.anthropic.com/v1/messages',
+        requiresKey: true,
+        keyEnv: 'ANTHROPIC_API_KEY',
+        type: 'claude',
+        supportsAtomize: true,
+        smallModel: 'claude-haiku-4-5-20251001'
+    },
+    // Gemini
+    'gemini-2.5-flash': {
+        name: 'Gemini 2.5 Flash',
+        model: 'gemini-2.5-flash',
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+        requiresKey: true,
+        keyEnv: 'GEMINI_API_KEY',
+        type: 'gemini',
+        supportsAtomize: true,
+        smallModel: 'gemini-2.5-flash'
+    },
+    // Open-weights candidates via OpenRouter for the voting-panel selection sweep.
+    // All five carry an OSI-compliant license (Apache 2.0 or MIT).
+    'openrouter-mistral-small-3.2': {
+        name: 'Mistral Small 3.2 24B (OpenRouter)',
+        model: 'mistralai/mistral-small-3.2-24b-instruct',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter',
+        supportsAtomize: true
+    },
+    'openrouter-olmo-3.1-32b': {
+        name: 'OLMo 3.1 32B (OpenRouter)',
+        model: 'allenai/olmo-3.1-32b-instruct',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter',
+        supportsAtomize: true
+    },
+    'openrouter-deepseek-v3.2': {
+        name: 'DeepSeek V3.2 (OpenRouter)',
+        model: 'deepseek/deepseek-v3.2',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter',
+        supportsAtomize: true
+    },
+    'openrouter-granite-4.1-8b': {
+        name: 'Granite 4.1 8B (OpenRouter)',
+        model: 'ibm-granite/granite-4.1-8b',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter',
+        supportsAtomize: true,
+        // Forces JSON-only output. Granite-8B's parse-error rate jumps from
+        // ~0.5% to 13% under terser prompts without this hint; with it
+        // supplied, parse failures return to 0.
+        responseFormat: { type: 'json_object' }
+    },
+    'openrouter-gemma-4-26b-a4b': {
+        name: 'Gemma 4 26B-A4B (OpenRouter)',
+        model: 'google/gemma-4-26b-a4b-it',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter',
+        supportsAtomize: true
+    },
+    'openrouter-qwen-3-32b': {
+        name: 'Qwen 3 32B Instruct (OpenRouter)',
+        model: 'qwen/qwen3-32b',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter',
+        supportsAtomize: true
+    },
+    // Hugging Face Inference Providers — routed through router.huggingface.co.
+    // Same OpenAI-compatible request shape as OpenRouter; the per-provider
+    // backend (Groq, Together, Fireworks, PublicAI, etc.) is auto-selected
+    // by HF based on which providers the token has enabled. HF's response
+    // does not include a per-call cost field, so cost_usd is left null and
+    // token counts are captured for external rate-table computation.
+    'hf-qwen3-32b': {
+        name: 'Qwen3-32B (HF Inference)',
+        model: 'Qwen/Qwen3-32B',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface',
+        supportsAtomize: true
+    },
+    'hf-gpt-oss-20b': {
+        name: 'gpt-oss-20b (HF Inference)',
+        model: 'openai/gpt-oss-20b',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface',
+        supportsAtomize: true
+    },
+    'hf-deepseek-v3': {
+        name: 'DeepSeek-V3 (HF Inference)',
+        model: 'deepseek-ai/DeepSeek-V3',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface',
+        supportsAtomize: true
+    }
+};
+
 // --- core/body-classifier.js ---
 // Classify whether an extracted source body is usable for downstream LLM
 // verification. Returns { usable: true, reason: 'ok' } for content that should
@@ -966,6 +1129,82 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
     } catch (e) {
         // logging should never break the main flow
     }
+}
+
+// --- core/atomize.js ---
+// Stage 1 of the atomized verification pipeline. Splits a compound claim
+// into discrete verifiable assertions ("atoms"), each tagged as either
+// content (verified against the source body) or provenance (verified
+// against citoid metadata).
+//
+// Atom = { id: string, assertion: string, kind: 'content' | 'provenance' }
+//
+// Implementation lands in Phase 3.
+
+/**
+ * @param {string} claim
+ * @param {object} providerConfig — a PROVIDERS[name] entry from core/providers.js
+ * @param {object} [opts]
+ * @param {string} [opts.claimContainer] — surrounding sentence/paragraph context.
+ *   20% of dataset rows are fragmentary (sentence fragments from mid-sentence
+ *   citations); when present, the atomizer prompt uses claimContainer as
+ *   context-only so reading-comprehension benefits from the surrounding
+ *   sentence without expanding the atom set to container-only assertions.
+ * @param {boolean} [opts.useSmallModel] — opt into providerConfig.smallModel
+ * @param {AbortSignal} [opts.signal]
+ * @param {Function} [opts.transport] — test-injection hook; defaults to callProviderAPI
+ * @returns {Promise<Array<{id: string, assertion: string, kind: 'content'|'provenance'}>>}
+ */
+async function atomize(claim, providerConfig, opts = {}) {
+    throw new Error('not implemented: filled in Phase 3');
+}
+
+// --- core/verify-atoms.js ---
+// Stage 2 of the atomized verification pipeline. Verifies each atom
+// independently against the right slice of input — content atoms against
+// the source body, provenance atoms against the citoid metadata block.
+//
+// AtomResult = { atomId: string, verdict: 'supported' | 'not_supported',
+//                evidence?: string, error?: string }
+//
+// Implementation lands in Phase 3.
+
+/**
+ * @param {Array} atoms — from atomize()
+ * @param {string} sourceText — Defuddle-extracted body (with citoid header)
+ * @param {object|null} metadata — citoid metadata, when available
+ * @param {object} providerConfig — a PROVIDERS[name] entry
+ * @param {object} [opts]
+ * @param {number} [opts.concurrency] — defaults unbounded
+ * @param {AbortSignal} [opts.signal]
+ * @param {Function} [opts.transport]
+ * @returns {Promise<Array<{atomId: string, verdict: string, evidence?: string, error?: string}>>}
+ */
+async function verifyAtoms(atoms, sourceText, metadata, providerConfig, opts = {}) {
+    throw new Error('not implemented: filled in Phase 3');
+}
+
+// --- core/rollup.js ---
+// Stage 3 of the atomized verification pipeline. Composes per-atom
+// verdicts into a single claim-level verdict.
+//
+// RollupResult = { verdict: 'SUPPORTED' | 'PARTIALLY SUPPORTED' | 'NOT SUPPORTED',
+//                  comments: string, judgeReasoning?: string }
+//
+// Implementation lands in Phase 4.
+
+/**
+ * @param {Array} atoms
+ * @param {Array} atomResults — from verifyAtoms()
+ * @param {'deterministic' | 'judge'} mode
+ * @param {object} [providerConfig] — required when mode === 'judge'
+ * @param {object} [opts]
+ * @param {AbortSignal} [opts.signal]
+ * @param {Function} [opts.transport]
+ * @returns {Promise<{verdict: string, comments: string, judgeReasoning?: string}>}
+ */
+async function rollup(atoms, atomResults, mode, providerConfig, opts = {}) {
+    throw new Error('not implemented: filled in Phase 4');
 }
 // </core-injected>
 

@@ -26,6 +26,7 @@ import {
     callGeminiAPI,
     callOpenRouterAPI,
     callHuggingFaceAPI,
+    PROVIDERS,
 } from '../core/providers.js';
 import { augmentWithCitoid } from '../core/citoid.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
@@ -40,137 +41,6 @@ const RETRYABLE_NETWORK = /timeout|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|sock
 // Configuration
 const DATASET_PATH = path.join(__dirname, 'dataset.json');
 const RESULTS_PATH = path.join(__dirname, 'results.json');
-
-// Provider configurations
-const PROVIDERS = {
-    // Open-source models via PublicAI (direct API)
-    'apertus-70b': {
-        name: 'Apertus 70B',
-        model: 'swiss-ai/apertus-70b-instruct',
-        endpoint: 'https://api.publicai.co/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'PUBLICAI_API_KEY',
-        type: 'publicai'
-    },
-    'qwen-sealion': {
-        name: 'Qwen SEA-LION v4',
-        model: 'aisingapore/Qwen-SEA-LION-v4-32B-IT',
-        endpoint: 'https://api.publicai.co/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'PUBLICAI_API_KEY',
-        type: 'publicai'
-    },
-    'olmo-32b': {
-        name: 'OLMo 3.1 32B',
-        model: 'allenai/Olmo-3.1-32B-Instruct',
-        endpoint: 'https://api.publicai.co/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'PUBLICAI_API_KEY',
-        type: 'publicai'
-    },
-    // Claude
-    'claude-sonnet-4-5': {
-        name: 'Claude Sonnet 4.5',
-        model: 'claude-sonnet-4-5-20250929',
-        endpoint: 'https://api.anthropic.com/v1/messages',
-        requiresKey: true,
-        keyEnv: 'ANTHROPIC_API_KEY',
-        type: 'claude'
-    },
-    // Gemini
-    'gemini-2.5-flash': {
-        name: 'Gemini 2.5 Flash',
-        model: 'gemini-2.5-flash',
-        endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-        requiresKey: true,
-        keyEnv: 'GEMINI_API_KEY',
-        type: 'gemini'
-    },
-    // Open-weights candidates via OpenRouter for the voting-panel selection sweep.
-    // All five carry an OSI-compliant license (Apache 2.0 or MIT).
-    'openrouter-mistral-small-3.2': {
-        name: 'Mistral Small 3.2 24B (OpenRouter)',
-        model: 'mistralai/mistral-small-3.2-24b-instruct',
-        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'OPENROUTER_API_KEY',
-        type: 'openrouter'
-    },
-    'openrouter-olmo-3.1-32b': {
-        name: 'OLMo 3.1 32B (OpenRouter)',
-        model: 'allenai/olmo-3.1-32b-instruct',
-        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'OPENROUTER_API_KEY',
-        type: 'openrouter'
-    },
-    'openrouter-deepseek-v3.2': {
-        name: 'DeepSeek V3.2 (OpenRouter)',
-        model: 'deepseek/deepseek-v3.2',
-        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'OPENROUTER_API_KEY',
-        type: 'openrouter'
-    },
-    'openrouter-granite-4.1-8b': {
-        name: 'Granite 4.1 8B (OpenRouter)',
-        model: 'ibm-granite/granite-4.1-8b',
-        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'OPENROUTER_API_KEY',
-        type: 'openrouter',
-        // Forces JSON-only output. Granite-8B's parse-error rate jumps from
-        // ~0.5% to 13% under terser prompts without this hint; with it
-        // supplied, parse failures return to 0.
-        responseFormat: { type: 'json_object' },
-    },
-    'openrouter-gemma-4-26b-a4b': {
-        name: 'Gemma 4 26B-A4B (OpenRouter)',
-        model: 'google/gemma-4-26b-a4b-it',
-        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'OPENROUTER_API_KEY',
-        type: 'openrouter'
-    },
-    'openrouter-qwen-3-32b': {
-        name: 'Qwen 3 32B Instruct (OpenRouter)',
-        model: 'qwen/qwen3-32b',
-        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'OPENROUTER_API_KEY',
-        type: 'openrouter'
-    },
-    // Hugging Face Inference Providers — routed through router.huggingface.co.
-    // Same OpenAI-compatible request shape as OpenRouter; the per-provider
-    // backend (Groq, Together, Fireworks, PublicAI, etc.) is auto-selected
-    // by HF based on which providers the token has enabled. HF's response
-    // does not include a per-call cost field, so cost_usd is left null and
-    // token counts are captured for external rate-table computation.
-    'hf-qwen3-32b': {
-        name: 'Qwen3-32B (HF Inference)',
-        model: 'Qwen/Qwen3-32B',
-        endpoint: 'https://router.huggingface.co/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'HF_TOKEN',
-        type: 'huggingface'
-    },
-    'hf-gpt-oss-20b': {
-        name: 'gpt-oss-20b (HF Inference)',
-        model: 'openai/gpt-oss-20b',
-        endpoint: 'https://router.huggingface.co/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'HF_TOKEN',
-        type: 'huggingface'
-    },
-    'hf-deepseek-v3': {
-        name: 'DeepSeek-V3 (HF Inference)',
-        model: 'deepseek-ai/DeepSeek-V3',
-        endpoint: 'https://router.huggingface.co/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'HF_TOKEN',
-        type: 'huggingface'
-    }
-};
 
 // Parse command line arguments
 const args = process.argv.slice(2);
