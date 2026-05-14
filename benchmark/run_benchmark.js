@@ -126,8 +126,17 @@ const providerArg = args.find(a => a.startsWith('--providers='));
 const selectedProviders = providerArg
     ? providerArg.split('=')[1].split(',')
     : Object.keys(PROVIDERS);
+// --limit accepts both `--limit N` and `--limit=N` to match the style of
+// --concurrency, --rollup-mode, etc.
+const limitArg = args.find(a => a.startsWith('--limit='));
 const limitIndex = args.indexOf('--limit');
-const LIMIT = limitIndex !== -1 ? parseInt(args[limitIndex + 1], 10) : null;
+const LIMIT = (() => {
+    const raw = limitArg
+        ? limitArg.split('=')[1]
+        : (limitIndex !== -1 ? args[limitIndex + 1] : null);
+    const n = raw ? parseInt(raw, 10) : null;
+    return Number.isFinite(n) && n > 0 ? n : null;
+})();
 const RESUME = args.includes('--resume');
 const versionIndex = args.indexOf('--version');
 // VERSION_FILTER: 'all' | 'v1' | 'v2' | ... — restricts which dataset entries
@@ -490,7 +499,7 @@ async function main() {
                     model: PROVIDERS[provider].model,
                     verifyResult,
                     result,
-                    latency,
+                    latency: result.latency,
                     wantAtomized,
                 }));
 

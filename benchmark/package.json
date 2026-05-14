@@ -25,7 +25,7 @@
     "report": "node analyze_results.js --output report.md",
     "benchmark:atomized": "node run_benchmark.js --atomized --rollup-mode=deterministic",
     "benchmark:atomized-judge": "node run_benchmark.js --atomized --rollup-mode=judge",
-    "benchmark:smoke20": "node run_benchmark.js --atomized --rollup-mode=deterministic --providers=claude-sonnet-4-5 --limit=20"
+    "benchmark:smoke20": "node run_benchmark.js --atomized --rollup-mode=deterministic --use-small-atomizer --providers=claude-sonnet-4-5 --limit=20"
   },
   "dependencies": {
     "jsdom": "^24.0.0"

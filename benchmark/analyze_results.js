@@ -456,8 +456,12 @@ function main() {
         for (const key of ['1', '2', '3+']) {
             const rs = buckets[key];
             if (rs.length === 0) continue;
-            const correct = rs.filter(r => r.correct).length;
-            const pct = (correct / rs.length * 100).toFixed(1);
+            // r.correct is tri-state: 'exact' | 'partial' | 'wrong'.
+            // Cross-tab reports exact-match accuracy to align with the headline metric.
+            const exact = rs.filter(r => r.correct === 'exact').length;
+            const partial = rs.filter(r => r.correct === 'partial').length;
+            const wrong = rs.filter(r => r.correct === 'wrong').length;
+            const pct = (exact / rs.length * 100).toFixed(1);
             // Per-verdict breakdown
             const byVerdict = {};
             for (const r of rs) {
@@ -467,7 +471,7 @@ function main() {
             const verdictStr = Object.entries(byVerdict)
                 .map(([v, n]) => `${v}: ${n}`)
                 .join(', ');
-            console.log(`  c=${key}: ${rs.length} rows, ${correct} correct (${pct}%) — ${verdictStr}`);
+            console.log(`  c=${key}: ${rs.length} rows, ${exact} exact / ${partial} partial / ${wrong} wrong (${pct}% exact) — ${verdictStr}`);
         }
     }
 
