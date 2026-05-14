@@ -22,6 +22,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { existsSync, readFileSync } from 'node:fs';
 import { loadRows } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -46,6 +47,15 @@ const ANALYSIS_PATH = path.resolve(__dirname, flagValue('--analysis') || 'analys
 
 // Verdict categories for confusion matrix
 const VERDICT_CATEGORIES = ['Supported', 'Partially supported', 'Not supported', 'Source unavailable'];
+
+/**
+ * Calculate the median of an array of numbers
+ */
+function median(arr) {
+    const sorted = [...arr].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
 
 /**
  * Normalize verdict to standard categories
@@ -380,6 +390,79 @@ function main() {
         console.log(`  Avg latency: ${metrics.latency.avg.toFixed(0)}ms`);
         console.log(`  Errors: ${metrics.errors}/${metrics.total}`);
         console.log('');
+    }
+
+    // Atom-count distribution (only for rows with atomized verification)
+    const atomCounts = results
+        .filter(r => Array.isArray(r.atoms))
+        .map(r => r.atoms.length);
+
+    const atomCountSummary = atomCounts.length === 0
+        ? null
+        : {
+            rowsWithAtoms: atomCounts.length,
+            medianAtoms: median(atomCounts),
+            pctSingleAtom: atomCounts.filter(n => n === 1).length / atomCounts.length,
+            pctOverThree:  atomCounts.filter(n => n > 3).length / atomCounts.length,
+            max: Math.max(...atomCounts),
+        };
+
+    // Include in the per-provider report
+    if (atomCountSummary) {
+        console.log('\nAtom-count distribution:');
+        console.log(`  rows with atoms: ${atomCountSummary.rowsWithAtoms}`);
+        console.log(`  median atoms: ${atomCountSummary.medianAtoms}`);
+        console.log(`  % single-atom: ${(atomCountSummary.pctSingleAtom * 100).toFixed(1)}%`);
+        console.log(`  % >3 atoms: ${(atomCountSummary.pctOverThree * 100).toFixed(1)}%`);
+        console.log(`  max: ${atomCountSummary.max}`);
+    }
+
+    // Compoundness × verdict stratification (optional, joins against workbench/compound-corpus/labels.json)
+    const LABELS_PATH = path.resolve(
+        path.dirname(new URL(import.meta.url).pathname),
+        '..', '..', 'workbench', 'compound-corpus', 'labels.json'
+    );
+
+    let labelsById = null;
+    if (existsSync(LABELS_PATH)) {
+        try {
+            const parsed = JSON.parse(readFileSync(LABELS_PATH, 'utf8'));
+            const rows = parsed.rows ?? parsed;   // tolerate {metadata, rows} or bare array
+            labelsById = Object.fromEntries(rows.map(r => [r.entry_id, r]));
+        } catch (e) {
+            // Malformed labels.json — skip silently rather than crash the analyzer.
+            console.warn(`compound-corpus labels.json present but unreadable: ${e.message}`);
+        }
+    }
+
+    if (labelsById) {
+        // Cross-tab: compoundness bucket (c=1 / c=2 / c=3+) × verdict bucket × correctness
+        const buckets = { 1: [], 2: [], '3+': [] };
+        for (const r of results) {
+            const label = labelsById[r.entry_id];
+            if (!label) continue;                  // row not labeled — skip
+            const key = label.compoundness >= 3 ? '3+' : String(label.compoundness);
+            if (!buckets[key]) continue;
+            buckets[key].push(r);
+        }
+
+        console.log('\nCompoundness × verdict cross-tab (corpus labels):');
+        for (const key of ['1', '2', '3+']) {
+            const rs = buckets[key];
+            if (rs.length === 0) continue;
+            const correct = rs.filter(r => r.correct).length;
+            const pct = (correct / rs.length * 100).toFixed(1);
+            // Per-verdict breakdown
+            const byVerdict = {};
+            for (const r of rs) {
+                const v = r.predicted_verdict ?? 'UNKNOWN';
+                byVerdict[v] = (byVerdict[v] || 0) + 1;
+            }
+            const verdictStr = Object.entries(byVerdict)
+                .map(([v, n]) => `${v}: ${n}`)
+                .join(', ');
+            console.log(`  c=${key}: ${rs.length} rows, ${correct} correct (${pct}%) — ${verdictStr}`);
+        }
     }
 
     // Save analysis JSON

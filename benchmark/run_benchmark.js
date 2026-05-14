@@ -66,6 +66,21 @@ const CONCURRENCY = (() => {
     return Number.isFinite(n) && n > 0 ? n : 5;
 })();
 
+// New: atomized-pipeline flags. Default --atomized so the benchmark
+// exercises the new pipeline by default; --no-atomized re-enables the
+// single-pass path for Cell 1 (rules-only ablation).
+const wantAtomized = !args.includes('--no-atomized');
+const rollupModeArg = args.find(a => a.startsWith('--rollup-mode='));
+const rollupMode = rollupModeArg
+    ? rollupModeArg.split('=')[1]
+    : 'deterministic';
+if (rollupMode !== 'deterministic' && rollupMode !== 'judge') {
+    console.error(`Invalid --rollup-mode: ${rollupMode}. Use 'deterministic' or 'judge'.`);
+    process.exit(2);
+}
+// Flag name matches the CLI's --use-small-atomizer for symmetry.
+const useSmallAtomizer = args.includes('--use-small-atomizer');
+
 // generateSystemPrompt and generateUserPrompt are imported from core/prompts.js
 // (single source of truth shared with main.js and cli/verify.js). The benchmark
 // used to keep local copies of both that drifted silently from main.js's
@@ -359,7 +374,9 @@ async function main() {
                 const startTime = Date.now();
                 try {
                     const verifyOpts = {
-                        atomized: false,
+                        atomized: wantAtomized,
+                        rollupMode,
+                        useSmallAtomizer,
                         claimContainer: entry.claim_container,
                     };
                     if (process.env.BENCHMARK_PROMPT_OVERRIDE_FILE) {
@@ -407,7 +424,13 @@ async function main() {
                     latency_ms: result.latency,
                     error: result.error,
                     correct: compareVerdicts(result.verdict, entry.ground_truth),
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    // New atomized-pipeline fields:
+                    atomized: wantAtomized,
+                    rollupMode: verifyResult.rollupMode,
+                    atoms: verifyResult.atoms ?? null,
+                    atomResults: verifyResult.atomResults ?? null,
+                    judgeReasoning: verifyResult.judgeReasoning ?? null,
                 });
 
                 completed++;
