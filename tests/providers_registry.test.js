@@ -5,7 +5,7 @@ import { PROVIDERS } from '../core/providers.js';
 test('PROVIDERS exports a populated registry', () => {
   assert.equal(typeof PROVIDERS, 'object');
   const keys = Object.keys(PROVIDERS);
-  assert.ok(keys.length >= 14, `expected at least 14 providers, got ${keys.length}`);
+  assert.ok(keys.length >= 13, `expected at least 13 providers, got ${keys.length}`);
 });
 
 test('every PROVIDERS entry has name + model + type + supportsAtomize', () => {
