@@ -52,7 +52,7 @@ test('fetchSourceContent prepends Citoid metadata header when Citoid returns dat
     }
     return {
       ok: true,
-      json: async () => ({ content: 'body content '.repeat(20), truncated: false }),
+      json: async () => ({ content: 'body content padded above the SHORT_BODY_FLOOR so the classifier passes it through. '.repeat(5), truncated: false }),
     };
   });
   try {
@@ -75,7 +75,7 @@ test('fetchSourceContent leaves source unchanged when Citoid fails', async () =>
     }
     return {
       ok: true,
-      json: async () => ({ content: 'untouched body '.repeat(20), truncated: false }),
+      json: async () => ({ content: 'untouched body padded above the SHORT_BODY_FLOOR so the classifier passes it through. '.repeat(5), truncated: false }),
     };
   });
   try {
