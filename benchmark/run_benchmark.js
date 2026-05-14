@@ -118,7 +118,11 @@ const PROVIDERS = {
         endpoint: 'https://openrouter.ai/api/v1/chat/completions',
         requiresKey: true,
         keyEnv: 'OPENROUTER_API_KEY',
-        type: 'openrouter'
+        type: 'openrouter',
+        // Forces JSON-only output. Granite-8B's parse-error rate jumps from
+        // ~0.5% to 13% under terser prompts without this hint; with it
+        // supplied, parse failures return to 0.
+        responseFormat: { type: 'json_object' },
     },
     'openrouter-gemma-4-26b-a4b': {
         name: 'Gemma 4 26B-A4B (OpenRouter)',
@@ -366,6 +370,7 @@ async function callOpenRouter(config, systemPrompt, userPrompt) {
         userContent: userPrompt,
         maxTokens: BENCHMARK_MAX_TOKENS,
         temperature: BENCHMARK_TEMPERATURE,
+        responseFormat: config.responseFormat,
     }));
 }
 
