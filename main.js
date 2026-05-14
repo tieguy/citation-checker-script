@@ -1705,7 +1705,7 @@ async function defaultTransport(providerConfig, { systemPrompt, userPrompt, sign
         model: model ?? providerConfig.model,
         systemPrompt,
         userContent: userPrompt,
-        maxTokens: DEFAULT_MAX_TOKENS,
+        maxTokens: providerConfig.maxTokens ?? DEFAULT_MAX_TOKENS,
         signal,
     };
     return await callProviderAPI(providerConfig.type, callConfig);
@@ -1816,7 +1816,7 @@ async function defaultTransport(providerConfig, { systemPrompt, userPrompt, sign
         ...providerConfig,
         systemPrompt,
         userContent: userPrompt,
-        maxTokens: DEFAULT_MAX_TOKENS,
+        maxTokens: providerConfig.maxTokens ?? DEFAULT_MAX_TOKENS,
         signal,
     };
     return await callProviderAPI(providerConfig.type, callConfig);
@@ -1928,7 +1928,7 @@ async function defaultTransport(providerConfig, { systemPrompt, userPrompt, sign
         ...providerConfig,
         systemPrompt,
         userContent: userPrompt,
-        maxTokens: DEFAULT_MAX_TOKENS,
+        maxTokens: providerConfig.maxTokens ?? DEFAULT_MAX_TOKENS,
         signal,
     };
     return await callProviderAPI(providerConfig.type, callConfig);
