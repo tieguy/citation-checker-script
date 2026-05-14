@@ -735,6 +735,26 @@ async function augmentWithCitoid(sourceText, sourceUrl, opts = {}) {
     return prependMetadataHeader(header, sourceText);
 }
 
+/**
+ * Like augmentWithCitoid, but returns the structured metadata block
+ * alongside the augmented sourceText so callers can pass metadata into
+ * the atomized verifier's provenance-atom path.
+ *
+ * @param {string} sourceText
+ * @param {string} sourceUrl
+ * @param {object} [opts]
+ * @returns {Promise<{ sourceText: string, metadata: object | null }>}
+ */
+async function augmentWithCitoidStructured(sourceText, sourceUrl, opts = {}) {
+    const citoidData = await fetchCitoidMetadata(sourceUrl, opts);
+    const header = buildCitoidHeader(citoidData, sourceUrl);
+    if (!header) return { sourceText, metadata: null };
+    return {
+        sourceText: prependMetadataHeader(header, sourceText),
+        metadata: header,
+    };
+}
+
 // --- core/providers.js ---
 // LLM provider dispatch. Pure HTTP routing — callers build the prompt.
 
@@ -1261,6 +1281,9 @@ function classifyBody(text) {
 // --- core/worker.js ---
 // Calls to the Cloudflare Worker proxy: source fetching and verification logging.
 
+    generateLegacySystemPrompt,
+    generateLegacyUserPrompt,
+} from './prompts.js';
 
 // fetchSourceContent return shapes:
 //   string                                  — usable body, formatted as
@@ -1342,6 +1365,112 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
     } catch (e) {
         // logging should never break the main flow
     }
+}
+
+// === Verification orchestration ===
+//
+// Two paths into one return shape:
+//   verifyClaim()          — single-pass (legacy). One LLM call.
+//   verifyClaimAtomized()  — atomize → verifyAtoms → rollup. 2+N LLM calls.
+//
+// Both return { verdict, comments, confidence?, atoms?, atomResults?, ... }
+// so callers don't have to branch on shape. `verify()` is the dispatcher.
+
+/**
+ * Single-pass verification (legacy single-call path).
+ *
+ * @param {string} claim
+ * @param {string} sourceText
+ * @param {object} providerConfig — PROVIDERS[name] entry
+ * @param {object} [opts]
+ * @param {AbortSignal} [opts.signal]
+ * @returns {Promise<{verdict, comments, confidence}>}
+ */
+async function verifyClaim(claim, sourceText, providerConfig, opts = {}) {
+    const systemPrompt = generateLegacySystemPrompt();
+    const userPrompt = generateLegacyUserPrompt(claim, sourceText);
+    const apiResult = await callProviderAPI(providerConfig.type, {
+        ...providerConfig,
+        systemPrompt,
+        userContent: userPrompt,
+        signal: opts.signal,
+    });
+    const parsed = parseVerificationResult(apiResult.text);
+    return {
+        verdict: parsed.verdict,
+        comments: parsed.comments ?? '',
+        confidence: parsed.confidence,
+    };
+}
+
+/**
+ * Atomized verification.
+ *
+ * @param {string} claim
+ * @param {string} sourceText
+ * @param {object|null} metadata — citoid metadata, when available
+ * @param {object} providerConfig
+ * @param {object} [opts]
+ * @param {string} [opts.claimContainer] — surrounding sentence/paragraph for
+ *   fragmentary claim_text (from dataset.row.claim_container). Threaded to
+ *   atomize() as context-only.
+ * @param {boolean} [opts.useSmallAtomizer] — opt into providerConfig.smallModel for atomize()
+ * @param {'deterministic'|'judge'} [opts.rollupMode] — defaults 'deterministic'
+ * @param {AbortSignal} [opts.signal]
+ * @returns {Promise<{verdict, comments, atoms, atomResults, rollupMode, judgeReasoning?}>}
+ */
+async function verifyClaimAtomized(claim, sourceText, metadata, providerConfig, opts = {}) {
+    const rollupMode = opts.rollupMode ?? 'deterministic';
+
+    const atoms = await atomize(claim, providerConfig, {
+        claimContainer: opts.claimContainer,
+        useSmallModel: opts.useSmallAtomizer,
+        signal: opts.signal,
+    });
+
+    const atomResults = await verifyAtoms(atoms, sourceText, metadata, providerConfig, {
+        signal: opts.signal,
+    });
+
+    const rolled = await rollup(atoms, atomResults, rollupMode, providerConfig, {
+        signal: opts.signal,
+        claim,
+    });
+
+    return {
+        verdict: rolled.verdict,
+        comments: rolled.comments,
+        atoms,
+        atomResults,
+        rollupMode,
+        ...(rolled.judgeReasoning ? { judgeReasoning: rolled.judgeReasoning } : {}),
+    };
+}
+
+/**
+ * Top-level dispatcher. Selects atomized vs legacy.
+ *
+ * @param {string} claim
+ * @param {string} sourceText
+ * @param {object|null} metadata
+ * @param {object} providerConfig
+ * @param {object} [opts]
+ * @param {boolean} [opts.atomized] — defaults true when providerConfig.supportsAtomize
+ * @param {'deterministic'|'judge'} [opts.rollupMode]
+ * @param {boolean} [opts.useSmallAtomizer]
+ * @param {string} [opts.claimContainer] — surrounding sentence/paragraph context;
+ *   passed to verifyClaimAtomized() and ignored by verifyClaim().
+ * @param {AbortSignal} [opts.signal]
+ * @returns {Promise<{verdict, comments, ...}>}
+ */
+async function verify(claim, sourceText, metadata, providerConfig, opts = {}) {
+    const wantAtomized = opts.atomized !== undefined
+        ? opts.atomized
+        : providerConfig.supportsAtomize !== false;
+    if (wantAtomized) {
+        return await verifyClaimAtomized(claim, sourceText, metadata, providerConfig, opts);
+    }
+    return await verifyClaim(claim, sourceText, providerConfig, opts);
 }
 
 // --- core/atomize.js ---

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchSourceContent, logVerification } from '../core/worker.js';
+import { fetchSourceContent, logVerification, verifyClaim, verifyClaimAtomized } from '../core/worker.js';
 
 function mockFetch(impl) {
   const original = globalThis.fetch;
@@ -139,6 +139,86 @@ test('logVerification posts payload and swallows failures', async () => {
     }));
     assert.equal(mock.calls[0].url, 'https://publicai-proxy.alaexis.workers.dev/log');
     assert.equal(mock.calls[0].opts.method, 'POST');
+  } finally {
+    mock.restore();
+  }
+});
+
+test('verifyClaim returns parsed verdict from single LLM call', async () => {
+  // verifyClaim uses callProviderAPI internally; mock via globalThis.fetch.
+  // parseVerificationResult (core/parsing.js) expects JSON of the shape
+  // { verdict, confidence, comments }. The mock must return JSON in
+  // Anthropic's content[].text envelope.
+  const mock = mockFetch(async (url) => {
+    if (url.includes('anthropic.com')) {
+      return {
+        ok: true,
+        json: async () => ({
+          content: [{
+            text: JSON.stringify({
+              verdict: 'SUPPORTED',
+              confidence: 'high',
+              comments: 'matches body',
+            }),
+          }],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      };
+    }
+    throw new Error('unexpected URL: ' + url);
+  });
+  try {
+    const result = await verifyClaim(
+      'The dam is 95m tall.',
+      'The dam stands 95 meters tall.',
+      { type: 'claude', model: 'claude-sonnet-4-5', apiKey: 'test' }
+    );
+    assert.equal(result.verdict, 'SUPPORTED');
+    assert.equal(result.confidence, 'high');
+    assert.equal(result.comments, 'matches body');
+  } finally {
+    mock.restore();
+  }
+});
+
+test('verifyClaimAtomized end-to-end against mocked transport for both calls', async () => {
+  // The atomized path uses multiple LLM calls: atomize, then verifyAtoms,
+  // then rollup. We mock the transport to return successive responses.
+  const responses = [
+    // Atomizer call
+    JSON.stringify({
+      content: [{ text: JSON.stringify({
+        atoms: [{ id: 'a1', assertion: 'The dam is 95m tall.', kind: 'content' }],
+      }) }],
+      usage: { input_tokens: 100, output_tokens: 50 },
+    }),
+    // Verifier call (one atom)
+    JSON.stringify({
+      content: [{ text: JSON.stringify({ verdict: 'supported', evidence: 'matches body' }) }],
+      usage: { input_tokens: 100, output_tokens: 50 },
+    }),
+    // Rollup call (deterministic mode skips judge call, so this is just in case)
+  ];
+  let i = 0;
+  const mock = mockFetch(async () => {
+    if (i >= responses.length) {
+      throw new Error('Unexpected extra fetch call');
+    }
+    const resp = JSON.parse(responses[i++]);
+    return { ok: true, json: async () => resp };
+  });
+  try {
+    const result = await verifyClaimAtomized(
+      'The dam is 95m tall.',
+      'The dam stands 95 meters tall.',
+      null,
+      { type: 'claude', model: 'claude-sonnet-4-5', apiKey: 'test' }
+    );
+    assert.equal(result.verdict, 'SUPPORTED');
+    assert.equal(result.atoms.length, 1);
+    assert.equal(result.atomResults.length, 1);
+    assert.equal(result.atomResults[0].verdict, 'supported');
+    assert.equal(result.rollupMode, 'deterministic');
   } finally {
     mock.restore();
   }
