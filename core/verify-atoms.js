@@ -55,6 +55,8 @@ export function parseAtomResultResponse(text, atomId) {
     try {
         parsed = JSON.parse(cleaned);
     } catch {
+        const salvaged = salvageVerdictJson(cleaned);
+        if (salvaged) return { atomId, ...salvaged, salvaged: true };
         return { atomId, verdict: 'not_supported', error: 'unparseable JSON' };
     }
     const verdict = parsed?.verdict;
@@ -63,6 +65,20 @@ export function parseAtomResultResponse(text, atomId) {
     }
     const result = { atomId, verdict };
     if (typeof parsed.evidence === 'string') result.evidence = parsed.evidence;
+    return result;
+}
+
+// Salvage path for the common LLM error: trailing prose after a string value
+// breaks JSON.parse, but the verdict field itself is well-formed. Pull the
+// verdict and a best-effort evidence snippet via regex so we don't silently
+// flip the atom to not_supported on a parse hiccup.
+export function salvageVerdictJson(text) {
+    const verdictMatch = text.match(/"verdict"\s*:\s*"(supported|not_supported)"/);
+    if (!verdictMatch) return null;
+    const verdict = verdictMatch[1];
+    const evidenceMatch = text.match(/"evidence"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+    const result = { verdict };
+    if (evidenceMatch) result.evidence = evidenceMatch[1].replace(/\\(.)/g, '$1');
     return result;
 }
 
@@ -75,7 +91,18 @@ async function verifyOneAtom(atom, sourceText, metadata, providerConfig, transpo
             userPrompt,
             signal,
         });
-        return parseAtomResultResponse(response?.text ?? '', atom.id);
+        const result = parseAtomResultResponse(response?.text ?? '', atom.id);
+        if (result.error === 'unparseable JSON') {
+            const retry = await transport(providerConfig, {
+                systemPrompt,
+                userPrompt,
+                signal,
+            });
+            const retryResult = parseAtomResultResponse(retry?.text ?? '', atom.id);
+            if (!retryResult.error) return { ...retryResult, retried: true };
+            return result;
+        }
+        return result;
     } catch (e) {
         return {
             atomId: atom.id,
