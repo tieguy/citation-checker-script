@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { verifyAtoms, parseAtomResultResponse, resolveMaxTokens } from '../core/verify-atoms.js';
+import { verifyAtoms, parseAtomResultResponse, resolveMaxTokens, salvageVerdictJson } from '../core/verify-atoms.js';
 
 // === parseAtomResultResponse ===
 
@@ -35,6 +35,80 @@ test('parseAtomResultResponse strips markdown fences', () => {
   const text = '```json\n' + JSON.stringify({ verdict: 'supported' }) + '\n```';
   const r = parseAtomResultResponse(text, 'a1');
   assert.equal(r.verdict, 'supported');
+});
+
+// === salvage path for trailing-prose JSON breaks ===
+
+test('parseAtomResultResponse salvages verdict+evidence when LLM appends prose after value', () => {
+  // Real failure observed on row_66: closing quote then parenthetical
+  // breaks JSON.parse, but the verdict and evidence fields are well-formed.
+  const text = '{\n  "verdict": "supported",\n  "evidence": "They just began booking Republican guests." (implying Republicans had previously not appeared)\n}';
+  const r = parseAtomResultResponse(text, 'a9');
+  assert.equal(r.verdict, 'supported');
+  assert.equal(r.evidence, 'They just began booking Republican guests.');
+  assert.equal(r.salvaged, true);
+  assert.equal(r.error, undefined);
+});
+
+test('parseAtomResultResponse salvages verdict-only when evidence is missing/malformed', () => {
+  const text = '{ "verdict": "not_supported", garbage }';
+  const r = parseAtomResultResponse(text, 'a1');
+  assert.equal(r.verdict, 'not_supported');
+  assert.equal(r.salvaged, true);
+});
+
+test('parseAtomResultResponse returns unparseable when nothing salvageable', () => {
+  // No verdict field anywhere → salvage returns null, error stays.
+  const r = parseAtomResultResponse('this is not json at all', 'a1');
+  assert.equal(r.verdict, 'not_supported');
+  assert.equal(r.error, 'unparseable JSON');
+});
+
+test('salvageVerdictJson handles escaped quotes inside evidence', () => {
+  const text = '{ "verdict": "supported", "evidence": "she said \\"hi\\" first" }extra junk';
+  const r = salvageVerdictJson(text);
+  assert.equal(r.verdict, 'supported');
+  assert.equal(r.evidence, 'she said "hi" first');
+});
+
+// === retry on transient unparseable JSON ===
+
+test('verifyOneAtom retries once on unparseable JSON and succeeds', async () => {
+  const responses = [
+    { text: 'not json' }, // first attempt fails parse
+    { text: JSON.stringify({ verdict: 'supported', evidence: 'on retry' }) },
+  ];
+  let i = 0;
+  const transport = async () => responses[i++];
+  const atoms = [{ id: 'a1', assertion: 'A.', kind: 'content' }];
+  const results = await verifyAtoms(atoms, 'src', null, { type: 'claude' }, { transport });
+  assert.equal(results[0].verdict, 'supported');
+  assert.equal(results[0].evidence, 'on retry');
+  assert.equal(results[0].retried, true);
+  assert.equal(i, 2, 'should call transport twice');
+});
+
+test('verifyOneAtom keeps original error if retry also fails', async () => {
+  let i = 0;
+  const transport = async () => { i++; return { text: 'still not json' }; };
+  const atoms = [{ id: 'a1', assertion: 'A.', kind: 'content' }];
+  const results = await verifyAtoms(atoms, 'src', null, { type: 'claude' }, { transport });
+  assert.equal(results[0].verdict, 'not_supported');
+  assert.equal(results[0].error, 'unparseable JSON');
+  assert.equal(i, 2, 'should attempt twice');
+});
+
+test('verifyOneAtom does NOT retry when first response parses successfully', async () => {
+  let i = 0;
+  const transport = async () => {
+    i++;
+    return { text: JSON.stringify({ verdict: 'supported', evidence: 'ok' }) };
+  };
+  const atoms = [{ id: 'a1', assertion: 'A.', kind: 'content' }];
+  const results = await verifyAtoms(atoms, 'src', null, { type: 'claude' }, { transport });
+  assert.equal(results[0].verdict, 'supported');
+  assert.equal(results[0].retried, undefined);
+  assert.equal(i, 1);
 });
 
 // === verifyAtoms end-to-end with mocked transport ===
