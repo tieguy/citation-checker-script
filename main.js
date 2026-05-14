@@ -3235,7 +3235,12 @@ async function rollup(atoms, atomResults, mode, providerConfig, opts = {}) {
         // ========================================
         // CENTRALIZED PROMPT GENERATION
         // ========================================
-        
+
+        // Thin pass-through wrappers retained as the public class surface
+        // for the prompt-generation helpers. The actual implementations
+        // live in core/prompts.js (inlined above) and are also called
+        // directly from this file's callXxxAPI methods. Phase 5 of the
+        // fresh-prompt-rewrite will rewire these to the atomized pipeline.
         /**
          * Generates the system prompt for verification
          * @returns {string} The system prompt
@@ -3243,7 +3248,7 @@ async function rollup(atoms, atomResults, mode, providerConfig, opts = {}) {
         generateSystemPrompt() {
             return generateLegacySystemPrompt();
         }
-        
+
         generateUserPrompt(claim, sourceInfo) {
             return generateLegacyUserPrompt(claim, sourceInfo);
         }
