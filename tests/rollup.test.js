@@ -215,3 +215,7 @@ test('resolveMaxTokens: falls back to default when maxTokens is undefined', () =
 test('resolveMaxTokens: falls back to default when maxTokens is null', () => {
   assert.equal(resolveMaxTokens({ maxTokens: null }, 512), 512);
 });
+
+test('resolveMaxTokens: respects zero as a valid (though unusual) value', () => {
+  assert.equal(resolveMaxTokens({ maxTokens: 0 }, 512), 0);
+});
