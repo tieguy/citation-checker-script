@@ -1352,24 +1352,108 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
 //
 // Atom = { id: string, assertion: string, kind: 'content' | 'provenance' }
 //
-// Implementation lands in Phase 3.
+// Transport contract (for opts.transport):
+//   transport(providerConfig, { systemPrompt, userPrompt, signal, model? })
+//     → Promise<{ text: string, usage?: object }>
+//
+// Default transport is callProviderAPI from core/providers.js, wrapped
+// so it returns the same shape regardless of upstream API. Tests can
+// inject a synchronous fake.
+
+    generateAtomizerSystemPrompt,
+    generateAtomizerUserPrompt,
+} from './prompts.js';
+
+const DEFAULT_MAX_TOKENS = 1024;
+
+async function defaultTransport(providerConfig, { systemPrompt, userPrompt, signal, model }) {
+    const callConfig = {
+        ...providerConfig,
+        model: model ?? providerConfig.model,
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        signal,
+    };
+    return await callProviderAPI(providerConfig.type, callConfig);
+}
 
 /**
+ * Decompose a claim into atoms.
+ *
  * @param {string} claim
  * @param {object} providerConfig — a PROVIDERS[name] entry from core/providers.js
  * @param {object} [opts]
- * @param {string} [opts.claimContainer] — surrounding sentence/paragraph context.
- *   20% of dataset rows are fragmentary (sentence fragments from mid-sentence
- *   citations); when present, the atomizer prompt uses claimContainer as
- *   context-only so reading-comprehension benefits from the surrounding
- *   sentence without expanding the atom set to container-only assertions.
+ * @param {string} [opts.claimContainer] — surrounding sentence/paragraph context
+ *   (load-bearing for fragmentary claim_text from mid-sentence citations).
+ *   When provided and different from `claim`, threaded to the atomizer prompt
+ *   as context-only.
  * @param {boolean} [opts.useSmallModel] — opt into providerConfig.smallModel
  * @param {AbortSignal} [opts.signal]
- * @param {Function} [opts.transport] — test-injection hook; defaults to callProviderAPI
+ * @param {Function} [opts.transport] — test-injection hook
  * @returns {Promise<Array<{id: string, assertion: string, kind: 'content'|'provenance'}>>}
  */
 async function atomize(claim, providerConfig, opts = {}) {
-    throw new Error('not implemented: filled in Phase 3');
+    const transport = opts.transport ?? defaultTransport;
+    const model = opts.useSmallModel && providerConfig.smallModel
+        ? providerConfig.smallModel
+        : providerConfig.model;
+
+    const systemPrompt = generateAtomizerSystemPrompt();
+    const userPrompt = generateAtomizerUserPrompt(claim, opts.claimContainer);
+
+    let response;
+    try {
+        response = await transport(providerConfig, {
+            systemPrompt,
+            userPrompt,
+            signal: opts.signal,
+            model,
+        });
+    } catch (e) {
+        // Transport error (network, 429, etc.) — propagate. Caller decides
+        // whether to retry or surface up.
+        throw e;
+    }
+
+    const text = response?.text ?? '';
+    const atoms = parseAtomsResponse(text);
+    if (atoms === null) {
+        // Malformed JSON or wrong shape — degrade gracefully to a single
+        // content atom containing the full claim. Downstream pipeline
+        // still produces a meaningful verdict (atom-count of 1 is the
+        // single-pass-equivalent case).
+        return [{ id: 'a1', assertion: claim, kind: 'content' }];
+    }
+    return atoms;
+}
+
+// Exported for unit testing only.
+function parseAtomsResponse(text) {
+    if (!text || typeof text !== 'string') return null;
+
+    // Models sometimes wrap JSON in markdown fences; strip them.
+    const cleaned = text
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/i, '')
+        .trim();
+
+    let parsed;
+    try {
+        parsed = JSON.parse(cleaned);
+    } catch {
+        return null;
+    }
+
+    if (!parsed || !Array.isArray(parsed.atoms)) return null;
+
+    const atoms = parsed.atoms.filter(a =>
+        a && typeof a.id === 'string'
+          && typeof a.assertion === 'string'
+          && (a.kind === 'content' || a.kind === 'provenance')
+    );
+    if (atoms.length === 0) return null;
+    return atoms;
 }
 
 // --- core/verify-atoms.js ---
@@ -1380,21 +1464,110 @@ async function atomize(claim, providerConfig, opts = {}) {
 // AtomResult = { atomId: string, verdict: 'supported' | 'not_supported',
 //                evidence?: string, error?: string }
 //
-// Implementation lands in Phase 3.
+// Concurrency: by default each atom is dispatched immediately
+// (Promise.all over the array). `opts.concurrency` caps the pool when
+// atom counts get large (rate-limit safety).
+//
+// Failure handling: per-atom errors do NOT reject the whole call.
+// They surface as { atomId, verdict: 'not_supported', error } so the
+// rollup stage can incorporate partial information.
+
+    generateVerifierSystemPrompt,
+    generateVerifierUserPrompt,
+} from './prompts.js';
+
+const DEFAULT_MAX_TOKENS = 512;
+
+async function defaultTransport(providerConfig, { systemPrompt, userPrompt, signal }) {
+    const callConfig = {
+        ...providerConfig,
+        systemPrompt,
+        userContent: userPrompt,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        signal,
+    };
+    return await callProviderAPI(providerConfig.type, callConfig);
+}
+
+function parseAtomResultResponse(text, atomId) {
+    if (!text || typeof text !== 'string') {
+        return { atomId, verdict: 'not_supported', error: 'empty response' };
+    }
+    const cleaned = text
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/i, '')
+        .trim();
+    let parsed;
+    try {
+        parsed = JSON.parse(cleaned);
+    } catch {
+        return { atomId, verdict: 'not_supported', error: 'unparseable JSON' };
+    }
+    const verdict = parsed?.verdict;
+    if (verdict !== 'supported' && verdict !== 'not_supported') {
+        return { atomId, verdict: 'not_supported', error: 'unknown verdict: ' + verdict };
+    }
+    const result = { atomId, verdict };
+    if (typeof parsed.evidence === 'string') result.evidence = parsed.evidence;
+    return result;
+}
+
+async function verifyOneAtom(atom, sourceText, metadata, providerConfig, transport, signal) {
+    try {
+        const systemPrompt = generateVerifierSystemPrompt();
+        const userPrompt = generateVerifierUserPrompt(atom, sourceText, metadata);
+        const response = await transport(providerConfig, {
+            systemPrompt,
+            userPrompt,
+            signal,
+        });
+        return parseAtomResultResponse(response?.text ?? '', atom.id);
+    } catch (e) {
+        return {
+            atomId: atom.id,
+            verdict: 'not_supported',
+            error: e?.message ?? String(e),
+        };
+    }
+}
+
+// Simple promise pool — bounded concurrency. Replaces Promise.all() when
+// opts.concurrency is set. Standard pattern; no library dependency.
+async function runPool(items, concurrency, worker) {
+    const results = new Array(items.length);
+    let next = 0;
+    async function consume() {
+        while (true) {
+            const i = next++;
+            if (i >= items.length) return;
+            results[i] = await worker(items[i], i);
+        }
+    }
+    const workers = Array.from({ length: Math.min(concurrency, items.length) }, consume);
+    await Promise.all(workers);
+    return results;
+}
 
 /**
+ * Verify all atoms against the source.
+ *
  * @param {Array} atoms — from atomize()
- * @param {string} sourceText — Defuddle-extracted body (with citoid header)
- * @param {object|null} metadata — citoid metadata, when available
+ * @param {string} sourceText
+ * @param {object|null} metadata — citoid bibliographic data; required for provenance atoms
  * @param {object} providerConfig — a PROVIDERS[name] entry
  * @param {object} [opts]
- * @param {number} [opts.concurrency] — defaults unbounded
+ * @param {number} [opts.concurrency] — bound pool size; default = atoms.length (unbounded)
  * @param {AbortSignal} [opts.signal]
  * @param {Function} [opts.transport]
- * @returns {Promise<Array<{atomId: string, verdict: string, evidence?: string, error?: string}>>}
+ * @returns {Promise<Array<{atomId, verdict, evidence?, error?}>>}
  */
 async function verifyAtoms(atoms, sourceText, metadata, providerConfig, opts = {}) {
-    throw new Error('not implemented: filled in Phase 3');
+    const transport = opts.transport ?? defaultTransport;
+    const concurrency = opts.concurrency ?? atoms.length;
+
+    return await runPool(atoms, concurrency, async (atom) =>
+        verifyOneAtom(atom, sourceText, metadata, providerConfig, transport, opts.signal)
+    );
 }
 
 // --- core/rollup.js ---
