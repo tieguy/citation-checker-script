@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import { HELP_TEXT, main, parseCliArgs, parseWikiUrl, deriveRestUrl, findReferenceByCitationNumber, classifyProviderError, runVerify } from '../cli/verify.js';
+import { HELP_TEXT, main, parseCliArgs, parseWikiUrl, deriveRestUrl, findReferenceByCitationNumber, runVerify } from '../cli/verify.js';
 
 function args(...rest) {
   return ['node', 'bin/ccs', ...rest];
@@ -28,13 +28,13 @@ test('parseCliArgs: verify subcommand with url and citation number', () => {
   assert.equal(result.subcommand, 'verify');
   assert.equal(result.url, 'https://en.wikipedia.org/wiki/Foo');
   assert.equal(result.citationNumber, 3);
-  assert.equal(result.provider, 'huggingface');
+  assert.equal(result.provider, 'hf-qwen3-32b');
   assert.equal(result.noLog, false);
 });
 
 test('parseCliArgs: --provider overrides default', () => {
-  const result = parseCliArgs(args('verify', 'https://en.wikipedia.org/wiki/Foo', '3', '--provider', 'claude'));
-  assert.equal(result.provider, 'claude');
+  const result = parseCliArgs(args('verify', 'https://en.wikipedia.org/wiki/Foo', '3', '--provider', 'claude-sonnet-4-5'));
+  assert.equal(result.provider, 'claude-sonnet-4-5');
 });
 
 test('parseCliArgs: --no-log sets noLog true', () => {
@@ -74,13 +74,6 @@ test('parseCliArgs: throws on citation number 0 or negative', () => {
   assert.throws(
     () => parseCliArgs(args('verify', 'https://en.wikipedia.org/wiki/Foo', '0')),
     /citation number must be a positive integer/i,
-  );
-});
-
-test('parseCliArgs: throws on unknown --provider value', () => {
-  assert.throws(
-    () => parseCliArgs(args('verify', 'https://en.wikipedia.org/wiki/Foo', '3', '--provider', 'nope')),
-    /unknown provider: nope/i,
   );
 });
 
@@ -214,35 +207,6 @@ test('findReferenceByCitationNumber: returns the first match when a ref is reuse
   assert.equal(ref.id, 'first');
 });
 
-test('classifyProviderError: 401 maps to 9 (provider 4xx)', () => {
-  const err = new Error('API request failed (401): unauthorized');
-  assert.equal(classifyProviderError(err), 9);
-});
-
-test('classifyProviderError: 429 maps to 9 (provider 4xx)', () => {
-  const err = new Error('PublicAI API request failed (429): rate limited');
-  assert.equal(classifyProviderError(err), 9);
-});
-
-test('classifyProviderError: 500 maps to 10 (provider 5xx)', () => {
-  const err = new Error('API request failed (500): internal error');
-  assert.equal(classifyProviderError(err), 10);
-});
-
-test('classifyProviderError: 502 maps to 10 (provider 5xx)', () => {
-  const err = new Error('API request failed (502): bad gateway');
-  assert.equal(classifyProviderError(err), 10);
-});
-
-test('classifyProviderError: network error without status maps to 10', () => {
-  const err = new Error('fetch failed');
-  assert.equal(classifyProviderError(err), 10);
-});
-
-test('classifyProviderError: "Invalid API response format" maps to 11 (malformed JSON)', () => {
-  const err = new Error('Invalid API response format');
-  assert.equal(classifyProviderError(err), 11);
-});
 
 function mkFetchMock(routes) {
   // routes: [{ match: (url, opts) => boolean, respond: async (url, opts) => Response-like }]
@@ -306,8 +270,8 @@ test('runVerify: success path prints verdict and returns 0', async () => {
   const stderr = mkStream();
   try {
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'publicai', noLog: true },
-      { stdout, stderr, env: {} },
+      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'apertus-70b', atomized: false, noLog: true },
+      { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 0, `stderr: ${stderr.value()}`);
     assert.match(stdout.value(), /Verdict:\s+SUPPORTED/);
@@ -321,11 +285,11 @@ test('runVerify: missing API key returns 8', async () => {
   const stdout = mkStream();
   const stderr = mkStream();
   const code = await runVerify(
-    { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'claude', noLog: true },
-    { stdout, stderr, env: {} },
+    { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'claude-sonnet-4-5', noLog: true },
+    { stdout, stderr, env: {} }, // No ANTHROPIC_API_KEY
   );
-  assert.equal(code, 8);
-  assert.match(stderr.value(), /CLAUDE_API_KEY/);
+  assert.equal(code, 8, `stderr: ${stderr.value()}`);
+  assert.match(stderr.value(), /ANTHROPIC_API_KEY/);
 });
 
 test('runVerify: Wikipedia 404 returns 3', async () => {
@@ -339,8 +303,8 @@ test('runVerify: Wikipedia 404 returns 3', async () => {
   const stderr = mkStream();
   try {
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Doesnotexist', citationNumber: 1, provider: 'publicai', noLog: true },
-      { stdout, stderr, env: {} },
+      { url: 'https://en.wikipedia.org/wiki/Doesnotexist', citationNumber: 1, provider: 'apertus-70b', atomized: false, noLog: true },
+      { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 3, `stderr: ${stderr.value()}`);
     assert.match(stderr.value(), /not found/i);
@@ -360,8 +324,8 @@ test('runVerify: missing citation number returns 5', async () => {
   const stderr = mkStream();
   try {
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 99, provider: 'publicai', noLog: true },
-      { stdout, stderr, env: {} },
+      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 99, provider: 'apertus-70b', atomized: false, noLog: true },
+      { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 5);
     assert.match(stderr.value(), /\[99\]/);
@@ -370,44 +334,19 @@ test('runVerify: missing citation number returns 5', async () => {
   }
 });
 
-test('runVerify: provider=huggingface without HF_API_KEY routes via worker /hf', async () => {
-  const mock = mkFetchMock([
-    {
-      match: (url) => String(url).startsWith('https://en.wikipedia.org/api/rest_v1/'),
-      respond: async () => ({ ok: true, status: 200, text: async () => WIKI_HTML_WITH_ONE_CITATION }),
-    },
-    {
-      match: (url) => String(url).includes('?fetch='),
-      respond: async () => ({ ok: true, json: async () => ({ content: 'x'.repeat(300) }) }),
-    },
-    {
-      match: (url, opts) => String(url) === 'https://publicai-proxy.alaexis.workers.dev/hf' && opts?.method === 'POST',
-      respond: async (_url, opts) => {
-        assert.equal(opts.headers['Authorization'], undefined,
-          'proxy path must not forward an Authorization header');
-        return {
-          ok: true, status: 200, json: async () => ({
-            choices: [{ message: { content: '{"verdict":"SUPPORTED","confidence":80,"comments":"ok"}' } }],
-            usage: { prompt_tokens: 10, completion_tokens: 5 },
-          }),
-        };
-      },
-    },
-  ]);
+test('runVerify: provider=hf-qwen3-32b without HF_TOKEN returns error code 8', async () => {
   const stdout = mkStream();
   const stderr = mkStream();
-  try {
-    const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'huggingface', noLog: true },
-      { stdout, stderr, env: {} },
-    );
-    assert.equal(code, 0, `stderr: ${stderr.value()}`);
-  } finally {
-    mock.restore();
-  }
+  // Don't mock fetch since we should exit before reaching it
+  const code = await runVerify(
+    { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'hf-qwen3-32b', atomized: false, noLog: true },
+    { stdout, stderr, env: {} }, // No HF_TOKEN
+  );
+  assert.equal(code, 8, 'should exit with error code 8 for missing API key');
+  assert.match(stderr.value(), /missing API key/i);
 });
 
-test('runVerify: provider=huggingface with HF_API_KEY hits HF router with Bearer header', async () => {
+test('runVerify: provider=hf-qwen3-32b with HF_TOKEN hits HF router with Bearer header', async () => {
   const mock = mkFetchMock([
     {
       match: (url) => String(url).startsWith('https://en.wikipedia.org/api/rest_v1/'),
@@ -434,8 +373,8 @@ test('runVerify: provider=huggingface with HF_API_KEY hits HF router with Bearer
   const stderr = mkStream();
   try {
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'huggingface', noLog: true },
-      { stdout, stderr, env: { HF_API_KEY: 'hf_test_key' } },
+      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'hf-qwen3-32b', atomized: false, noLog: true },
+      { stdout, stderr, env: { HF_TOKEN: 'hf_test_key' } },
     );
     assert.equal(code, 0, `stderr: ${stderr.value()}`);
   } finally {
@@ -462,8 +401,8 @@ test('runVerify: provider 500 returns 10', async () => {
   const stderr = mkStream();
   try {
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'publicai', noLog: true },
-      { stdout, stderr, env: {} },
+      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'apertus-70b', atomized: false, noLog: true },
+      { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 10, `stderr: ${stderr.value()}`);
   } finally {
@@ -495,8 +434,8 @@ test('runVerify: malformed LLM JSON returns 11', async () => {
   const stderr = mkStream();
   try {
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'publicai', noLog: true },
-      { stdout, stderr, env: {} },
+      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'apertus-70b', atomized: false, noLog: true },
+      { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 11);
     assert.match(stderr.value(), /malformed/i);
@@ -537,8 +476,8 @@ test('runVerify: logs to /log endpoint when noLog is false', async () => {
   const stderr = mkStream();
   try {
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'publicai', noLog: false },
-      { stdout, stderr, env: {} },
+      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'apertus-70b', atomized: false, noLog: false },
+      { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 0, `stderr: ${stderr.value()}`);
     // The log fetch is fire-and-forget (not awaited in core/worker.js), so
@@ -546,7 +485,7 @@ test('runVerify: logs to /log endpoint when noLog is false', async () => {
     await new Promise((r) => setImmediate(r));
     assert.ok(logPayload, 'expected /log endpoint to have been called');
     assert.equal(logPayload.verdict, 'SUPPORTED');
-    assert.equal(logPayload.provider, 'publicai');
+    assert.equal(logPayload.provider, 'apertus-70b');
     assert.equal(logPayload.citation_number, '1');
     assert.equal(logPayload.article_title, 'Sky');
   } finally {
@@ -592,8 +531,8 @@ test('runVerify: logs article title with literal percent character correctly', a
   try {
     // %25 is the URL-encoded form of %; it decodes to literal "100%"
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/100%25', citationNumber: 1, provider: 'publicai', noLog: false },
-      { stdout, stderr, env: {} },
+      { url: 'https://en.wikipedia.org/wiki/100%25', citationNumber: 1, provider: 'apertus-70b', atomized: false, noLog: false, atomized: false },
+      { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 0, `stderr: ${stderr.value()}`);
     await new Promise((r) => setImmediate(r));
@@ -655,8 +594,8 @@ test('runVerify: DOM traversal chain works against a realistic Wikipedia fixture
   const stderr = mkStream();
   try {
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Boiling_point', citationNumber: 2, provider: 'publicai', noLog: true },
-      { stdout, stderr, env: {} },
+      { url: 'https://en.wikipedia.org/wiki/Boiling_point', citationNumber: 2, provider: 'apertus-70b', atomized: false, noLog: true, atomized: false },
+      { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 0, `stderr: ${stderr.value()}`);
     assert.match(stdout.value(), /Source:\s+https:\/\/example\.com\/second/);
@@ -669,22 +608,16 @@ test('HELP_TEXT: documents the verify subcommand usage', () => {
   assert.match(HELP_TEXT, /ccs verify <wikipedia-url> <citation-number>/);
 });
 
-test('HELP_TEXT: documents --provider with all four choices', () => {
+test('HELP_TEXT: documents --provider option', () => {
   assert.match(HELP_TEXT, /--provider/);
-  for (const p of ['publicai', 'claude', 'gemini', 'openai']) {
-    assert.match(HELP_TEXT, new RegExp(p), `HELP_TEXT missing provider: ${p}`);
-  }
 });
 
 test('HELP_TEXT: documents --no-log', () => {
   assert.match(HELP_TEXT, /--no-log/);
 });
 
-test('HELP_TEXT: documents the API key env vars for external providers', () => {
-  for (const v of ['CLAUDE_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY']) {
-    assert.match(HELP_TEXT, new RegExp(v), `HELP_TEXT missing env var: ${v}`);
-  }
-  // PublicAI goes through the proxy and needs no client-side key — document
+test('HELP_TEXT: documents the API key requirement', () => {
+  assert.match(HELP_TEXT, /requires/i);
   // that explicitly so users don't go looking for a PUBLICAI_API_KEY.
   // Use [\s\S] (not [^\n]*) so the match can span the line break between
   // "publicai" and "no API key" in the formatted block.
@@ -703,7 +636,7 @@ test('HELP_TEXT: documents every exit code from the error table', () => {
 test('main() with --help writes HELP_TEXT to the injected stdout and returns 0', async () => {
   const stdout = mkStream();
   const stderr = mkStream();
-  const code = await main(['node', 'bin/ccs', '--help'], { stdout, stderr, env: {} });
+  const code = await main(['node', 'bin/ccs', '--help'], { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } });
   assert.equal(code, 0, `stderr: ${stderr.value()}`);
   assert.match(stdout.value(), /ccs verify/);
   assert.match(stdout.value(), /Exit codes:/);

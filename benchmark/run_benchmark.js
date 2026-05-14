@@ -19,7 +19,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { generateLegacySystemPrompt as coreGenerateSystemPrompt, generateLegacyUserPrompt as generateUserPrompt } from '../core/prompts.js';
+import { generateLegacySystemPrompt as coreGenerateSystemPrompt } from '../core/prompts.js';
 import {
     callOpenAICompatibleChat,
     callClaudeAPI,
@@ -28,7 +28,8 @@ import {
     callHuggingFaceAPI,
     PROVIDERS,
 } from '../core/providers.js';
-import { augmentWithCitoid } from '../core/citoid.js';
+import { augmentWithCitoidStructured } from '../core/citoid.js';
+import { verify } from '../core/worker.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -527,13 +528,45 @@ async function main() {
                 // Augment source text with Citoid bibliographic metadata when enabled
                 // (default ON; set CITOID_AUGMENT=0 to disable).
                 const augmentEnabled = process.env.CITOID_AUGMENT !== '0';
-                const sourceText = augmentEnabled
-                    ? await augmentWithCitoid(entry.source_text, entry.source_url)
-                    : entry.source_text;
+                const { sourceText, metadata } = augmentEnabled
+                    ? await augmentWithCitoidStructured(entry.source_text, entry.source_url)
+                    : { sourceText: entry.source_text, metadata: null };
 
-                const userPrompt = generateUserPrompt(entry.claim_text, sourceText);
+                // Call the verify() dispatcher with atomized=false for Phase 5.
+                // Phase 6 will add the --atomized flag and surface atoms in results.json.
+                const providerConfig = PROVIDERS[provider];
+                const apiKey = providerConfig.keyEnv ? process.env[providerConfig.keyEnv] : undefined;
 
-                const result = await callProvider(provider, systemPrompt, userPrompt);
+                let result;
+                const startTime = Date.now();
+                try {
+                    const verifyResult = await verify(
+                        entry.claim_text,
+                        sourceText,
+                        metadata,
+                        { ...providerConfig, apiKey },
+                        {
+                            atomized: false,
+                            claimContainer: entry.claim_container,
+                        }
+                    );
+                    result = {
+                        verdict: verifyResult.verdict,
+                        confidence: verifyResult.confidence,
+                        comments: verifyResult.comments,
+                        latency: Date.now() - startTime,
+                        error: null,
+                        raw_response: null,
+                    };
+                } catch (error) {
+                    result = {
+                        verdict: 'ERROR',
+                        confidence: 0,
+                        comments: error.message,
+                        latency: Date.now() - startTime,
+                        error: error.message,
+                    };
+                }
 
                 results.push({
                     entry_id: entry.id,

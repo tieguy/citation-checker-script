@@ -7,12 +7,10 @@ import { parseArgs } from 'node:util';
 import { JSDOM } from 'jsdom';
 import { extractClaimText } from '../core/claim.js';
 import { extractReferenceUrl, extractPageNumber } from '../core/urls.js';
-import { fetchSourceContent, logVerification } from '../core/worker.js';
-import { generateLegacySystemPrompt, generateLegacyUserPrompt } from '../core/prompts.js';
-import { callProviderAPI } from '../core/providers.js';
-import { parseVerificationResult } from '../core/parsing.js';
+import { verify, fetchSourceContent, logVerification } from '../core/worker.js';
+import { PROVIDERS } from '../core/providers.js';
+import { augmentWithCitoidStructured } from '../core/citoid.js';
 
-const KNOWN_PROVIDERS = ['publicai', 'huggingface', 'claude', 'gemini', 'openai'];
 
 export function parseCliArgs(argv) {
     const raw = argv.slice(2);
@@ -24,9 +22,13 @@ export function parseCliArgs(argv) {
     const { values, positionals } = parseArgs({
         args: raw,
         options: {
-            provider: { type: 'string', default: 'huggingface' },
-            'no-log': { type: 'boolean', default: false },
-            help:     { type: 'boolean', short: 'h', default: false },
+            provider:           { type: 'string', default: 'hf-qwen3-32b' },
+            'no-log':           { type: 'boolean', default: false },
+            atomized:           { type: 'boolean', default: true },
+            'no-atomized':      { type: 'boolean', default: false },
+            'rollup-mode':      { type: 'string', default: 'deterministic' },
+            'use-small-atomizer': { type: 'boolean', default: false },
+            help:               { type: 'boolean', short: 'h', default: false },
         },
         allowPositionals: true,
         strict: true,
@@ -56,9 +58,6 @@ export function parseCliArgs(argv) {
     }
 
     const provider = values.provider;
-    if (!KNOWN_PROVIDERS.includes(provider)) {
-        throw new UsageError(`unknown provider: ${provider} (choose from: ${KNOWN_PROVIDERS.join(', ')})`);
-    }
 
     return {
         help: false,
@@ -67,6 +66,9 @@ export function parseCliArgs(argv) {
         citationNumber,
         provider,
         noLog: values['no-log'],
+        atomized: values['no-atomized'] ? false : values.atomized,
+        rollupMode: values['rollup-mode'],
+        useSmallAtomizer: values['use-small-atomizer'],
     };
 }
 
@@ -123,47 +125,7 @@ export function findReferenceByCitationNumber(document, citationNumber) {
     return null;
 }
 
-// COUPLING NOTE: This function parses exit codes out of the string format
-// that core/providers.js uses for its error messages ("API request failed
-// (<status>): ..." and "Invalid API response format"). If someone rewords
-// those messages in core/providers.js, this function silently stops
-// mapping to the right exit code. A typed-error refactor across core/ is
-// the proper long-term fix; until then, keep this and core/providers.js
-// in sync.
-export function classifyProviderError(err) {
-    const message = err?.message || '';
-    if (/Invalid API response format/i.test(message)) return 11;
-    const statusMatch = message.match(/\((\d{3})\)/);
-    if (statusMatch) {
-        const status = Number(statusMatch[1]);
-        if (status >= 400 && status < 500) return 9;
-        if (status >= 500) return 10;
-    }
-    // No status in message => treat as network/5xx-class failure.
-    return 10;
-}
 
-const PROVIDER_MODELS = {
-    publicai:    'aisingapore/Qwen-SEA-LION-v4-32B-IT',
-    huggingface: 'Qwen/Qwen3-32B',
-    claude:      'claude-sonnet-4-6',
-    gemini:      'gemini-flash-latest',
-    openai:      'gpt-4o',
-};
-
-const PROVIDER_ENV_VARS = {
-    publicai:    null, // routed through the worker proxy; no client-side key
-    huggingface: null, // proxy by default; HF_API_KEY (optional) opts into direct
-    claude:      'CLAUDE_API_KEY',
-    gemini:      'GEMINI_API_KEY',
-    openai:      'OPENAI_API_KEY',
-};
-
-// Optional env vars: when present, switch the provider to a direct-call path.
-// Absent is fine — the call falls back to PROVIDER_ENV_VARS' default routing.
-const PROVIDER_OPTIONAL_ENV_VARS = {
-    huggingface: 'HF_API_KEY',
-};
 
 export const HELP_TEXT = `usage: ccs verify <wikipedia-url> <citation-number> [options]
 
@@ -189,6 +151,11 @@ Options:
                        openai      (requires OPENAI_API_KEY)
   --no-log           Do not log the verification to the worker proxy's
                      /log endpoint.
+  --atomized         Use the atomized verification pipeline (default).
+  --no-atomized      Use the legacy single-pass path.
+  --rollup-mode MODE 'deterministic' (default) or 'judge'.
+  --use-small-atomizer
+                     Use providerConfig.smallModel for atomize() call.
   --help, -h         Show this help and exit.
 
 Exit codes:
@@ -232,14 +199,7 @@ async function fetchWikipediaHtml(restUrl) {
 }
 
 export async function runVerify(opts, { stdout = process.stdout, stderr = process.stderr, env = process.env } = {}) {
-    const { url, citationNumber, provider, noLog } = opts;
-
-    // 1. Check API key availability up-front (exit 8).
-    const envVar = PROVIDER_ENV_VARS[provider];
-    if (envVar && !env[envVar]) {
-        stderr.write(`ccs: ${envVar} environment variable is required for provider "${provider}"\n`);
-        return 8;
-    }
+    const { url, citationNumber, provider, noLog, atomized, rollupMode, useSmallAtomizer } = opts;
 
     // 2. Parse the article URL and derive the REST URL.
     let parsedWikiUrl, restUrl;
@@ -293,55 +253,67 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
         return 6;
     }
 
-    // 8. Fetch the source content via the worker proxy.
-    const sourceInfo = await fetchSourceContent(sourceUrl, pageNum);
-    if (!sourceInfo) {
+    // 8. Check API key availability up-front (exit 8).
+    const providerConfig = PROVIDERS[provider];
+    if (!providerConfig) {
+        stderr.write(`ccs: unknown provider: ${provider}. Known: ${Object.keys(PROVIDERS).join(', ')}\n`);
+        return 2;
+    }
+    const apiKey = providerConfig.keyEnv ? env[providerConfig.keyEnv] : undefined;
+    if (providerConfig.requiresKey && !apiKey) {
+        stderr.write(`ccs: missing API key: set ${providerConfig.keyEnv}\n`);
+        return 8;
+    }
+
+    // 9. Fetch the source content via the worker proxy (raw, no augmentation yet).
+    //    We defer Citoid augmentation so we can capture both the augmented text
+    //    AND the structured metadata for the atomized path.
+    const rawFetch = await fetchSourceContent(sourceUrl, pageNum, { augment: false });
+    if (!rawFetch) {
         stderr.write(`ccs: source unavailable: ${sourceUrl}\n`);
         return 7;
     }
-    if (typeof sourceInfo === 'object' && sourceInfo.sourceUnavailable) {
+    if (typeof rawFetch === 'object' && rawFetch.sourceUnavailable) {
         // Body classifier flagged extracted content as structurally unusable
         // (Wayback chrome, JS-only skeleton, anti-bot challenge, etc.). The
         // verdict is pipeline-attributed; no LLM call needed.
-        stderr.write(`ccs: source unavailable (${sourceInfo.reason}): ${sourceUrl}\n`);
+        stderr.write(`ccs: source unavailable (${rawFetch.reason}): ${sourceUrl}\n`);
         return 7;
     }
 
-    // 9. Build prompts and call the LLM.
-    //    fetchSourceContent returns a string shaped "Source URL: <u>\n\n
-    //    Source Content:\n<body>"; generateLegacyUserPrompt parses that shape,
-    //    so we pass it through unchanged.
-    //    callProviderAPI returns { text, usage } on success; extra keys in
-    //    providerConfig are ignored by the destructure so it's safe to
-    //    include apiKey for publicai (which won't read it).
-    const systemPrompt = generateLegacySystemPrompt();
-    const userContent = generateLegacyUserPrompt(claim, sourceInfo);
-    const optionalEnvVar = PROVIDER_OPTIONAL_ENV_VARS[provider];
-    const providerConfig = {
-        model: PROVIDER_MODELS[provider],
-        systemPrompt,
-        userContent,
-        apiKey: envVar
-            ? env[envVar]
-            : (optionalEnvVar ? env[optionalEnvVar] : undefined),
-    };
+    // 10. Augment with structured Citoid metadata.
+    const { sourceText: augmentedText, metadata } = await augmentWithCitoidStructured(
+        rawFetch,
+        sourceUrl
+    );
 
-    let providerResult;
+    // 11. Call the verify() dispatcher.
+    const verifyOpts = {
+        atomized,
+        rollupMode,
+        useSmallAtomizer,
+    };
+    let verifyResult;
     try {
-        providerResult = await callProviderAPI(provider, providerConfig);
+        verifyResult = await verify(
+            claim,
+            augmentedText,
+            metadata,
+            { ...providerConfig, apiKey },
+            verifyOpts
+        );
     } catch (err) {
-        stderr.write(`ccs: provider call failed: ${err.message}\n`);
-        return classifyProviderError(err);
+        stderr.write(`ccs: verification failed: ${err.message}\n`);
+        return 10;
     }
 
-    // 10. Parse the verdict.
-    const verdict = parseVerificationResult(providerResult.text);
-    if (verdict.verdict === 'ERROR') {
-        stderr.write(`ccs: LLM returned malformed JSON. Raw (first 200 chars): ${providerResult.text.slice(0, 200)}\n`);
+    // Handle malformed verdicts from the atomized path
+    if (verifyResult.verdict === 'ERROR' || verifyResult.verdict === 'PARSE_ERROR') {
+        stderr.write(`ccs: LLM returned malformed JSON\n`);
         return 11;
     }
 
-    // 11. Log (fire-and-forget).
+    // 12. Log (fire-and-forget).
     if (!noLog) {
         const articleTitle = parsedWikiUrl.title.replace(/_/g, ' ');
         logVerification({
@@ -350,17 +322,30 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
             citation_number: String(citationNumber),
             source_url: sourceUrl,
             provider,
-            verdict: verdict.verdict,
-            confidence: verdict.confidence,
+            verdict: verifyResult.verdict,
+            confidence: verifyResult.confidence,
         });
     }
 
-    // 12. Print the result.
-    stdout.write(`Verdict:    ${verdict.verdict}\n`);
-    stdout.write(`Confidence: ${verdict.confidence ?? 'n/a'}\n`);
+    // 13. Print the result.
+    stdout.write(`Verdict:    ${verifyResult.verdict}\n`);
+    stdout.write(`Confidence: ${verifyResult.confidence ?? 'n/a'}\n`);
     stdout.write(`Claim:      ${claim}\n`);
     stdout.write(`Source:     ${sourceUrl}\n`);
-    stdout.write(`\n${verdict.comments}\n`);
+    stdout.write(`\n${verifyResult.comments}\n`);
+
+    // If atomized, also print atoms and results
+    if (atomized && verifyResult.atoms) {
+        stdout.write(`\nAtomized Results (${verifyResult.atoms.length} atoms):\n`);
+        verifyResult.atoms.forEach((atom, i) => {
+            const result = verifyResult.atomResults?.[i];
+            stdout.write(`  [${i + 1}] ${atom.assertion}\n`);
+            if (result) {
+                stdout.write(`      Verdict: ${result.verdict}\n`);
+            }
+        });
+    }
+
     return 0;
 }
 
