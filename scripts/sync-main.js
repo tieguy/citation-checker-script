@@ -24,6 +24,9 @@ const CORE_ORDER = [
   'providers.js',
   'body-classifier.js',
   'worker.js',
+  'atomize.js',
+  'verify-atoms.js',
+  'rollup.js',
 ];
 
 function stripEsm(source) {
