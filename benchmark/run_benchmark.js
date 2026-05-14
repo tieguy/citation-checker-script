@@ -49,10 +49,12 @@ const RESULTS_PATH = path.join(__dirname, 'results.json');
  *   --no-atomized          → wantAtomized: false (default is true)
  *   --rollup-mode=deterministic|judge  → rollupMode set accordingly
  *   --use-small-atomizer   → useSmallAtomizer: true
+ *   --atoms-cache=<path>   → atomsCache: <path> (read atoms from a prior run's
+ *                            results.json instead of calling atomize() per row)
  *
  * @param {string[]} args - process.argv.slice(2) or equivalent
- * @returns {object} { ok: boolean, wantAtomized, rollupMode, useSmallAtomizer, exitCode?, message? }
- *   When ok === true: { ok: true, wantAtomized, rollupMode, useSmallAtomizer }
+ * @returns {object} { ok: boolean, wantAtomized, rollupMode, useSmallAtomizer, atomsCache, exitCode?, message? }
+ *   When ok === true: { ok: true, wantAtomized, rollupMode, useSmallAtomizer, atomsCache }
  *   When ok === false: { ok: false, exitCode, message } — caller should exit(exitCode) after printing message
  */
 export function parseAtomizedFlags(args) {
@@ -81,7 +83,57 @@ export function parseAtomizedFlags(args) {
 
     const useSmallAtomizer = args.includes('--use-small-atomizer');
 
-    return { ok: true, wantAtomized, rollupMode, useSmallAtomizer };
+    const atomsCacheArg = args.find(a => a.startsWith('--atoms-cache='));
+    let atomsCache = null;
+    if (atomsCacheArg) {
+        const value = atomsCacheArg.split('=')[1];
+        if (!value) {
+            return {
+                ok: false,
+                exitCode: 2,
+                message: 'Missing --atoms-cache value. Use --atoms-cache=<path-to-results.json-or-atoms.json>.',
+            };
+        }
+        atomsCache = value;
+    }
+
+    return { ok: true, wantAtomized, rollupMode, useSmallAtomizer, atomsCache };
+}
+
+/**
+ * Load atoms from a cache file and return a Map of entry_id → atoms array.
+ *
+ * Accepts two shapes:
+ *   1. A benchmark results.json: rows[].entry_id + rows[].atoms (the just-run
+ *      output of run_benchmark.js with --atomized). If the same entry appears
+ *      multiple times (multi-provider run), the first non-null atoms array wins
+ *      — atomization is deterministic per (claim, atomizer), so any provider's
+ *      row carries the same atoms.
+ *   2. A standalone atomizer sweep (workbench/atomizer-sweep/atoms.json):
+ *      rows[].id + rows[].atoms.
+ *
+ * Throws on unreadable file or zero-atom map (a silent empty cache would
+ * fall through to per-row atomize calls and waste the run).
+ *
+ * @param {string} cachePath
+ * @returns {Map<string, Array>}
+ */
+export function loadAtomsCache(cachePath) {
+    const raw = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+    const rows = raw.rows ?? raw;
+    if (!Array.isArray(rows)) {
+        throw new Error(`Atoms cache ${cachePath} has no usable rows array.`);
+    }
+    const map = new Map();
+    for (const row of rows) {
+        const id = row.entry_id ?? row.id;
+        if (!id || !Array.isArray(row.atoms) || row.atoms.length === 0) continue;
+        if (!map.has(id)) map.set(id, row.atoms);
+    }
+    if (map.size === 0) {
+        throw new Error(`Atoms cache ${cachePath} produced an empty entry_id → atoms map.`);
+    }
+    return map;
 }
 
 /**
@@ -158,7 +210,14 @@ if (!atomizedFlagsParsed.ok) {
     console.error(atomizedFlagsParsed.message);
     process.exit(atomizedFlagsParsed.exitCode);
 }
-const { wantAtomized, rollupMode, useSmallAtomizer } = atomizedFlagsParsed;
+const { wantAtomized, rollupMode, useSmallAtomizer, atomsCache } = atomizedFlagsParsed;
+
+// Load atoms cache up-front so cache errors fail loudly before any LLM calls.
+// Map is entry_id → atoms[]; consulted in the verify dispatch below.
+const cachedAtomsByEntry = atomsCache ? loadAtomsCache(atomsCache) : null;
+if (cachedAtomsByEntry) {
+    console.log(`Atoms cache loaded from ${atomsCache}: ${cachedAtomsByEntry.size} entries`);
+}
 
 // generateSystemPrompt and generateUserPrompt are imported from core/prompts.js
 // (single source of truth shared with main.js and cli/verify.js). The benchmark
@@ -459,6 +518,10 @@ async function main() {
                         useSmallAtomizer,
                         claimContainer: entry.claim_container,
                     };
+                    if (cachedAtomsByEntry) {
+                        const cached = cachedAtomsByEntry.get(entry.id);
+                        if (cached) verifyOpts.atoms = cached;
+                    }
                     if (process.env.BENCHMARK_PROMPT_OVERRIDE_FILE) {
                         verifyOpts.systemPromptOverride = systemPrompt;
                     }

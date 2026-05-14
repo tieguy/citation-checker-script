@@ -366,3 +366,44 @@ test('verifyClaimAtomized threads opts.claimContainer to the atomizer user promp
     mock.restore();
   }
 });
+
+test('verifyClaimAtomized skips atomize() when opts.atoms is provided', async () => {
+  // When the caller passes pre-computed atoms (e.g. from --atoms-cache),
+  // the function must not call the atomizer at all. We assert this by
+  // counting fetches and verifying only the verifier call fires.
+  let fetchCount = 0;
+  const capturedBodies = [];
+  const mock = mockFetch(async (url, opts) => {
+    fetchCount++;
+    capturedBodies.push({ url, body: opts.body });
+    return {
+      ok: true,
+      json: async () => ({
+        content: [{ text: JSON.stringify({ verdict: 'supported', evidence: 'matches body' }) }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      }),
+    };
+  });
+  try {
+    const cachedAtoms = [
+      { id: 'a1', assertion: 'The dam is 95m tall.', kind: 'content' },
+    ];
+    const result = await verifyClaimAtomized(
+      'The dam is 95m tall.',
+      'The dam stands 95 meters tall.',
+      null,
+      { type: 'claude', model: 'claude-sonnet-4-5', apiKey: 'test' },
+      { atoms: cachedAtoms }
+    );
+    assert.equal(fetchCount, 1, 'only the verifier should fetch; atomize() must be skipped');
+    // Captured body must be a verifier call, not an atomizer call.
+    const sys = JSON.parse(capturedBodies[0].body).system ?? '';
+    assert.match(sys, /verifying a single atomic assertion|atomic assertion/i,
+      'the single fetch must be the verifier, not the atomizer');
+    assert.equal(result.atoms, cachedAtoms, 'result.atoms must echo the cached input by reference');
+    assert.equal(result.atomResults.length, 1);
+    assert.equal(result.verdict, 'SUPPORTED');
+  } finally {
+    mock.restore();
+  }
+});

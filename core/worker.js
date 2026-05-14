@@ -145,13 +145,17 @@ export async function verifyClaim(claim, sourceText, providerConfig, opts = {}) 
  *   atomize() as context-only.
  * @param {boolean} [opts.useSmallAtomizer] — opt into providerConfig.smallModel for atomize()
  * @param {'deterministic'|'judge'} [opts.rollupMode] — defaults 'deterministic'
+ * @param {Array<{id, assertion, kind}>} [opts.atoms] — when provided, skip the
+ *   atomize() LLM call and verify against these atoms directly. Used by the
+ *   benchmark --atoms-cache flag to share a single decomposition across many
+ *   verifier providers (eliminates atomizer noise as a cross-provider confound).
  * @param {AbortSignal} [opts.signal]
  * @returns {Promise<{verdict, comments, atoms, atomResults, rollupMode, judgeReasoning?}>}
  */
 export async function verifyClaimAtomized(claim, sourceText, metadata, providerConfig, opts = {}) {
     const rollupMode = opts.rollupMode ?? 'deterministic';
 
-    const atoms = await atomize(claim, providerConfig, {
+    const atoms = opts.atoms ?? await atomize(claim, providerConfig, {
         claimContainer: opts.claimContainer,
         useSmallModel: opts.useSmallAtomizer,
         signal: opts.signal,
