@@ -84,3 +84,35 @@ test('computeBinaryVoteN counts Source unavailable as a not-support vote', () =>
   const verdicts = ['Supported', 'Partially supported', 'Source unavailable', 'Source unavailable', 'Source unavailable'];
   assert.equal(computeBinaryVoteN(verdicts), 'Not supported');
 });
+
+// === case-insensitive verdict normalization (atomized pipeline emits UPPER) ===
+
+test('computeBinaryVoteN handles uppercase verdicts (atomized pipeline emits SUPPORTED/PARTIALLY SUPPORTED/NOT SUPPORTED)', () => {
+  // The atomized rollup at core/rollup.js emits upper-case; legacy single-call
+  // emits title case. Without normalization, isSupportClass(SUPPORTED) returned
+  // false and every binary vote collapsed to "Not supported" (bug fixed by
+  // canonicalizing verdict casing in voting.js).
+  const verdicts = ['SUPPORTED', 'SUPPORTED', 'NOT SUPPORTED'];
+  assert.equal(computeBinaryVoteN(verdicts), 'Supported');
+});
+
+test('computeBinaryVoteN handles mixed-case verdicts in one call', () => {
+  // Plurality cases where some panel members use the legacy path and others
+  // use the atomized path; we should not penalize the support side.
+  const verdicts = ['Supported', 'PARTIALLY SUPPORTED', 'Not supported'];
+  // 2 support (Supported + PARTIALLY SUPPORTED) + 1 not = support wins.
+  assert.equal(computeBinaryVoteN(verdicts), 'Supported');
+});
+
+test('computeNClassVote canonicalizes uppercase verdicts to title case', () => {
+  // The 4-class vote should also return a title-cased verdict so downstream
+  // string comparisons (e.g., correct-field computation against title-case
+  // dataset GT) work without per-caller normalization.
+  const verdicts = ['SUPPORTED', 'SUPPORTED', 'PARTIALLY SUPPORTED'];
+  assert.equal(computeNClassVote(verdicts), 'Supported');
+});
+
+test('computeNClassVote handles all-uppercase NOT SUPPORTED', () => {
+  const verdicts = ['NOT SUPPORTED', 'NOT SUPPORTED', 'PARTIALLY SUPPORTED'];
+  assert.equal(computeNClassVote(verdicts), 'Not supported');
+});

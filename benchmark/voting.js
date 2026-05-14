@@ -11,6 +11,24 @@
  * the support class, Not supported and Source unavailable as not-support.
  */
 
+// Verdict normalization: callers come from two pipelines that emit different
+// casings — legacy single-call (verifyClaim) emits title case
+// ('Supported', 'Partially supported', 'Not supported'), while the atomized
+// rollup (core/rollup.js) emits upper case ('SUPPORTED', 'PARTIALLY SUPPORTED',
+// 'NOT SUPPORTED'). Canonicalize to title case at the boundary so every
+// downstream check is consistent.
+const TITLE_CASE_BY_LOWER = {
+    'supported': 'Supported',
+    'partially supported': 'Partially supported',
+    'not supported': 'Not supported',
+    'source unavailable': 'Source unavailable',
+};
+
+function normalizeVerdict(v) {
+    if (typeof v !== 'string') return v;
+    return TITLE_CASE_BY_LOWER[v.toLowerCase()] || v;
+}
+
 const TIEBREAKER_RANK = {
     'Partially supported': 4,
     'Not supported': 3,
@@ -19,12 +37,14 @@ const TIEBREAKER_RANK = {
 };
 
 export function isSupportClass(verdict) {
-    return verdict === 'Supported' || verdict === 'Partially supported';
+    const v = normalizeVerdict(verdict);
+    return v === 'Supported' || v === 'Partially supported';
 }
 
 export function computeNClassVote(verdicts) {
+    const normalized = verdicts.map(normalizeVerdict);
     const counts = {};
-    for (const v of verdicts) counts[v] = (counts[v] || 0) + 1;
+    for (const v of normalized) counts[v] = (counts[v] || 0) + 1;
     const maxCount = Math.max(...Object.values(counts));
     const tied = Object.keys(counts).filter(v => counts[v] === maxCount);
     if (tied.length === 1) return tied[0];
