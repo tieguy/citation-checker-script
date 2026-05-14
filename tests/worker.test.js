@@ -181,46 +181,87 @@ test('verifyClaim returns parsed verdict from single LLM call', async () => {
   }
 });
 
-test('verifyClaim respects opts.systemPromptOverride', async () => {
+test('verifyClaim respects opts.systemPromptOverride — override reaches LLM request body', async () => {
   // When opts.systemPromptOverride is provided, it should be used instead
-  // of generateLegacySystemPrompt(). We verify by capturing the request body.
-  let capturedSystemPrompt = null;
-  const mock = mockFetch(async (url) => {
+  // of generateLegacySystemPrompt(). We verify by capturing the request body
+  // and asserting the system prompt field equals the override.
+  let capturedRequestBody = null;
+  const mock = mockFetch(async (url, opts) => {
     if (url.includes('anthropic.com')) {
+      // Capture the request body from fetch opts
+      capturedRequestBody = opts.body;
       return {
         ok: true,
-        json: async (opts) => {
-          // Note: the request body is in the fetch opts, but mockFetch doesn't
-          // expose it; we need to inspect it differently. Use a different approach:
-          // check that the override is in the final request.
-          return {
-            content: [{
-              text: JSON.stringify({
-                verdict: 'SUPPORTED',
-                confidence: 'high',
-                comments: 'test',
-              }),
-            }],
-            usage: { input_tokens: 100, output_tokens: 50 },
-          };
-        },
+        json: async () => ({
+          content: [{
+            text: JSON.stringify({
+              verdict: 'SUPPORTED',
+              confidence: 'high',
+              comments: 'test',
+            }),
+          }],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
       };
     }
     throw new Error('unexpected URL: ' + url);
   });
   try {
-    const customPrompt = 'CUSTOM SYSTEM PROMPT FOR TESTING';
-    // We can't easily capture the request body in this mock setup, so instead
-    // we verify that the function accepts the option without error. A proper
-    // test would mock callProviderAPI or fetch more carefully.
+    const customPrompt = 'CUSTOM_OVERRIDE_PROMPT_SENTINEL_12345';
     const result = await verifyClaim(
       'The dam is 95m tall.',
       'The dam stands 95 meters tall.',
       { type: 'claude', model: 'claude-sonnet-4-5', apiKey: 'test' },
       { systemPromptOverride: customPrompt }
     );
-    // Just verify the call succeeds with the override option present
+    assert.ok(capturedRequestBody, 'fetch must have been called with request body');
+    const parsed = JSON.parse(capturedRequestBody);
+    assert.equal(parsed.system, customPrompt,
+      'opts.systemPromptOverride must reach the Claude API request body system field');
     assert.equal(result.verdict, 'SUPPORTED');
+  } finally {
+    mock.restore();
+  }
+});
+
+test('verifyClaim falls back to generateLegacySystemPrompt when no override given', async () => {
+  // When opts.systemPromptOverride is NOT provided, the default system prompt
+  // from generateLegacySystemPrompt() should be used. Verify by capturing the
+  // request body and confirming it contains expected content.
+  let capturedRequestBody = null;
+  const mock = mockFetch(async (url, opts) => {
+    if (url.includes('anthropic.com')) {
+      capturedRequestBody = opts.body;
+      return {
+        ok: true,
+        json: async () => ({
+          content: [{
+            text: JSON.stringify({
+              verdict: 'SUPPORTED',
+              confidence: 'high',
+              comments: 'test',
+            }),
+          }],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      };
+    }
+    throw new Error('unexpected URL: ' + url);
+  });
+  try {
+    await verifyClaim(
+      'The dam is 95m tall.',
+      'The dam stands 95 meters tall.',
+      { type: 'claude', model: 'claude-sonnet-4-5', apiKey: 'test' },
+      {}    // no override
+    );
+    assert.ok(capturedRequestBody, 'fetch must have been called with request body');
+    const parsed = JSON.parse(capturedRequestBody);
+    assert.ok(parsed.system, 'system prompt must be present');
+    assert.ok(parsed.system.length > 0, 'system prompt must not be empty');
+    // The legacy system prompt contains the word "citation" or "verify" or similar
+    assert.match(parsed.system, /citation|verify|claim/i,
+      'fallback system prompt must contain expected keywords from generateLegacySystemPrompt');
   } finally {
     mock.restore();
   }
@@ -269,39 +310,57 @@ test('verifyClaimAtomized: deterministic rollup with single atom (atomizer + ver
   }
 });
 
-test('verifyClaimAtomized threads opts.claimContainer to atomize()', async () => {
+test('verifyClaimAtomized threads opts.claimContainer to the atomizer user prompt', async () => {
   // The claimContainer option provides surrounding context to the atomizer.
-  // We verify by checking that the atomizer call (first fetch) happens and
-  // completes. A more rigorous test would inject opts.transport and inspect
-  // the user prompt, but for Phase 5 we just verify the option is accepted.
-  const responses = [
-    // Atomizer call
-    JSON.stringify({
-      content: [{ text: JSON.stringify({
-        atoms: [{ id: 'a1', assertion: 'The dam is 95m tall.', kind: 'content' }],
-      }) }],
-      usage: { input_tokens: 100, output_tokens: 50 },
-    }),
-    // Verifier call (one atom)
-    JSON.stringify({
-      content: [{ text: JSON.stringify({ verdict: 'supported', evidence: 'matches' }) }],
-      usage: { input_tokens: 100, output_tokens: 50 },
-    }),
-  ];
-  let i = 0;
-  const mock = mockFetch(async () => {
-    const resp = JSON.parse(responses[i++]);
-    return { ok: true, json: async () => resp };
+  // We verify by capturing all request bodies, identifying the atomizer call,
+  // and asserting the container text appears in its user prompt.
+  const capturedBodies = [];
+  const mock = mockFetch(async (url, opts) => {
+    if (url.includes('anthropic.com')) {
+      capturedBodies.push(opts.body);
+      // Respond with atomizer on first call, verifier on second call
+      if (capturedBodies.length === 1) {
+        return {
+          ok: true,
+          json: async () => ({
+            content: [{
+              text: JSON.stringify({
+                atoms: [{ id: 'a1', assertion: 'The dam is 95m tall.', kind: 'content' }],
+              }),
+            }],
+            usage: { input_tokens: 100, output_tokens: 50 },
+          }),
+        };
+      } else if (capturedBodies.length === 2) {
+        return {
+          ok: true,
+          json: async () => ({
+            content: [{
+              text: JSON.stringify({ verdict: 'supported', evidence: 'matches body' }),
+            }],
+            usage: { input_tokens: 100, output_tokens: 50 },
+          }),
+        };
+      }
+    }
+    throw new Error('unexpected URL: ' + url);
   });
   try {
+    const claimContainer = 'The dam is a CONTAINER_SENTINEL_12345 large structure in the mountains.';
     const result = await verifyClaimAtomized(
       'The dam is 95m tall.',
       'The dam stands 95 meters tall.',
       null,
       { type: 'claude', model: 'claude-sonnet-4-5', apiKey: 'test' },
-      { claimContainer: 'The dam is a large structure in the mountains.' }
+      { claimContainer }
     );
-    // Verify the call completes successfully with the option present
+    assert.ok(capturedBodies.length >= 1, 'atomizer call must have occurred');
+    const atomizerBody = JSON.parse(capturedBodies[0]);
+    // The Claude API request shape: { model, max_tokens, system, messages: [{role: "user", content: "..."}] }
+    // The user prompt content is in messages[0].content
+    const userPrompt = atomizerBody.messages?.[0]?.content ?? '';
+    assert.ok(userPrompt.includes('CONTAINER_SENTINEL_12345'),
+      `opts.claimContainer must reach the atomizer user prompt; got: ${userPrompt.slice(0, 300)}`);
     assert.equal(result.verdict, 'SUPPORTED');
   } finally {
     mock.restore();
