@@ -531,7 +531,7 @@ test('runVerify: logs article title with literal percent character correctly', a
   try {
     // %25 is the URL-encoded form of %; it decodes to literal "100%"
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/100%25', citationNumber: 1, provider: 'apertus-70b', atomized: false, noLog: false, atomized: false },
+      { url: 'https://en.wikipedia.org/wiki/100%25', citationNumber: 1, provider: 'apertus-70b', atomized: false, noLog: false },
       { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 0, `stderr: ${stderr.value()}`);
@@ -594,7 +594,7 @@ test('runVerify: DOM traversal chain works against a realistic Wikipedia fixture
   const stderr = mkStream();
   try {
     const code = await runVerify(
-      { url: 'https://en.wikipedia.org/wiki/Boiling_point', citationNumber: 2, provider: 'apertus-70b', atomized: false, noLog: true, atomized: false },
+      { url: 'https://en.wikipedia.org/wiki/Boiling_point', citationNumber: 2, provider: 'apertus-70b', atomized: false, noLog: true },
       { stdout, stderr, env: { PUBLICAI_API_KEY: 'test-key' } },
     );
     assert.equal(code, 0, `stderr: ${stderr.value()}`);
@@ -664,5 +664,16 @@ test('main() with --help (no subcommand) writes top-level help', async () => {
   const code = await main(['node', 'bin/ccs', '--help'], { stdout, stderr });
   assert.equal(code, 0);
   assert.match(stdout.value(), /Subcommands:/);
+});
+
+test('runVerify with unknown provider returns exit code 2', async () => {
+  const stdout = mkStream();
+  const stderr = mkStream();
+  const code = await runVerify(
+    { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'no-such-provider', atomized: false, noLog: true },
+    { stdout, stderr, env: {} },
+  );
+  assert.equal(code, 2, 'should exit with code 2 for unknown provider');
+  assert.match(stderr.value(), /unknown provider/i);
 });
 

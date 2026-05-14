@@ -292,6 +292,7 @@ export function shapeResult({ text, usage }) {
 // core/providers.js has its own defaults tuned for userscript/CLI use; the
 // runner overrides them here so that benchmark numbers stay comparable to
 // past runs until a deliberate re-baselining experiment changes them.
+// These are threaded through the providerConfig when calling verify().
 const BENCHMARK_MAX_TOKENS = 1000;
 const BENCHMARK_TEMPERATURE = 0.1;
 // The pre-consolidation runner concatenated `${systemPrompt}\n\n${userPrompt}`
@@ -619,15 +620,25 @@ async function main() {
                 let result;
                 const startTime = Date.now();
                 try {
+                    const verifyOpts = {
+                        atomized: false,
+                        claimContainer: entry.claim_container,
+                    };
+                    if (process.env.BENCHMARK_PROMPT_OVERRIDE_FILE) {
+                        verifyOpts.systemPromptOverride = systemPrompt;
+                    }
+                    const augmentedConfig = {
+                        ...providerConfig,
+                        apiKey,
+                        maxTokens: BENCHMARK_MAX_TOKENS,
+                        temperature: BENCHMARK_TEMPERATURE,
+                    };
                     const verifyResult = await verify(
                         entry.claim_text,
                         sourceText,
                         metadata,
-                        { ...providerConfig, apiKey },
-                        {
-                            atomized: false,
-                            claimContainer: entry.claim_container,
-                        }
+                        augmentedConfig,
+                        verifyOpts
                     );
                     result = {
                         verdict: verifyResult.verdict,
