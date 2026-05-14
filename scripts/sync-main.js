@@ -20,6 +20,7 @@ const CORE_ORDER = [
   'claim.js',
   'citoid.js',
   'providers.js',
+  'body-classifier.js',
   'worker.js',
 ];
 
