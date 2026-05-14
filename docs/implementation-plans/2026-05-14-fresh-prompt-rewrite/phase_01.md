@@ -16,39 +16,18 @@
 
 ## Task 1: Commit the design plan
 
-**Files:**
-- New: `docs/design-plans/2026-05-13-fresh-prompt-rewrite.md` (currently untracked, copied from parent checkout)
+**Already done.** The design plan + this implementation plan + their
+adjustments from the compound-corpus experiment review were committed
+together as a setup commit before Phase 1 execution started.
 
-**Step 1: Verify file present**
+Verify with: `git log --oneline -1 -- docs/design-plans/`
+Expected: a commit at HEAD~ or earlier whose message starts with
+`design+plan: fresh prompt rewrite`.
 
-Run: `ls -la docs/design-plans/2026-05-13-fresh-prompt-rewrite.md`
-Expected: file exists, ~36KB
-
-**Step 2: Stage and commit**
-
-```bash
-git add docs/design-plans/2026-05-13-fresh-prompt-rewrite.md
-git commit -m "$(cat <<'EOF'
-design: fresh prompt rewrite (atomize → verifyAtoms → rollup)
-
-Three-stage pipeline replacing the single-call verifier. Atomizer splits
-compound claims into content+provenance atoms; each atom is verified
-independently (content vs body, provenance vs Citoid metadata); rollup
-collapses per-atom verdicts deterministically or via a judge LLM call.
-
-Design doc lays out 8 phases; this implementation plan covers Phases 1-6
-(scaffolding through first smoke run). Phases 7-8 (agent eval + full
-panel) are deferred to a follow-up plan after the smoke run informs
-inevitable rework.
-
-Stack: tieguy/fresh-prompt-rewrite is openrouter-response-format +
-cherry-picked body-classifier commits, resolved so fetchSourceContent
-classifies body BEFORE Citoid augmentation.
-EOF
-)"
-```
-
-Expected: commit succeeds.
+If that commit is not present, halt and ask the operator — the
+implementation plan should have been committed before any Phase 1
+implementation task began. Do NOT recreate a separate design-doc commit;
+it would duplicate the setup commit.
 
 ---
 
