@@ -413,6 +413,25 @@ async function main() {
 
     console.log(`\nProviders to benchmark: ${availableProviders.join(', ')}`);
 
+    // Surface decomposition source up-front so a stray Sonnet/Opus atomizer
+    // doesn't go unnoticed until the bill arrives.
+    if (wantAtomized) {
+        if (cachedAtomsByEntry) {
+            console.log(`Atomizer: cached (from ${atomsCache}; verifiers will not call atomize())`);
+        } else {
+            const lines = availableProviders.map(p => {
+                const pc = PROVIDERS[p];
+                const m = (useSmallAtomizer && pc.smallModel) ? pc.smallModel : pc.model;
+                const tag = (useSmallAtomizer && pc.smallModel) ? '(smallModel)' : '(model — NO smallModel configured)';
+                return `  ${p} → ${m} ${tag}`;
+            });
+            console.log(`Atomizer per provider (--use-small-atomizer=${useSmallAtomizer}):`);
+            for (const line of lines) console.log(line);
+        }
+    } else {
+        console.log('Atomized pipeline disabled (--no-atomized); using legacy single-call path.');
+    }
+
     // Load existing results if resuming
     let results = [];
     const completedIds = new Set();
@@ -431,12 +450,34 @@ async function main() {
     // For historical-replay runs, set BENCHMARK_PROMPT_DATE=YYYY-MM-DD to
     // record the effective date of the overridden prompt; otherwise prompt_date
     // is today (the assumption being core/prompts.js was at HEAD).
+    // Atomizer model resolution: if --atoms-cache was supplied, atomize() is
+    // skipped entirely and atoms come from whatever model produced the cache;
+    // we record the cache path so the model is traceable to that file's
+    // metadata. If --use-small-atomizer was supplied, each provider's
+    // smallModel is used (per provider, since providers can differ); we record
+    // a map of provider → smallModel for the providers actually selected.
+    // Otherwise atomization uses the provider's main model.
+    function atomizerModelFor(provider) {
+        const pc = PROVIDERS[provider];
+        if (!pc) return null;
+        return (useSmallAtomizer && pc.smallModel) ? pc.smallModel : pc.model;
+    }
+    const atomizerModelByProvider = {};
+    for (const p of availableProviders) {
+        atomizerModelByProvider[p] = atomizerModelFor(p);
+    }
+
     const runMetadata = {
         run_at: new Date().toISOString(),
         prompt_date: process.env.BENCHMARK_PROMPT_DATE || todayIso(),
         prompt_source: process.env.BENCHMARK_PROMPT_OVERRIDE_FILE || 'core/prompts.js',
         dataset_extracted_at: datasetMetadata.extracted_at || null,
-        dataset_version_filter: VERSION_FILTER
+        dataset_version_filter: VERSION_FILTER,
+        atomized: wantAtomized,
+        rollup_mode: wantAtomized ? rollupMode : null,
+        use_small_atomizer: useSmallAtomizer,
+        atoms_cache: atomsCache,
+        atomizer_model_by_provider: wantAtomized && !atomsCache ? atomizerModelByProvider : null,
     };
 
     // Build the task list, skipping anything already completed (resume).
