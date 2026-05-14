@@ -28,6 +28,17 @@ import { loadRows } from './io.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+/**
+ * Path to the compound-corpus labels file in the workspace workbench.
+ * Exported for unit testing — ensures the path math is correct.
+ * From benchmark/analyze_results.js, walk up 4 levels to reach the workspace root
+ * (analyze_results.js → benchmark → .worktrees → citation-checker-script → alex-cite-checker).
+ */
+export const LABELS_PATH = path.resolve(
+    path.dirname(new URL(import.meta.url).pathname),
+    '..', '..', '..', '..', 'workbench', 'compound-corpus', 'labels.json'
+);
+
 // Parse command line arguments
 const args = process.argv.slice(2);
 function flagValue(name) {
@@ -418,13 +429,6 @@ function main() {
     }
 
     // Compoundness × verdict stratification (optional, joins against workbench/compound-corpus/labels.json)
-    // Path resolution: from benchmark/analyze_results.js, walk up 4 levels to reach the workspace root
-    // (analyze_results.js → benchmark → .worktrees → citation-checker-script → alex-cite-checker)
-    const LABELS_PATH = path.resolve(
-        path.dirname(new URL(import.meta.url).pathname),
-        '..', '..', '..', '..', 'workbench', 'compound-corpus', 'labels.json'
-    );
-
     let labelsById = null;
     if (existsSync(LABELS_PATH)) {
         try {

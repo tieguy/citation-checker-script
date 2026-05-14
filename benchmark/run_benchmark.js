@@ -84,6 +84,42 @@ export function parseAtomizedFlags(args) {
     return { ok: true, wantAtomized, rollupMode, useSmallAtomizer };
 }
 
+/**
+ * Build a result row to push to the results array.
+ * Exported for unit testing — exercises the optional chaining pattern used
+ * when verifyResult is null (error path) or defined (happy path).
+ *
+ * @param {object} params
+ * @param {object} params.entry - dataset entry with id, ground_truth
+ * @param {string} params.provider - provider name (key in PROVIDERS)
+ * @param {string} params.model - resolved model name
+ * @param {object|null} params.verifyResult - result from verify() or null on exception
+ * @param {object} params.result - { verdict, confidence, comments, latency, error }
+ * @param {number} params.latency - elapsed time in ms
+ * @param {boolean} params.wantAtomized - flag; true if --no-atomized was NOT set
+ * @returns {object} the row to push to results array
+ */
+export function buildResultRow({ entry, provider, model, verifyResult, result, latency, wantAtomized }) {
+    return {
+        entry_id: entry.id,
+        provider,
+        model,
+        ground_truth: entry.ground_truth,
+        predicted_verdict: result.verdict,
+        confidence: result.confidence,
+        comments: result.comments,
+        latency_ms: result.latency,
+        error: result.error,
+        correct: compareVerdicts(result.verdict, entry.ground_truth),
+        timestamp: new Date().toISOString(),
+        atomized: wantAtomized,
+        rollupMode: verifyResult?.rollupMode ?? null,
+        atoms: verifyResult?.atoms ?? null,
+        atomResults: verifyResult?.atomResults ?? null,
+        judgeReasoning: verifyResult?.judgeReasoning ?? null,
+    };
+}
+
 // Parse command line arguments
 const args = process.argv.slice(2);
 const providerArg = args.find(a => a.startsWith('--providers='));
@@ -448,25 +484,15 @@ async function main() {
                     };
                 }
 
-                results.push({
-                    entry_id: entry.id,
-                    provider: provider,
+                results.push(buildResultRow({
+                    entry,
+                    provider,
                     model: PROVIDERS[provider].model,
-                    ground_truth: entry.ground_truth,
-                    predicted_verdict: result.verdict,
-                    confidence: result.confidence,
-                    comments: result.comments,
-                    latency_ms: result.latency,
-                    error: result.error,
-                    correct: compareVerdicts(result.verdict, entry.ground_truth),
-                    timestamp: new Date().toISOString(),
-                    // New atomized-pipeline fields:
-                    atomized: wantAtomized,
-                    rollupMode: verifyResult?.rollupMode ?? null,
-                    atoms: verifyResult?.atoms ?? null,
-                    atomResults: verifyResult?.atomResults ?? null,
-                    judgeReasoning: verifyResult?.judgeReasoning ?? null,
-                });
+                    verifyResult,
+                    result,
+                    latency,
+                    wantAtomized,
+                }));
 
                 completed++;
                 const tag = result.error ? ' ERROR' : '';

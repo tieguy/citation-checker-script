@@ -312,46 +312,50 @@ test('synthesizePipelineSU handles missing body_unusable_reason gracefully', () 
 
 // ---- Error path: verifyResult null on exception -------------------------------------------
 
-test('verifyResult is null after exception and results.push uses optional chaining', () => {
-    // This test verifies the fix for Critical 1: when verify() throws,
-    // verifyResult is null, and the results.push should use optional chaining
-    // (verifyResult?.rollupMode ?? null) rather than reading verifyResult.rollupMode
-    // directly (which would ReferenceError).
-    //
-    // We can't directly test the runner's internal try/catch here without
-    // full integration, but we can verify that the pattern works:
-    let verifyResult = null;
-    const fallbackFields = {
-        rollupMode: verifyResult?.rollupMode ?? null,
-        atoms: verifyResult?.atoms ?? null,
-        atomResults: verifyResult?.atomResults ?? null,
-        judgeReasoning: verifyResult?.judgeReasoning ?? null,
-    };
-    // If the code were written as verifyResult.rollupMode without optional chaining,
-    // this would throw. Instead, all fields should be null.
-    assert.equal(fallbackFields.rollupMode, null);
-    assert.equal(fallbackFields.atoms, null);
-    assert.equal(fallbackFields.atomResults, null);
-    assert.equal(fallbackFields.judgeReasoning, null);
+test('buildResultRow: error path (verifyResult=null) produces null atoms/rollupMode/etc', async () => {
+    const { buildResultRow } = await import('../benchmark/run_benchmark.js');
 
-    // When verifyResult is defined, fields pass through
-    verifyResult = {
-        verdict: 'Supported',
-        confidence: 'High',
-        comments: 'text',
-        rollupMode: 'deterministic',
-        atoms: [],
-        atomResults: [],
-        judgeReasoning: 'some reasoning',
-    };
-    const successFields = {
-        rollupMode: verifyResult?.rollupMode ?? null,
-        atoms: verifyResult?.atoms ?? null,
-        atomResults: verifyResult?.atomResults ?? null,
-        judgeReasoning: verifyResult?.judgeReasoning ?? null,
-    };
-    assert.equal(successFields.rollupMode, 'deterministic');
-    assert.deepEqual(successFields.atoms, []);
-    assert.deepEqual(successFields.atomResults, []);
-    assert.equal(successFields.judgeReasoning, 'some reasoning');
+    const row = buildResultRow({
+        entry: { id: 'row_1', ground_truth: 'Supported' },
+        provider: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-4-5',
+        verifyResult: null,
+        result: { verdict: 'ERROR', confidence: 0, comments: '', latency: 100, error: 'rate limit' },
+        latency: 100,
+        wantAtomized: true,
+    });
+
+    assert.equal(row.atoms, null, 'atoms should be null when verifyResult is null');
+    assert.equal(row.atomResults, null, 'atomResults should be null when verifyResult is null');
+    assert.equal(row.rollupMode, null, 'rollupMode should be null when verifyResult is null');
+    assert.equal(row.judgeReasoning, null, 'judgeReasoning should be null when verifyResult is null');
+    assert.equal(row.atomized, true, 'atomized flag should pass through');
+    assert.equal(row.error, 'rate limit', 'error message should pass through');
+});
+
+test('buildResultRow: happy path threads verifyResult fields through', async () => {
+    const { buildResultRow } = await import('../benchmark/run_benchmark.js');
+
+    const row = buildResultRow({
+        entry: { id: 'row_1', ground_truth: 'Supported' },
+        provider: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-4-5',
+        verifyResult: {
+            verdict: 'SUPPORTED',
+            atoms: [{ id: 'a1', assertion: 'x', kind: 'content' }],
+            atomResults: [{ atomId: 'a1', verdict: 'supported' }],
+            rollupMode: 'deterministic',
+            judgeReasoning: undefined,
+        },
+        result: { verdict: 'SUPPORTED', confidence: 'high', comments: 'matches', latency: 200, error: null },
+        latency: 200,
+        wantAtomized: true,
+    });
+
+    assert.equal(row.atoms.length, 1, 'atoms should be threaded through');
+    assert.equal(row.atomResults.length, 1, 'atomResults should be threaded through');
+    assert.equal(row.rollupMode, 'deterministic', 'rollupMode should be threaded through');
+    assert.equal(row.judgeReasoning, null, 'undefined judgeReasoning should become null via ?? null');
+    assert.equal(row.entry_id, 'row_1', 'entry_id should be set from entry.id');
+    assert.equal(row.ground_truth, 'Supported', 'ground_truth should be set from entry');
 });

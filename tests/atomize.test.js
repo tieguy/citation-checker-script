@@ -174,21 +174,41 @@ test('resolveMaxTokens: respects zero as a valid (though unusual) value', () => 
   assert.equal(resolveMaxTokens({ maxTokens: 0 }, 1024), 0);
 });
 
-test('resolveMaxTokens: integration with atomize — transport receives correct maxTokens', async () => {
-  let capturedMaxTokens = null;
-  const testTransport = async (providerConfig, { systemPrompt, userPrompt, signal, model }) => {
-    capturedMaxTokens = resolveMaxTokens(providerConfig, 1024);
-    return { text: '{"atoms":[{"id":"a1","assertion":"x","kind":"content"}]}' };
+test('atomize defaultTransport (no opts.transport) routes providerConfig.maxTokens to the LLM request', async () => {
+  let capturedBody = null;
+  const originalFetch = globalThis.fetch;
+
+  // Mock fetch to intercept the request body and verify max_tokens is set correctly
+  globalThis.fetch = async (url, init) => {
+    if (url.includes('api.anthropic.com')) {
+      capturedBody = init?.body;
+      // Return a valid Claude API response
+      return {
+        ok: true,
+        json: async () => ({
+          content: [{ type: 'text', text: JSON.stringify({ atoms: [{ id: 'a1', assertion: 'x', kind: 'content' }] }) }],
+        }),
+      };
+    }
+    // Fallback for any other requests
+    throw new Error(`Unexpected request to ${url}`);
   };
 
-  const providerConfig = {
-    type: 'claude',
-    model: 'claude-sonnet-4-5',
-    maxTokens: 500,
-  };
+  try {
+    const providerConfig = {
+      type: 'claude',
+      model: 'claude-sonnet-4-5',
+      apiKey: 'test-key-sk-ant-test',
+      maxTokens: 9999,  // Override; should reach the LLM
+    };
 
-  await atomize('test claim', providerConfig, { transport: testTransport });
+    await atomize('a claim', providerConfig);
 
-  assert.equal(capturedMaxTokens, 500,
-    'atomize must pass providerConfig.maxTokens through to transport');
+    assert.ok(capturedBody, 'fetch should have been called');
+    const parsed = JSON.parse(capturedBody);
+    assert.equal(parsed.max_tokens, 9999,
+      'providerConfig.maxTokens override must reach the LLM via defaultTransport');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
