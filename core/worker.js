@@ -1,13 +1,23 @@
 // Calls to the Cloudflare Worker proxy: source fetching and verification logging.
 
-import { isGoogleBooksUrl } from './urls.js';
 import { augmentWithCitoid } from './citoid.js';
+import { classifyBody } from './body-classifier.js';
 
 // claim is optional. When supplied, the proxy may use it to extract
 // claim-relevant excerpts from long sources instead of returning
 // only the first ~12k chars. The proxy MUST gracefully ignore the
 // `query` param if it does not yet support it, so this is safe to
 // ship before the Worker is updated.
+//
+// fetchSourceContent return shapes:
+//   string                                  — usable body, formatted as
+//                                             "Source URL: <u>\n\nSource Content:\n<body>"
+//   null                                    — fetch failed (network/proxy/Google Books skip)
+//   { sourceUnavailable, reason }           — body is structurally bad (Wayback chrome,
+//                                             CSS leak, JSON-LD blob, anti-bot challenge,
+//                                             etc.). Callers should record a deterministic
+//                                             "Source unavailable" verdict without invoking
+//                                             the LLM. See core/body-classifier.js.
 export async function fetchSourceContent(url, pageNum, { claim, augment = true, workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
     if (isGoogleBooksUrl(url)) {
         console.log('[CitationVerifier] Skipping Google Books URL:', url);
@@ -31,6 +41,10 @@ export async function fetchSourceContent(url, pageNum, { claim, augment = true, 
         }
 
         if (data.content && data.content.length > 100) {
+            const classification = classifyBody(data.content);
+            if (!classification.usable) {
+                return { sourceUnavailable: true, reason: classification.reason };
+            }
             // Proxy caps fetched content around 12k chars. If we're at or
             // above that, the source was almost certainly truncated and
             // only partially sent to the model.
