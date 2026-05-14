@@ -334,15 +334,18 @@ export const PROVIDERS = {
         type: 'openrouter',
         supportsAtomize: true
     },
-    'openrouter-olmo-3.1-32b': {
-        name: 'OLMo 3.1 32B (OpenRouter)',
-        model: 'allenai/olmo-3.1-32b-instruct',
-        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'OPENROUTER_API_KEY',
-        type: 'openrouter',
-        supportsAtomize: true
-    },
+    // OLMo 3.1 32B via OpenRouter is currently busted — verifier returns
+    // sub-100ms responses with no usable verdict (probably routing to a
+    // dead/misconfigured upstream). Disabled until OR sorts out the route.
+    // 'openrouter-olmo-3.1-32b': {
+    //     name: 'OLMo 3.1 32B (OpenRouter)',
+    //     model: 'allenai/olmo-3.1-32b-instruct',
+    //     endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    //     requiresKey: true,
+    //     keyEnv: 'OPENROUTER_API_KEY',
+    //     type: 'openrouter',
+    //     supportsAtomize: true
+    // },
     'openrouter-deepseek-v3.2': {
         name: 'DeepSeek V3.2 (OpenRouter)',
         model: 'deepseek/deepseek-v3.2',

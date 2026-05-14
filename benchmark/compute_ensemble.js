@@ -44,7 +44,8 @@ const __dirname = dirname(__filename);
 
 export const PANEL_FULL = [
     'openrouter-mistral-small-3.2',
-    'openrouter-olmo-3.1-32b',
+    // 'openrouter-olmo-3.1-32b' — disabled, sub-100ms empty responses on the
+    // current OR route (see core/providers.js comment); re-add when fixed
     'openrouter-granite-4.1-8b',
     'openrouter-gemma-4-26b-a4b',
     'openrouter-qwen-3-32b'
