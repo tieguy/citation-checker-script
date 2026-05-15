@@ -30,6 +30,9 @@ import {
 import { parseVerificationResult } from '../core/parsing.js';
 import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
 import { withRetry } from '../core/retry.js';
+// Re-export so tests that pin run_benchmark.js's import-surface can still
+// detect the retry helper after the #216 consolidation moved it to core/.
+export { withRetry };
 import { augmentWithCitoid, augmentWithCitoidStructured } from '../core/citoid.js';
 import { verify } from '../core/worker.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
