@@ -1,6 +1,60 @@
-> **Status (2026-05-13):** Proposed. Brainstorming in progress. Implementation will live on a new worktree (`fresh-prompt-rewrite` or similar) branched off `citoid-defuddle-combined`, separate from the parallel `body-usability-classifier` work to avoid clobbering. The new prompt commits eventually replace #203's prompt commit; integration of the two streams happens at merge time, not on a shared branch. Input shape from #203 (citoid metadata + Defuddle source_text) is preserved. `SOURCE_UNAVAILABLE` handling is out of scope here — handled by the parallel body-usability-classifier work.
+> **Status (2026-05-14):** Implemented end-to-end (atomize → verifyAtoms → rollup live in `core/`, wired into `main.js` via the existing sync-script). Full-panel benchmark complete; headline result is in the **Results** section below — on the 180-row apples-to-apples overlap with the April baseline, recall on problematic citations (`GT ∈ {Not supported, Partially supported}`, panel flagged as `Not supported` or `Partially supported`) jumped from a 17–31 % band to 87–96 % for most current panel members, while the editor-perspective false-positive rate (`GT = Not supported` but panel said Supported / Partially) stayed roughly flat (Claude Sonnet 4.5: 18.2 % → 17.8 %). The benchmark is scored against the corrected ground-truth dataset shipped in PR #205 (12 v1 GT corrections across two audit rounds — 7 in the original audit, 5 added 2026-05-14). Input shape preserves PR #203's citoid bibliographic-metadata header on top of the production proxy's strip-extracted source text — **PAP #14 (Defuddle) is explicitly not a dependency**: prior testing showed Defuddle alone regresses every panel member by 3-7 pp exact, and the PAP-8+14 combination compounds that regression; the production proxy stays on strip extraction. `SOURCE_UNAVAILABLE` handling remains out of scope — covered by the parallel body-usability-classifier stream.
 
 # Fresh prompt rewrite for citation verification
+
+## Results (2026-05-14, full panel on 180-row apples-to-apples overlap with April baseline)
+
+The headline finding has two parts and is best read together. They are not independent gains — they are the same trade made deliberately in one direction.
+
+**1. The system catches a lot more problems.** "Catches a problem" = a citation whose ground-truth verdict is *Not supported* or *Partially supported*, and where the panel emitted *Not supported* or *Partially supported* (i.e., flagged it for editor attention rather than passing it). All comparisons below are restricted to the 180-row overlap between the April benchmark set and the current benchmark set (`n = 96` problematic rows on the April side, `n = 100` on the current side — the small difference comes from the 12 GT-correction flips in PR #205 reclassifying some rows from *Supported* to *Partially supported* or *Not supported*). April-side numbers are recomputed from `benchmark/historical-runs/2026-04-19-results.json` against the corrected GT, so the comparison is apples-to-apples on the same rows.
+
+| Provider                          | April (single-call, 9 few-shots) | Current (atomize + verify + deterministic rollup) |
+|-----------------------------------|---------------------------------:|--------------------------------------------------:|
+| `claude-sonnet-4-5`               | 30 / 96  (31 %)                  | 95 / 100  (95 %)                                  |
+| `openrouter-mistral-small-3.2`    | 24 / 96  (25 %)                  | 90 / 100  (90 %)                                  |
+| `openrouter-deepseek-v3.2` / `-v3`| 16 / 96  (17 %)                  | 87 / 100  (87 %)                                  |
+| `openrouter-olmo-3.1-32b`         | 19 / 96  (20 %)                  | n/a (excluded — empty-body bug)                   |
+| `openrouter-vote-3` (4-class)     | 16 / 96  (17 %)                  | 91 / 100  (91 %)                                  |
+| `gemini-2.5-flash`                | 81 / 96  (84 %)                  | (not in current panel)                            |
+
+Gemini's April-side outlier (84 %) reflects an already-lenient flagger — it traded recall for editor-FP rate at the time (see below).
+
+**2. The editor-perspective false-positive rate is roughly flat (and in some cells, better).** "Editor-FP" = of the rows whose ground truth is *Not supported*, the share where the panel said *Supported* or *Partially supported* (i.e., wrongly accepted a citation that doesn't hold up under inspection). This is the metric editors care most about — it bounds how often the tool will tell an editor "this is fine" when the editor would conclude otherwise on review. Same 180-row overlap (`gt_neg = 44` on the April side, `45` on the current side — again the difference is the GT-correction flips):
+
+| Provider                          | April editor-FP | Current editor-FP |
+|-----------------------------------|----------------:|------------------:|
+| `claude-sonnet-4-5`               | 8 / 44 (18.2 %) | 8 / 45 (17.8 %)   |
+| `openrouter-mistral-small-3.2`    | 14 / 44 (31.8 %)| 10 / 45 (22.2 %)  |
+| `openrouter-deepseek-v3.2` / `-v3`| 5 / 44 (11.4 %) | 7 / 45 (15.6 %)   |
+| `openrouter-olmo-3.1-32b`         | 12 / 44 (27.3 %)| n/a               |
+| `openrouter-vote-3` (4-class)     | 9 / 44 (20.5 %) | 10 / 45 (22.2 %)  |
+| `gemini-2.5-flash`                | 3 / 44 (6.8 %)  | (not in current panel) |
+| `hf-gpt-oss-20b`                  | (not run)       | 4 / 45 (8.9 %)    |
+| `hf-qwen3-32b`                    | (not run)       | 8 / 45 (17.8 %)   |
+| `openrouter-qwen-3-32b`           | (not run)       | 9 / 45 (20.0 %)   |
+| `openrouter-granite-4.1-8b`       | (not run)       | 15 / 45 (33.3 %)  |
+
+For the flagship verifier (Claude Sonnet 4.5) the editor-FP rate moved from 18.2 % to 17.8 % — within noise. Mistral improves from 31.8 % to 22.2 %. The full current panel's editor-FP rate ranges from 8.9 % (gpt-oss) to 33.3 % (granite, the smallest model); most members sit in the 13–22 % band. Gemini was the April low at 6.8 % but at the cost of flagging only ~22 % of all citations (see flag-rate below).
+
+**3. Why the trade is the right one, restated for the user-facing audience.** In April the script flagged ~22 % of citations total (Claude, 40 / 180) and missed ~69 % of real problems (66 / 96). After the rewrite the script flags ~72 % of citations (130 / 180) and misses only ~5 % (5 / 100). The "wrongly accepts a bad cite" rate stayed in the same range — around one in five for Claude. The change is essentially: **trade a higher inspection load for catching ~3× more problems, without making the false-acceptance rate worse**. For an editor working a referenced article this means the tool now flags most of the cites that warrant inspection, instead of mostly only the cites that were already obviously broken.
+
+**4. Caveats on the binary ensembles.** `openrouter-vote-3-binary` and `hf-vote-3-binary` (collapse Supported / Partially supported / Not supported to a 2-way support / no-support before voting) show much lower recall (48 / 100 = 48 % and 57 / 100 = 57 % respectively) because the binary collapse can only catch *Not supported*-class problems — Partially-supported claims, which are most of the problem rows, fall into the "support" bucket by collapse rule and are uncatchable. The 4-class `openrouter-vote-3` and `hf-vote-3` are the right ensembles to read for the recall claim above.
+
+**5. Exact-match metric (for completeness, though it's not the load-bearing one for the editor audience).** On 4-way exact-match (Supported / Partially / Not / Source-unavailable, normalized for casing) restricted to the 180-row overlap, `claude-sonnet-4-5` improves 47.8 % → 64.4 %, `openrouter-mistral-small-3.2` 48.3 % → 63.3 %, `openrouter-vote-3` 47.2 % → 65.0 %. Most current panel members are in the 52–65 % band; the headline editor-facing argument carries on the recall + editor-FP framing above, not on exact-match.
+
+**6. User-facing model coverage (gap-fill run, 2026-05-14 evening).** The headline panel above is the model selection used during development; it is not the same set of model IDs the userscript currently exposes to end users. The userscript's `WikipediaSourceVerifier.providers` registry in `main.js` offers five options (`publicai` = Qwen-SEA-LION-v4-32B-IT, `huggingface` = Qwen3-32B, `claude` = Sonnet 4.6, `gemini` = Flash-latest, `openai` = gpt-4o). To bound the gap between *measured* and *user-facing* numbers, a gap-fill cell was run against the same 180-row overlap with the same atomized pipeline, same cached Haiku atoms, deterministic rollup:
+
+| User-facing cell | Model ID | Recall (caught/100) | Editor-FP (fp/45) | Status |
+|---|---|---:|---:|---|
+| `huggingface` (default for no-BYOK users) | `Qwen/Qwen3-32B` via `/hf` | 95 / 100 (95.0 %) | 8 / 45 (17.8 %) | ✅ Same cell as `hf-qwen3-32b` in headline panel |
+| `claude` | `claude-sonnet-4-6` | 95 / 100 (95.0 %) | 8 / 45 (17.8 %) | ✅ Behavior-equivalent to 4.5 on the editor metrics; 4-way exact drops 64.4 % → 57.8 % (4.6 splits Supported/Partially differently, neutral on the user-facing aggregate) |
+| `gemini` | `gemini-2.5-flash` | 96 / 100 (96.0 %) | 10 / 45 (22.2 %) | ✅ Versus April 84.4 % / 6.8 %: moves up the precision/recall tradeoff curve — catches 15 more real problems, accepts 7 more bad cites |
+| `publicai` | `aisingapore/Qwen-SEA-LION-v4-32B-IT` | (unreliable) | (unreliable) | ⚠️ The PublicAI route (via the `publicai-proxy.alaexis.workers.dev` worker — same path as production) returned errors on 134 / 181 rows (98 sub-500ms fast-fail + 34 60-second timeouts + 2 other-fail). Only 47 rows had all atom calls succeed; on those 47 the verifier reads 21.3 % exact-match. **The 100 %-recall / 0 %-editor-FP figure on this cell is an artifact of failed-call → NOT SUPPORTED collapse in `parseAtomResultResponse`, not a real measurement.** This is a live production-reliability problem for the userscript's `publicai` default — worth filing upstream against PAP and/or PublicAI before continuing to recommend Qwen-SEA-LION as a no-BYOK option. |
+| `openai` | `gpt-4o` | (not run) | (not run) | ❌ Out-of-pocket BYOK; not measured under the new pipeline. Closest reference: `hf-gpt-oss-20b` (an unrelated open-weight model that happens to share a vendor name) at 99 / 100 recall and 4 / 45 editor-FP. Not a substitute. |
+
+**Takeaway.** Three of the five user-facing cells (`huggingface`, `claude`, `gemini`) are now empirically covered under the new pipeline at the exact model IDs the userscript ships with. The `publicai` cell is unusable on the benchmark route and worth investigating before it is recommended to users. The `openai` cell is unmeasured.
+
+**Data location.** `benchmark/results.json` (current panel, 2026-05-14 run, including the three gap-fill cells appended via `--resume`) and `benchmark/historical-runs/2026-04-19-results.json` (April single-call baseline) are the committed artifacts. Both are scored against the same corrected `dataset.json` (the 12-row GT-corrections set lands in PR #205 as a sibling of this design's implementation PR). All numbers in this section are derived from those files; the scoring is reproducible from the repo without any external state.
 
 ## Summary
 
@@ -10,7 +64,7 @@ This design replaces the single-call approach with a three-stage pipeline that r
 
 ## Definition of Done
 
-**Deliverable.** A fresh system prompt (and any supporting orchestration — e.g., an optional claim-decomposition pre-pass) for the citation-checker, drafted from Wikipedia-community materials (WP:V, WP:RS, WikiEdu brochures, template-usage guidance) with SemanticCite, the WMF "Citation Needed" taxonomy, and FActScore as secondary references. Replaces PR #203's prompt commit in-place; input shape (citoid metadata + Defuddle source_text) from #203 + PAP #14 stays fixed.
+**Deliverable.** A fresh system prompt (and any supporting orchestration — e.g., an optional claim-decomposition pre-pass) for the citation-checker, drafted from Wikipedia-community materials (WP:V, WP:RS, WikiEdu brochures, template-usage guidance) with SemanticCite, the WMF "Citation Needed" taxonomy, and FActScore as secondary references. Replaces PR #203's prompt commit in-place; input shape (citoid bibliographic-metadata header on top of the production proxy's strip-extracted source text — **not** Defuddle, which was tested and regressed) from #203 stays fixed.
 
 **Success criteria.** The four pillars:
 
@@ -248,7 +302,7 @@ This design follows several patterns already established in CCS:
 
 ## Additional Considerations
 
-**Worktree placement and PR strategy.** Implementation lives on a new worktree `.worktrees/fresh-prompt-rewrite/` branched off `citoid-defuddle-combined` so it inherits PR #203's input wiring (citoid metadata + Defuddle source_text). This is intentionally a *separate* branch from `body-usability-classifier`; the two streams of work integrate at merge time, not on a shared branch. The final PR strategy — replace #203's prompt commit in-place via a rebase, or file as a separate PR that stacks on #203 — is decided at Phase 8 based on what's merged upstream. The design doc itself moves to the new worktree at start-implementation-plan time; first commit on the new branch is "design: fresh prompt rewrite + scaffolding."
+**Worktree placement and PR strategy.** Implementation lives on a new worktree `.worktrees/fresh-prompt-rewrite/` branched off the local `citoid-defuddle-combined` branch (PR #203, three CCS-side commits: citoid metadata + two-step prompt + userscript wiring) so it inherits PR #203's input wiring. The branch name "citoid-defuddle-combined" reflects the empirical methodology PR #203 used to gather its measurement numbers, not the branch's code contents — **PAP #14 (Defuddle) is not on the dependency path**: it was tested separately, regressed every panel member, and the production proxy stays on strip extraction. This is intentionally a *separate* branch from `body-usability-classifier`; the two streams of work integrate at merge time, not on a shared branch. The final PR strategy — replace #203's prompt commit in-place via a rebase, or file as a separate PR that stacks on #203 — is decided at Phase 8 based on what's merged upstream. The design doc itself moves to the new worktree at start-implementation-plan time; first commit on the new branch is "design: fresh prompt rewrite + scaffolding."
 
 **Production latency.** Userscript verification now spans 2+ LLM calls (atomize, then N parallel verifications, then optional judge). For typical 2-3 atom claims that's roughly a 2× wall-clock increase; for compound claims with 4+ atoms and judge mode it can be 3×. The existing OOUI progress dialog needs a multi-stage progress indicator. Treated as a follow-up — not blocking this design's ship bar, but a known UX cost. Flagged for a paired issue when the userscript-side rollout begins.
 
