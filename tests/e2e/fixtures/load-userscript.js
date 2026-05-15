@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 // Anchor paths to this file's location (fixes cwd-relative path issues).
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
-const FIXTURE_HTML_PATH = path.join(__dirname, 'article.html');
+const DEFAULT_FIXTURE_HTML_PATH = path.join(__dirname, 'article.html');
 // Using unminified dist/ builds for readable stack traces when OOUI behavior surfaces in tests.
 // Swap to .min.js if startup time becomes a concern.
 const JQUERY_PATH = path.join(REPO_ROOT, 'node_modules', 'jquery', 'dist', 'jquery.min.js');
@@ -24,9 +24,12 @@ const MAIN_JS_PATH = path.join(REPO_ROOT, 'main.js');
  * Load the userscript into a fake-Wikipedia fixture page and wait for its sidebar to mount.
  *
  * @param {import('@playwright/test').Page} page
+ * @param {object} [options]
+ * @param {string} [options.fixturePath] - Optional path to an alternative HTML fixture (defaults to article.html)
  */
-export async function loadUserscript(page) {
-  const html = await readFile(FIXTURE_HTML_PATH, 'utf8');
+export async function loadUserscript(page, options = {}) {
+  const fixturePath = options.fixturePath || DEFAULT_FIXTURE_HTML_PATH;
+  const html = await readFile(fixturePath, 'utf8');
 
   // Route all requests to en.wikipedia.org to return the fixture HTML.
   // This gives the page a real origin where native localStorage works
