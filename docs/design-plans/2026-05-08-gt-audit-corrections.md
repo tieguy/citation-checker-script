@@ -1,6 +1,6 @@
 > **Status (2026-05-08):** Implemented. The seven GT downgrades described below ship in this PR. The two flagged citation-defect categories (structural-fragment / embedded-back-reference, primary-source-carrying-secondary-claim) are filed as separate follow-up issues.
 >
-> **Update (2026-05-14):** A second audit pass — driven by a different prompt-rewrite experiment that surfaced over-strict-looking regressions on multi-atom (c≥2) rows — added four more v1 GT corrections (three `Supported → Partially supported`, one `Supported → Not supported`). Per-row evidence in the "Additional rows (2026-05-14 audit)" section below. The historical-runs side-by-side numbers in `benchmark/historical-runs/comparison-2026-05-02.md` and the headline-finding bullet in `benchmark/historical-runs/README.md` are refreshed to reflect both rounds of corrections.
+> **Update (2026-05-14):** A second audit pass — driven by a different prompt-rewrite experiment that surfaced over-strict-looking regressions on multi-atom (c≥2) rows — added four more v1 GT corrections (three `Supported → Partially supported`, one `Supported → Not supported`). A subsequent binary-vote regression audit added one more (`row_3` — same MPI stat-drift mechanism as `row_5`). Per-row evidence in the "Additional rows (2026-05-14 audit)" section below. The historical-runs side-by-side numbers in `benchmark/historical-runs/comparison-2026-05-02.md` and the headline-finding bullet in `benchmark/historical-runs/README.md` are refreshed to reflect all rounds of corrections.
 
 # Live-page audit of suspected GT calibration drift
 
@@ -108,7 +108,19 @@ These specifics belong in a colonial-history reference, not this short historica
 
 ## Additional rows (2026-05-14 audit)
 
-A subsequent prompt-rewrite experiment regrounded the verifier prompt in WP:V / WP:NOR / WP:CITE policy language. The regrounded prompt surfaced apparent regressions on multi-atom (c≥2) rows — claims that the dataset labels `Supported` but where one atomic assertion in the claim is not actually carried by the cited source. Adjudicating each candidate row against its live source (same `curl` + `grep` method as the original seven) found four genuine GT gaps: three `Supported → Partially supported` and one `Supported → Not supported`. The remaining candidates either traced to verifier-side bugs (since fixed) or fell within standard editorial-paraphrase latitude on WP:STICKTOTHESOURCE and are not corrected here.
+A subsequent prompt-rewrite experiment regrounded the verifier prompt in WP:V / WP:NOR / WP:CITE policy language. The regrounded prompt surfaced apparent regressions on multi-atom (c≥2) rows — claims that the dataset labels `Supported` but where one atomic assertion in the claim is not actually carried by the cited source. Adjudicating each candidate row against its live source (same `curl` + `grep` method as the original seven) found four genuine GT gaps: three `Supported → Partially supported` and one `Supported → Not supported`. A subsequent binary-vote regression audit added one more — `row_3`, which is the same MPI stat-drift mechanism as the original `row_5` (current-statistics article whose figures have shifted since the citation was added). The remaining candidates either traced to verifier-side bugs (since fixed) or fell within standard editorial-paraphrase latitude on WP:STICKTOTHESOURCE and are not corrected here.
+
+### `row_3` — MPI: 4%/17% global migrant share figures not in source
+
+**Claim:** "While the United States represented about 4% of the total global population in 2024, 17% of all international migrants resided in the United States."
+
+**Source:** [migrationpolicy.org/article/frequently-requested-statistics-immigrants-and-immigration-united-states](https://www.migrationpolicy.org/article/frequently-requested-statistics-immigrants-and-immigration-united-states) (same URL as row_5)
+
+**Live page (2026-05-14):** zero hits for "4 percent of the total global population", "17 percent" in a migrant-share context, "world's population", or "international migrants". The "4 percent" mentions on the live page are about country-of-origin shares (Philippines, etc.); the "17 percent" mentions are about children-of-immigrants growth, neither matching the claim's framing. The live page is internally focused on US immigration statistics and does not currently carry the cross-national comparison this claim asserts.
+
+Same drift mechanism as `row_5`: MPI updates its statistics figures over time, and the cross-national share figures the citation was originally pinned to are no longer on the page. The substantive topic (US immigration in 2024) is in the source, but the specific cross-national-comparison assertions are not.
+
+GT: `Supported` → `Partially supported`.
 
 ### `row_29` — Anadolu: Saudi airstrikes on 7 January not in source
 

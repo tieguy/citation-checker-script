@@ -1,6 +1,6 @@
 Citation number,Citation instance,Article,Ground truth,Dataset version,WMF claim text,WMF source URL,WMF provenance
 1,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1,,,
-2,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1,,,
+2,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Partially supported,v1,,,
 3,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1,,,
 2,2,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Partially supported,v1,,,
 4,1,https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438,Supported,v1,,,
