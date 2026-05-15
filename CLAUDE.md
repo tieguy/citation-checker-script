@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Last verified: 2026-05-06
+Last verified: 2026-05-15 (merged userscript-browser-tests Playwright harness into body-classifier-on-pr203 to add SU-unification e2e coverage)
 
 ## Project Overview
 
@@ -12,7 +12,8 @@ Wikipedia citation verification user script. An AI-powered sidebar tool that let
 
 ```
 main.js                          # Main Wikipedia user script (~2,700 lines, single class)
-package.json                     # Top-level deps + `npm test` / `npm run build` scripts
+package.json                     # Top-level deps + `npm test` / `npm run build` / `npm run test:e2e` scripts
+playwright.config.js             # Playwright config for `npm run test:e2e` (chromium, headless, tests/e2e/)
 core/                            # Shared pure logic, imported by both benchmark/ and main.js (via sync)
   claim.js, parsing.js, prompts.js, providers.js, urls.js, worker.js
 cli/verify.js                    # `ccs verify` subcommand + top-level dispatcher (parseCliArgs, runVerify, main)
@@ -20,6 +21,9 @@ cli/compare.js                   # `ccs compare` subcommand (parseCompareArgs, r
 bin/ccs                          # Executable shim for the CLI
 scripts/sync-main.js             # Inlines core/ modules into main.js for the userscript build
 tests/                           # `node --test` suite (run via `npm test`)
+tests/e2e/                       # Playwright browser tests (run via `npm run test:e2e`)
+  smoke.spec.js, verify-flow.spec.js, real-article.spec.js
+  fixtures/                      # article.html (synthetic), real-article.html (Wikipedia snapshot), mw-stubs.js, mock-worker.js, load-userscript.js
 benchmark/
   package.json                   # Benchmark-only deps
   extract_dataset.js             # Extract claim/source pairs from Wikipedia
@@ -115,7 +119,8 @@ npm run compare               # Compare two results.json runs (delegates to `ccs
 
 ## Development Workflow
 
-- **Tests:** `node --test` via `npm test` from the repo root, runs everything in `tests/**/*.test.js`. New helpers should get a sibling `*.test.js` file. Behavioral validation also goes through the benchmark suite against the human-labeled citation dataset.
+- **Unit tests:** `node --test` via `npm test` from the repo root, runs everything in `tests/**/*.test.js`. New helpers should get a sibling `*.test.js` file. Behavioral validation also goes through the benchmark suite against the human-labeled citation dataset.
+- **Browser/e2e tests:** `npm run test:e2e` runs Playwright (chromium, headless) against `tests/e2e/*.spec.js`. `pretest:e2e` rebuilds `main.js` so the harness loads the same bytes the userscript ships. Tests load `main.js` byte-identically into a fixture page — either the synthetic minimal `article.html` (most tests) or `real-article.html` (a trimmed Wikipedia snapshot, for tests that need real-DOM coverage) — with `mw.*` stubs (`mw-stubs.js`) plus the real `oojs-ui` library loaded from `node_modules`, and all Cloudflare-Worker traffic intercepted (`mock-worker.js`). The harness navigates to a real `en.wikipedia.org/wiki/Test_Article` origin (routed to the fixture) so `localStorage` works. See `tests/e2e/fixtures/load-userscript.js` for the load order (jQuery → oojs → oojs-ui → mw-stubs → main.js) and `mock-worker.js` for the per-spec response overrides. `loadUserscript(page, { fixturePath })` accepts an optional fixture path; defaults to `article.html`.
 - **No test/build CI** is wired up (the only GitHub Actions workflow is a scheduled talk-page scraper).
 - **No linter** configured
 - **Branching:** Feature branches off `main`, merged via pull requests
@@ -141,3 +146,5 @@ npm run compare               # Compare two results.json runs (delegates to `ccs
 **Comparing two benchmark runs:** `npx ccs compare <control.json> <treatment.json> --dataset <dataset.json>` (or `npm run compare -- ...` from `benchmark/`). Emits JSON / Markdown / HTML with per-provider accuracy deltas and flip counts; supports subset filters and a `--noise-floor` threshold. See `docs/comparing-benchmark-runs.md`.
 
 **Running tests:** `npm test` from the repo root. Tests use `node:test` + `node:assert/strict` and import the modules they cover directly — a script that runs work on import (e.g. `main()` at module load) needs to gate that behind `if (process.argv[1] === fileURLToPath(import.meta.url))` so importing it for tests doesn't trigger the runner. `extract_dataset.js` and `benchmark/run_benchmark.js` follow this pattern.
+
+**Running browser e2e tests:** `npm run test:e2e` from the repo root. New e2e tests go in `tests/e2e/*.spec.js`; reuse `loadUserscript(page)` and `setupWorkerMocks(page, overrides)` from `tests/e2e/fixtures/`. `main.js` is loaded as-is (no modifications) — if a test needs different behavior, mock the worker response or configure the real OOUI widgets directly, never patch `main.js`. Worker mocks intercept `publicai-proxy.alaexis.workers.dev` (fetch, LLM, `/hf`, `/log`) and any direct provider hosts are blocked so traffic never escapes the test.
