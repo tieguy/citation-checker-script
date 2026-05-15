@@ -20,6 +20,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
-    "jquery": "^3.7.1"
+    "jquery": "^3.7.1",
+    "oojs": "^7.0.1",
+    "oojs-ui": "^0.53.2"
   }
 }
