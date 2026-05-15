@@ -11,8 +11,8 @@
     throw new Error('mw-stubs.js: real oojs-ui (OO.ui.ButtonWidget and companions) must be loaded before this file');
   }
 
-  // Set up a default OOUI theme. Tests don't need visual styling, but widgets require a theme
-  // to avoid initialization errors. Use a minimal no-op theme.
+  // Widgets reference OO.ui.theme during construction. oojs-ui-wikimediaui.js normally assigns this
+  // global at load time; this fallback exists in case that bundle is dropped from the load chain.
   if (!window.OO.ui.theme) {
     window.OO.ui.theme = new window.OO.ui.WikimediaUITheme();
   }

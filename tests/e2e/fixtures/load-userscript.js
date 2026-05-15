@@ -10,10 +10,11 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const FIXTURE_HTML_PATH = path.join(__dirname, 'article.html');
+// Using unminified dist/ builds for readable stack traces when OOUI behavior surfaces in tests.
+// Swap to .min.js if startup time becomes a concern.
 const JQUERY_PATH = path.join(REPO_ROOT, 'node_modules', 'jquery', 'dist', 'jquery.min.js');
 const OOJS_PATH = path.join(REPO_ROOT, 'node_modules', 'oojs', 'dist', 'oojs.js');
 const OOJS_UI_CORE_PATH = path.join(REPO_ROOT, 'node_modules', 'oojs-ui', 'dist', 'oojs-ui-core.js');
-const OOJS_UI_WIDGETS_PATH = path.join(REPO_ROOT, 'node_modules', 'oojs-ui', 'dist', 'oojs-ui-widgets.js');
 const OOJS_UI_WINDOWS_PATH = path.join(REPO_ROOT, 'node_modules', 'oojs-ui', 'dist', 'oojs-ui-windows.js');
 const OOJS_UI_WIKIMEDIAUI_PATH = path.join(REPO_ROOT, 'node_modules', 'oojs-ui', 'dist', 'oojs-ui-wikimediaui.js');
 const STUBS_PATH = path.join(__dirname, 'mw-stubs.js');
@@ -37,14 +38,13 @@ export async function loadUserscript(page) {
   // Navigate to a fake Wikipedia URL to give the page a real origin.
   await page.goto('https://en.wikipedia.org/wiki/Test_Article', { waitUntil: 'domcontentloaded' });
 
-  // Order matters: jQuery → oojs → oojs-ui-core → oojs-ui-widgets → oojs-ui-windows → theme → mw-stubs → main.js
+  // Order matters: jQuery → oojs → oojs-ui-core → oojs-ui-windows → theme → mw-stubs → main.js
   // jQuery and OOUI must load before mw-stubs so that OO is globally available when mw-stubs
   // validates that OOUI is loaded. main.js depends on mw + $ + OO.
   // The wikimediaui theme provides OO.ui.WikimediaUITheme which mw-stubs initializes.
   await page.addScriptTag({ path: JQUERY_PATH });
   await page.addScriptTag({ path: OOJS_PATH });
   await page.addScriptTag({ path: OOJS_UI_CORE_PATH });
-  await page.addScriptTag({ path: OOJS_UI_WIDGETS_PATH });
   await page.addScriptTag({ path: OOJS_UI_WINDOWS_PATH });
   await page.addScriptTag({ path: OOJS_UI_WIKIMEDIAUI_PATH });
   await page.addScriptTag({ path: STUBS_PATH });
