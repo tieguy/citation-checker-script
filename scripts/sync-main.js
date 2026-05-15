@@ -15,6 +15,7 @@ const END = '// </core-injected>';
 // Order matters: declarations must precede uses within the IIFE.
 const CORE_ORDER = [
   'prompts.js',
+  'verdicts.js',
   'parsing.js',
   'urls.js',
   'claim.js',

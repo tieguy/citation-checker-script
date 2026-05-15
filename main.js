@@ -129,6 +129,78 @@ Source text:
 ${sourceText}`;
 }
 
+// --- core/verdicts.js ---
+// Single source of truth for the four canonical verdict categories and
+// the case/short-form conversions that the userscript, CLI, and benchmark
+// pipeline each consume. Pre-consolidation, normalizeVerdict was
+// reimplemented separately in run_benchmark.js, analyze_results.js,
+// compare_results.js, and extract_dataset.js — each with a different
+// return-value shape and a different fallback for unrecognized input.
+// This module centralizes the recognition logic; callers compose it with
+// the presenter that matches their downstream schema.
+
+// Canonical UPPERCASE form. Matches the prompt's verdict spec and the
+// userscript's existing inline comparisons.
+const VERDICTS = Object.freeze({
+    SUPPORTED:           'SUPPORTED',
+    PARTIALLY_SUPPORTED: 'PARTIALLY SUPPORTED',
+    NOT_SUPPORTED:       'NOT SUPPORTED',
+    SOURCE_UNAVAILABLE:  'SOURCE UNAVAILABLE',
+});
+
+// Ordered by the confidence guide in core/prompts.js. Confusion-matrix
+// rows/columns in analyze_results.js iterate this list.
+const VERDICT_LIST = Object.freeze([
+    VERDICTS.SUPPORTED,
+    VERDICTS.PARTIALLY_SUPPORTED,
+    VERDICTS.NOT_SUPPORTED,
+    VERDICTS.SOURCE_UNAVAILABLE,
+]);
+
+// Map any reasonable variant ('not_supported', 'Not Supported', 'PARTIALLY',
+// 'unavailable', 'partial', ...) to one of the four canonical UPPERCASE
+// values. Returns null for unrecognized input — callers decide whether to
+// substitute a sentinel, pass through, or treat as 'Unknown'.
+function canonicalizeVerdict(raw) {
+    if (raw == null) return null;
+    const v = String(raw).toUpperCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!v) return null;
+    // NOT-prefix matches both 'NOT' (compare_results short code) and
+    // 'NOT SUPPORTED'. Order doesn't matter for correctness here because
+    // the canonical forms start with distinct letters; the ordering below
+    // mirrors the historical order in run_benchmark.js for readability.
+    if (v.startsWith('NOT'))     return VERDICTS.NOT_SUPPORTED;
+    if (v.startsWith('PARTIAL')) return VERDICTS.PARTIALLY_SUPPORTED;
+    if (v.startsWith('UNAVAIL')) return VERDICTS.SOURCE_UNAVAILABLE;
+    if (v.startsWith('SOURCE'))  return VERDICTS.SOURCE_UNAVAILABLE;
+    if (v.startsWith('SUPPORT')) return VERDICTS.SUPPORTED;
+    return null;
+}
+
+// Presenter: canonical UPPERCASE -> title case ('Supported', 'Not supported', ...).
+// Used by benchmark results.json schema and analyze_results.js's confusion matrix.
+const TITLE_CASE = Object.freeze({
+    [VERDICTS.SUPPORTED]:           'Supported',
+    [VERDICTS.PARTIALLY_SUPPORTED]: 'Partially supported',
+    [VERDICTS.NOT_SUPPORTED]:       'Not supported',
+    [VERDICTS.SOURCE_UNAVAILABLE]:  'Source unavailable',
+});
+function toTitleCase(canonical) {
+    return TITLE_CASE[canonical] ?? canonical;
+}
+
+// Presenter: canonical UPPERCASE -> short lowercase code ('support', 'not', ...).
+// Used by compare_results.js for run-vs-run comparison.
+const SHORT_CODE = Object.freeze({
+    [VERDICTS.SUPPORTED]:           'support',
+    [VERDICTS.PARTIALLY_SUPPORTED]: 'partial',
+    [VERDICTS.NOT_SUPPORTED]:       'not',
+    [VERDICTS.SOURCE_UNAVAILABLE]:  'unavailable',
+});
+function toShortCode(canonical) {
+    return SHORT_CODE[canonical] ?? canonical;
+}
+
 // --- core/parsing.js ---
 // Parses raw LLM response text into a structured verdict object.
 //
@@ -139,21 +211,6 @@ ${sourceText}`;
 // failure, returns the 'PARSE_ERROR' sentinel — chosen to match what the
 // benchmark already records for unrecoverable responses.
 
-const FALLBACK_VERDICT_PATTERNS = [
-    { prefix: 'NOT SUPPORTED',      canonical: 'NOT SUPPORTED' },
-    { prefix: 'PARTIALLY',          canonical: 'PARTIALLY SUPPORTED' },
-    { prefix: 'SOURCE UNAVAILABLE', canonical: 'SOURCE UNAVAILABLE' },
-    { prefix: 'UNAVAILABLE',        canonical: 'SOURCE UNAVAILABLE' },
-    { prefix: 'SUPPORTED',          canonical: 'SUPPORTED' },
-];
-
-function canonicalizeFallbackVerdict(raw) {
-    const v = raw.toUpperCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
-    for (const { prefix, canonical } of FALLBACK_VERDICT_PATTERNS) {
-        if (v.startsWith(prefix)) return canonical;
-    }
-    return null;
-}
 
 function parseVerificationResult(response) {
     const trimmed = response.trim();
@@ -182,7 +239,7 @@ function parseVerificationResult(response) {
     const stripped = trimmed.replace(/\*+|__+/g, '');
     const match = stripped.match(/verdict[\s:"']+([A-Z][A-Z _]*)/i);
     if (match) {
-        const verdict = canonicalizeFallbackVerdict(match[1]);
+        const verdict = canonicalizeVerdict(match[1]);
         if (verdict) {
             return { verdict, confidence: null, comments: '<extracted from non-JSON response>' };
         }
