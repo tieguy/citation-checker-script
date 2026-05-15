@@ -4,11 +4,15 @@
 
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const FIXTURE_HTML_PATH = path.join('tests', 'e2e', 'fixtures', 'article.html');
-const JQUERY_PATH = path.join('node_modules', 'jquery', 'dist', 'jquery.min.js');
-const STUBS_PATH = path.join('tests', 'e2e', 'fixtures', 'mw-stubs.js');
-const MAIN_JS_PATH = 'main.js';
+// Anchor paths to this file's location (fixes cwd-relative path issues).
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
+const FIXTURE_HTML_PATH = path.join(__dirname, 'article.html');
+const JQUERY_PATH = path.join(REPO_ROOT, 'node_modules', 'jquery', 'dist', 'jquery.min.js');
+const STUBS_PATH = path.join(__dirname, 'mw-stubs.js');
+const MAIN_JS_PATH = path.join(REPO_ROOT, 'main.js');
 
 /**
  * Load the userscript into a fake-Wikipedia fixture page and wait for its sidebar to mount.
@@ -17,40 +21,16 @@ const MAIN_JS_PATH = 'main.js';
  */
 export async function loadUserscript(page) {
   const html = await readFile(FIXTURE_HTML_PATH, 'utf8');
-  await page.setContent(html, { waitUntil: 'domcontentloaded' });
 
-  // Set up localStorage stub via direct script injection.
-  // This must happen before any code tries to access localStorage.
-  await page.addScriptTag({ content: `
-(function() {
-  const localStorageData = {};
-  Object.defineProperty(window, 'localStorage', {
-    value: {
-      getItem: (key) => localStorageData[key] || null,
-      setItem: (key, value) => {
-        localStorageData[key] = String(value);
-      },
-      removeItem: (key) => {
-        delete localStorageData[key];
-      },
-      clear: () => {
-        for (const key in localStorageData) {
-          delete localStorageData[key];
-        }
-      },
-      get length() {
-        return Object.keys(localStorageData).length;
-      },
-      key: (index) => {
-        const keys = Object.keys(localStorageData);
-        return keys[index] || null;
-      },
-    },
-    writable: true,
-    configurable: true,
-  });
-})();
-  ` });
+  // Route all requests to en.wikipedia.org to return the fixture HTML.
+  // This gives the page a real origin where native localStorage works
+  // and addInitScript-seeded values persist (fixing Phase 5's provider seeding).
+  await page.route('https://en.wikipedia.org/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'text/html', body: html })
+  );
+
+  // Navigate to a fake Wikipedia URL to give the page a real origin.
+  await page.goto('https://en.wikipedia.org/wiki/Test_Article', { waitUntil: 'domcontentloaded' });
 
   // Order matters: jQuery, then stubs (depend on $), then main.js (depends on mw + $ + OO).
   await page.addScriptTag({ path: JQUERY_PATH });
