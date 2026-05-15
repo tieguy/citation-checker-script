@@ -1,4 +1,4 @@
-// {{Wikipedia:USync |repo=https://github.com/alex-o-748/citation-checker-script |ref=refs/heads/main|path=main.js}}
+// {{Wikipedia:USync |repo=https://github.com/alex-o-748/citation-checker-script |ref=refs/heads/main|path=main.js}} 
 //Inspired by User:Polygnotus/Scripts/AI_Source_Verification.js
 //Inspired by User:Phlsph7/SourceVerificationAIAssistant.js
 
@@ -318,6 +318,47 @@ function isGoogleBooksUrl(url) {
 
 const MAINTENANCE_MARKER_RE = /\[(failed verification|verification needed|citation needed|better source[^\]]*|dubious[^\]]*|unreliable source[^\]]*|clarification needed|disputed[^\]]*|page needed|when\??|where\??|who\??|why\??|by whom\??|according to whom\??|original research[^\]]*|specify[^\]]*|vague|opinion|fact)\]/gi;
 
+// True iff the DOM range strictly between two .reference wrapper elements (in
+// document order: refA before refB) contains no non-whitespace text. This is
+// the rule that defines whether two adjacent citations attach to the same
+// claim — a comma or any other punctuation between them counts as text and
+// breaks the group.
+function hasTextBetween(refA, refB) {
+    const document = refA.ownerDocument;
+    const range = document.createRange();
+    range.setStartAfter(refA);
+    range.setEndBefore(refB);
+    const between = range.toString().replace(/\s+/g, '').trim();
+    return between.length > 0;
+}
+
+// Returns the contiguous run of .reference wrapper elements (in DOM order)
+// that all attach to the same claim as refElement — i.e. consecutive siblings
+// in the same container with no text between adjacent members. Always returns
+// at least the wrapper of refElement; an isolated citation yields a single-
+// element array.
+function getCitationGroup(refElement) {
+    const currentRef = refElement.closest('.reference');
+    if (!currentRef) return [];
+
+    const container = currentRef.closest('p, li, td, div, section');
+    if (!container) return [currentRef];
+
+    const refsInContainer = Array.from(container.querySelectorAll('.reference'));
+    const idx = refsInContainer.indexOf(currentRef);
+    if (idx === -1) return [currentRef];
+
+    let start = idx;
+    while (start > 0 && !hasTextBetween(refsInContainer[start - 1], refsInContainer[start])) {
+        start--;
+    }
+    let end = idx;
+    while (end < refsInContainer.length - 1 && !hasTextBetween(refsInContainer[end], refsInContainer[end + 1])) {
+        end++;
+    }
+    return refsInContainer.slice(start, end + 1);
+}
+
 function extractClaimText(refElement) {
     const document = refElement.ownerDocument;
     const container = refElement.closest('p, li, td, div, section');
@@ -342,30 +383,16 @@ function extractClaimText(refElement) {
     let claimStartNode = null;
 
     if (currentIndexInContainer > 0) {
-        // There are previous references in this container
-        // Walk backwards to find where the claim actually starts
-
+        // Walk backwards through the consecutive same-claim run; the boundary
+        // is the first previous ref that has actual text between it and its
+        // successor (i.e. it cites a different claim).
         for (let i = currentIndexInContainer - 1; i >= 0; i--) {
             const prevRef = refsInContainer[i];
-
-            // Check if there's actual text between this ref and the next one
-            const range = document.createRange();
-            range.setStartAfter(prevRef);
-
-            if (i === currentIndexInContainer - 1) {
-                range.setEndBefore(currentRef);
-            } else {
-                range.setEndBefore(refsInContainer[i + 1]);
-            }
-
-            const textBetween = range.toString().replace(/\s+/g, '').trim();
-
-            if (textBetween.length > 0) {
-                // Found text before this point - the previous ref is our boundary
+            const nextRef = refsInContainer[i + 1] || currentRef;
+            if (hasTextBetween(prevRef, nextRef)) {
                 claimStartNode = prevRef;
                 break;
             }
-            // No text between these refs - they cite the same claim, keep looking back
         }
     }
 
@@ -793,10 +820,121 @@ async function callProviderAPI(name, config) {
     }
 }
 
+// --- core/body-classifier.js ---
+// Classify whether an extracted source body is usable for downstream LLM
+// verification. Returns { usable: true, reason: 'ok' } for content that should
+// proceed, or { usable: false, reason: <pattern-name> } for structurally-bad
+// bodies (Wayback chrome, CSS leak, JSON-LD blob, anti-bot challenge, etc.).
+//
+// When the classifier returns usable:false, the caller (userscript / benchmark)
+// should short-circuit to a "Source unavailable" verdict without invoking an
+// LLM. This pulls the SU-vs-Not-Supported decision out of the LLM's
+// responsibility in cases where the answer is mechanically determinable — the
+// LLM only needs to handle support-or-not-support on usable content.
+//
+// Patterns are derived from real failure cases observed in a 185-row × 9-provider
+// citation-verification benchmark (combined-integration treatment), where both
+// Claude Sonnet 4.5 and Claude Opus 4.7 agreed on a wrong "Source unavailable"
+// verdict against a ground-truth "Not supported" label. Each pattern has at
+// least one matching regression-test fixture in tests/body_classifier.test.js.
+
+const SIGNATURE_LEN = 500;
+const SHORT_BODY_FLOOR = 300;
+// Upper length bound for "chrome-dominated" detectors. Above this, even if a
+// chrome marker is present at the top, we assume substantive content follows
+// (e.g., row_9: 912 chars of "The Wayback Machine - …" prefix + USCIS article).
+// Tuned conservatively to favor false negatives (let body through, LLM handles)
+// over false positives (real content discarded as unusable).
+const CHROME_LENGTH_CAP = 600;
+
+const PATTERNS = [
+  {
+    reason: 'json_ld_leak',
+    // Body is a JSON-LD blob (schema.org structured data picked up by Defuddle
+    // instead of the article body).
+    test: (text) =>
+      /^\s*\{[^{}]{0,200}"@(context|type|graph)"\s*:/.test(text),
+  },
+  {
+    reason: 'css_leak',
+    // Body is CSS rules (Defuddle picked up a <style> element).
+    // Confirmed with CSS-glyph density in the signature window.
+    test: (text) => {
+      const head = text.slice(0, SIGNATURE_LEN);
+      if (!/^[\s.#@\w-]+\{[^{}]{10,}/.test(head)) return false;
+      const cssGlyphs = (head.match(/[{};:]/g) || []).length;
+      return cssGlyphs / head.length > 0.05;
+    },
+  },
+  {
+    reason: 'anti_bot_challenge',
+    // Cloudflare / Anubis / generic JS-challenge interstitials.
+    test: (text) =>
+      /(Making sure you('|&#39;)re not a bot|Anubis uses a Proof-of-Work|Just a moment\.\.\.|Verifying you are human|Please enable JavaScript and cookies|Checking your browser before accessing)/i
+        .test(text.slice(0, 1500)),
+  },
+  {
+    reason: 'wayback_redirect_notice',
+    // Wayback "page redirected at crawl time" interstitial.
+    test: (text) =>
+      /Got an HTTP \d{3} response at crawl time/.test(text.slice(0, 1500)),
+  },
+  {
+    reason: 'wayback_chrome',
+    // Wayback Machine wrapper captured without the inner archived content.
+    // Fire only when the body is too short to contain substantive content
+    // after the chrome — a Wayback prefix on a long body indicates the real
+    // article follows (see row_9: 912 chars, USCIS glossary entry).
+    // The id_-flag URL rewrite in PAP reduces incidence but doesn't eliminate
+    // it (PDF-too-large, JS-only archives still produce chrome).
+    test: (text) => {
+      if (text.length >= CHROME_LENGTH_CAP) return false;
+      const head = text.slice(0, SIGNATURE_LEN);
+      return (
+        /^The Wayback Machine - https?:\/\//.test(head) ||
+        /\d+ captures\s+\d{1,2} \w+ \d{4}/.test(head) ||
+        /\bCOLLECTED BY\s+Collection:/.test(head)
+      );
+    },
+  },
+  {
+    reason: 'amazon_stub',
+    // Amazon listing page rendered without product details (JS-loaded).
+    test: (text) =>
+      /Conditions of Use(?: & Sale)?\s*\n?\s*Privacy Notice\s*\n?\s*©\s*\d{4}-\d{4},?\s*Amazon\.com/i
+        .test(text),
+  },
+  {
+    reason: 'short_body',
+    // Catch-all for bodies too short to be substantive. Conservative floor —
+    // false positives (real short content flagged as unusable) directly hurt
+    // accuracy; false negatives are recoverable (LLM still handles).
+    test: (text) => text.length < SHORT_BODY_FLOOR,
+  },
+];
+
+function classifyBody(text) {
+  if (text == null) return { usable: false, reason: 'short_body' };
+  const trimmed = text.trim();
+  for (const { reason, test } of PATTERNS) {
+    if (test(trimmed)) return { usable: false, reason };
+  }
+  return { usable: true, reason: 'ok' };
+}
+
 // --- core/worker.js ---
 // Calls to the Cloudflare Worker proxy: source fetching and verification logging.
 
 
+// fetchSourceContent return shapes:
+//   string                                  — usable body, formatted as
+//                                             "Source URL: <u>\n\nSource Content:\n<body>"
+//   null                                    — fetch failed (network/proxy/Google Books skip)
+//   { sourceUnavailable, reason }           — body is structurally bad (Wayback chrome,
+//                                             CSS leak, JSON-LD blob, anti-bot challenge,
+//                                             etc.). Callers should record a deterministic
+//                                             "Source unavailable" verdict without invoking
+//                                             the LLM. See core/body-classifier.js.
 async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai-proxy.alaexis.workers.dev', augment = true } = {}) {
     if (isGoogleBooksUrl(url)) {
         console.log('[CitationVerifier] Skipping Google Books URL:', url);
@@ -817,6 +955,10 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
         }
 
         if (data.content && data.content.length > 100) {
+            const classification = classifyBody(data.content);
+            if (!classification.usable) {
+                return { sourceUnavailable: true, reason: classification.reason };
+            }
             // Proxy caps fetched content around 12k chars. If we're at or
             // above that, the source was almost certainly truncated and
             // only partially sent to the model.
@@ -878,7 +1020,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     // to HF (any model) when stored.
                     storageKey: 'hf_api_key',
                     color: '#6B21A8', // HF yellow-orange
-                    model: 'Qwen/Qwen3-32B',
+                    model: 'openai/gpt-oss-20b',
                     requiresKey: false,
                     optionalKey: true
                 },
@@ -1008,6 +1150,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     <div id="verifier-claim-section">
                         <h4>Selected Claim</h4>
                         <div id="verifier-claim-text">Click on a reference number [1] next to a claim to verify it against its source.</div>
+                        <div id="verifier-claim-group-indicator" style="display: none;"></div>
                     </div>
                     <div id="verifier-source-section">
                         <h4>Source Content</h4>
@@ -1487,6 +1630,93 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 .report-card-action .oo-ui-buttonElement-button {
                     font-size: 11px;
                     padding: 2px 4px;
+                }
+                .verifier-report-group {
+                    border: 1px solid #cdd5e0;
+                    border-left: 3px solid ${this.getCurrentColor()};
+                    border-radius: 4px;
+                    background: #f6f8fb;
+                    padding: 6px 8px;
+                    font-size: 12px;
+                }
+                .verifier-report-group-header {
+                    margin-bottom: 6px;
+                }
+                .verifier-report-group-title {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    margin-bottom: 4px;
+                }
+                .verifier-report-group-badge {
+                    font-weight: bold;
+                    font-size: 11px;
+                    color: ${this.getCurrentColor()};
+                }
+                .verifier-report-group-claim {
+                    color: #333;
+                    font-size: 12px;
+                    line-height: 1.4;
+                    margin-bottom: 4px;
+                }
+                .verifier-report-group-edit {
+                    margin-top: 2px;
+                }
+                .verifier-report-group-edit .oo-ui-buttonElement-button {
+                    font-size: 11px;
+                    padding: 2px 4px;
+                }
+                .verifier-report-group-rows {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .verifier-report-group-row {
+                    background: #fff;
+                    border: 1px solid #e0e4ea;
+                    border-left: 3px solid #ccc;
+                    border-radius: 3px;
+                    padding: 5px 8px;
+                    cursor: pointer;
+                }
+                .verifier-report-group-row:hover {
+                    background: #f0f4ff;
+                }
+                .verifier-report-group-row.verdict-supported { border-left-color: #28a745; }
+                .verifier-report-group-row.verdict-partial { border-left-color: #ffc107; }
+                .verifier-report-group-row.verdict-not-supported { border-left-color: #dc3545; }
+                .verifier-report-group-row.verdict-unavailable { border-left-color: #6c757d; }
+                .verifier-report-group-row.verdict-error { border-left-color: #adb5bd; }
+                .verifier-report-group-row-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 2px;
+                }
+                #verifier-claim-group-indicator {
+                    margin-top: 6px;
+                    font-size: 11px;
+                    color: #666;
+                    line-height: 1.4;
+                }
+                #verifier-claim-group-indicator .group-active {
+                    font-weight: bold;
+                    color: ${this.getCurrentColor()};
+                }
+                html.skin-theme-clientpref-night .verifier-report-group {
+                    background: #232336 !important;
+                    border-color: #3a3a4e !important;
+                }
+                html.skin-theme-clientpref-night .verifier-report-group-row {
+                    background: #1a1a2e !important;
+                    border-color: #3a3a4e !important;
+                    color: #e0e0e0 !important;
+                }
+                html.skin-theme-clientpref-night .verifier-report-group-claim {
+                    color: #d0d0d8 !important;
+                }
+                html.skin-theme-clientpref-night #verifier-claim-group-indicator {
+                    color: #b0b0c0 !important;
                 }
                 #source-verifier-sidebar .oo-ui-iconElement-icon + .oo-ui-labelElement-label {
                     margin-left: 4px;
@@ -2261,6 +2491,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 this.activeRefElement = refElement;
 
                 document.getElementById('verifier-claim-text').textContent = claim;
+                this.renderClaimGroupIndicator(refElement);
 
                 const refUrl = this.extractReferenceUrl(refElement);
                 this.activeSourceUrl = refUrl;
@@ -2292,6 +2523,15 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 if (!sourceInfo) {
                     this.showSourceTextInput();
                     this.updateStatus('Could not fetch source. Please paste the source text below.');
+                    return;
+                }
+
+                if (typeof sourceInfo === 'object' && sourceInfo.sourceUnavailable) {
+                    // Body classifier flagged the extracted content as structurally
+                    // unusable (Wayback chrome, JS-only skeleton, anti-bot challenge,
+                    // etc.). The verdict is determined here without invoking the LLM.
+                    this.showSourceTextInput();
+                    this.updateStatus(`Source unavailable (${sourceInfo.reason}). Paste the source text below if you have it.`);
                     return;
                 }
 
@@ -2406,7 +2646,11 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
         extractClaimText(refElement) {
             return extractClaimText(refElement);
         }
-        
+
+        getCitationGroup(refElement) {
+            return getCitationGroup(refElement);
+        }
+
         extractHttpUrl(element) {
             return extractHttpUrl(element);
         }
@@ -2814,7 +3058,52 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 citations.push({ refElement, citationNumber, claimText, url, pageNum, refId });
             });
 
+            // Attach group metadata: every citation in a contiguous run of refs
+            // attached to the same claim shares the same groupId (first
+            // member's refId), groupSize and groupCitationNumbers list. The
+            // groupIndex is the citation's 0-based position within its group.
+            this.attachGroupMetadata(citations);
+
             return citations;
+        }
+
+        attachGroupMetadata(citations) {
+            // Key by the <sup class="reference"> wrapper element, not refId:
+            // named refs (e.g. {{r|Foo}} cited twice) share the same cite_note
+            // href, so a refId-keyed map collides and the second occurrence
+            // overwrites the first. Wrapper elements are unique per occurrence.
+            const byWrapper = new Map();
+            for (const c of citations) {
+                const wrapper = c.refElement.closest('.reference');
+                if (wrapper) byWrapper.set(wrapper, c);
+            }
+            const visited = new Set();
+            for (const citation of citations) {
+                if (visited.has(citation)) continue;
+                const groupRefs = this.getCitationGroup(citation.refElement);
+                const groupCitations = [];
+                for (const wrapper of groupRefs) {
+                    const c = byWrapper.get(wrapper);
+                    if (c) groupCitations.push(c);
+                }
+                if (groupCitations.length === 0) continue;
+                // Use the first wrapper's id (cite_ref-X-Y, unique per
+                // occurrence) as the group id so two groups whose first
+                // member is the same named source — e.g. "[3][4]" and a
+                // separate "[3][5]" later in the article — don't collide on
+                // the data-group-id used by the report renderer.
+                const firstWrapper = groupCitations[0].refElement.closest('.reference');
+                const groupId = (firstWrapper && firstWrapper.id) || groupCitations[0].refId;
+                const groupSize = groupCitations.length;
+                const groupCitationNumbers = groupCitations.map(c => c.citationNumber);
+                groupCitations.forEach((c, idx) => {
+                    c.groupId = groupId;
+                    c.groupSize = groupSize;
+                    c.groupIndex = idx;
+                    c.groupCitationNumbers = groupCitationNumbers;
+                    visited.add(c);
+                });
+            }
         }
 
         showReportView() {
@@ -2901,18 +3190,39 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             const resultsEl = document.getElementById('verifier-report-results');
             if (!resultsEl) return;
             const classes = ['supported', 'partial', 'not-supported', 'unavailable', 'error'];
+            // Solo .verifier-report-card visibility is still driven by these
+            // CSS-only filter-hide-* classes (see #verifier-report-results
+            // CSS rules in createStyles).
             for (const cls of classes) {
                 resultsEl.classList.toggle(`filter-hide-${cls}`, !!this.reportFilters[cls]);
             }
 
-            // Show an empty-state hint when every rendered card is hidden by filters.
+            // Group blocks are visible iff at least one of their rows has a
+            // verdict whose chip is currently enabled. Inside a visible
+            // group, every row stays visible regardless of its verdict — the
+            // user needs to see how each source contributed to decide
+            // whether collective coverage is adequate.
+            const groups = resultsEl.querySelectorAll('.verifier-report-group');
+            groups.forEach(groupEl => {
+                const rows = groupEl.querySelectorAll('.verifier-report-group-row');
+                const hasVisibleRow = Array.from(rows).some(row => {
+                    const verdictClass = classes.find(cls => row.classList.contains(`verdict-${cls}`));
+                    return verdictClass && !this.reportFilters[verdictClass];
+                });
+                groupEl.style.display = hasVisibleRow ? '' : 'none';
+            });
+
+            // Show an empty-state hint when every rendered solo card and
+            // every group block is hidden by filters.
             let emptyEl = resultsEl.querySelector('.verifier-filter-empty');
-            const cards = resultsEl.querySelectorAll('.verifier-report-card');
-            const hasVisible = Array.from(cards).some(c => {
+            const soloCards = resultsEl.querySelectorAll('.verifier-report-card');
+            const hasVisibleSolo = Array.from(soloCards).some(c => {
                 const verdictClass = classes.find(cls => c.classList.contains(`verdict-${cls}`));
                 return verdictClass && !this.reportFilters[verdictClass];
             });
-            if (cards.length > 0 && !hasVisible) {
+            const hasVisibleGroup = Array.from(groups).some(g => g.style.display !== 'none');
+            const total = soloCards.length + groups.length;
+            if (total > 0 && !hasVisibleSolo && !hasVisibleGroup) {
                 if (!emptyEl) {
                     emptyEl = document.createElement('div');
                     emptyEl.className = 'verifier-filter-empty';
@@ -2958,6 +3268,18 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 (this.reportFilters.unavailable ? counts.unavailable : 0) +
                 (this.reportFilters.error ? counts.error : 0);
 
+            // Count distinct claims (groups). Solo citations are 1-member
+            // groups, so total claims = number of distinct groupIds among
+            // the results so far.
+            const claimIds = new Set();
+            for (const r of this.reportResults) {
+                claimIds.add(r.groupId || r.refId || `__solo_${claimIds.size}`);
+            }
+            const claimCount = claimIds.size;
+            const claimsLabel = claimCount === total
+                ? `${total} citations checked`
+                : `${total} citations across ${claimCount} claim${claimCount === 1 ? '' : 's'}`;
+
             summaryEl.innerHTML = `
                 <div class="verifier-summary-bar">
                     ${segHtml(counts.supported, 'seg-supported')}
@@ -2974,7 +3296,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     ${counts.error > 0 ? chip('error', counts.error, 'errors', '#adb5bd') : ''}
                 </div>
                 <div class="verifier-summary-meta">
-                    ${total} citations checked${hiddenCount > 0 ? ` · ${hiddenCount} hidden by filter` : ''}${this.reportTokenUsage.input + this.reportTokenUsage.output > 0 ? ` · ${this.reportTokenUsage.input.toLocaleString()} input + ${this.reportTokenUsage.output.toLocaleString()} output tokens` : ''}
+                    ${claimsLabel}${hiddenCount > 0 ? ` · ${hiddenCount} hidden by filter` : ''}${this.reportTokenUsage.input + this.reportTokenUsage.output > 0 ? ` · ${this.reportTokenUsage.input.toLocaleString()} input + ${this.reportTokenUsage.output.toLocaleString()} output tokens` : ''}
                 </div>
                 ${this.reportRevisionId ? `<div class="verifier-summary-meta">Revision: <a href="${this.escapeHtml(this.getRevisionPermalinkUrl(this.reportRevisionId) || '#')}" target="_blank" rel="noopener">${this.reportRevisionId}</a></div>` : ''}
             `;
@@ -2987,19 +3309,51 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             });
         }
 
+        verdictClassFor(verdict) {
+            switch (verdict) {
+                case 'SUPPORTED': return { cls: 'supported', label: 'Supported' };
+                case 'PARTIALLY SUPPORTED': return { cls: 'partial', label: 'Partial' };
+                case 'NOT SUPPORTED': return { cls: 'not-supported', label: 'Not Supported' };
+                case 'SOURCE UNAVAILABLE': return { cls: 'unavailable', label: 'Unavailable' };
+                default: return { cls: 'error', label: verdict };
+            }
+        }
+
+        attachRefScrollHandler(el, refElement) {
+            if (!refElement) return;
+            el.addEventListener('click', (e) => {
+                if (e.target.closest('.report-card-action') || e.target.closest('.verifier-report-group-edit')) return;
+                refElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                this.clearHighlights();
+                const parentRef = refElement.closest('.reference');
+                if (parentRef) parentRef.classList.add('verifier-active');
+            });
+        }
+
         renderReportCard(result, index) {
             const resultsEl = document.getElementById('verifier-report-results');
             if (!resultsEl) return;
 
-            let verdictClass, verdictLabel;
-            switch (result.verdict) {
-                case 'SUPPORTED': verdictClass = 'supported'; verdictLabel = 'Supported'; break;
-                case 'PARTIALLY SUPPORTED': verdictClass = 'partial'; verdictLabel = 'Partial'; break;
-                case 'NOT SUPPORTED': verdictClass = 'not-supported'; verdictLabel = 'Not Supported'; break;
-                case 'SOURCE UNAVAILABLE': verdictClass = 'unavailable'; verdictLabel = 'Unavailable'; break;
-                default: verdictClass = 'error'; verdictLabel = result.verdict; break;
+            // Solo citation: render the original card layout unchanged.
+            if (!result.groupSize || result.groupSize <= 1) {
+                resultsEl.appendChild(this.buildSoloCard(result));
+                return;
             }
 
+            // Group of >1: the first citation in the group creates a group
+            // container; every subsequent citation appends a row into the
+            // existing container located by data-group-id.
+            let groupEl = resultsEl.querySelector(`.verifier-report-group[data-group-id="${CSS.escape(result.groupId)}"]`);
+            if (!groupEl) {
+                groupEl = this.buildGroupBlock(result);
+                resultsEl.appendChild(groupEl);
+            }
+            const rowsEl = groupEl.querySelector('.verifier-report-group-rows');
+            rowsEl.appendChild(this.buildGroupRow(result));
+        }
+
+        buildSoloCard(result) {
+            const { cls: verdictClass, label: verdictLabel } = this.verdictClassFor(result.verdict);
             const card = document.createElement('div');
             card.className = `verifier-report-card verdict-${verdictClass}`;
             const claimExcerpt = result.claimText.length > 80 ? result.claimText.substring(0, 80) + '…' : result.claimText;
@@ -3016,15 +3370,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 ${truncationHtml}
             `;
 
-            if (result.refElement) {
-                card.addEventListener('click', (e) => {
-                    if (e.target.closest('.report-card-action')) return;
-                    result.refElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    this.clearHighlights();
-                    const parentRef = result.refElement.closest('.reference');
-                    if (parentRef) parentRef.classList.add('verifier-active');
-                });
-            }
+            this.attachRefScrollHandler(card, result.refElement);
 
             if (result.refElement && (result.verdict === 'NOT SUPPORTED' || result.verdict === 'PARTIALLY SUPPORTED' || result.verdict === 'SOURCE UNAVAILABLE')) {
                 const actionDiv = document.createElement('div');
@@ -3040,8 +3386,59 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 actionDiv.appendChild(editBtn.$element[0]);
                 card.appendChild(actionDiv);
             }
+            return card;
+        }
 
-            resultsEl.appendChild(card);
+        buildGroupBlock(firstResult) {
+            const groupEl = document.createElement('div');
+            groupEl.className = 'verifier-report-group';
+            groupEl.dataset.groupId = firstResult.groupId;
+            const claimExcerpt = firstResult.claimText.length > 120 ? firstResult.claimText.substring(0, 120) + '…' : firstResult.claimText;
+            const numbers = (firstResult.groupCitationNumbers || []).map(n => `[${n}]`).join('');
+            groupEl.innerHTML = `
+                <div class="verifier-report-group-header">
+                    <div class="verifier-report-group-title">
+                        <span class="verifier-report-group-badge">Group of ${firstResult.groupSize} · ${numbers}</span>
+                    </div>
+                    <div class="verifier-report-group-claim">${this.escapeHtml(claimExcerpt)}</div>
+                    <div class="verifier-report-group-edit"></div>
+                </div>
+                <div class="verifier-report-group-rows"></div>
+            `;
+            // One shared "Edit Section" button per group: every member is in
+            // the same article section by definition, so a per-row button
+            // would just be repetition. Wire it to the first member's ref.
+            if (firstResult.refElement) {
+                const editBtn = new OO.ui.ButtonWidget({
+                    label: 'Edit Section',
+                    flags: ['progressive'],
+                    icon: 'edit',
+                    href: this.buildEditUrl(firstResult.refElement),
+                    target: '_blank',
+                    framed: false
+                });
+                groupEl.querySelector('.verifier-report-group-edit').appendChild(editBtn.$element[0]);
+            }
+            return groupEl;
+        }
+
+        buildGroupRow(result) {
+            const { cls: verdictClass, label: verdictLabel } = this.verdictClassFor(result.verdict);
+            const row = document.createElement('div');
+            row.className = `verifier-report-group-row verdict-${verdictClass}`;
+            const truncationHtml = (result.truncated && result.verdict !== 'SUPPORTED')
+                ? '<div class="report-card-truncated">⚠ Source is long, only partially checked.</div>'
+                : '';
+            row.innerHTML = `
+                <div class="verifier-report-group-row-header">
+                    <span class="report-card-citation">[${result.citationNumber}]</span>
+                    <span class="report-card-verdict ${verdictClass}">${verdictLabel}</span>
+                </div>
+                ${result.comments ? `<div class="report-card-comment">${this.escapeHtml(result.comments)}</div>` : ''}
+                ${truncationHtml}
+            `;
+            this.attachRefScrollHandler(row, result.refElement);
+            return row;
         }
 
         escapeHtml(str) {
@@ -3116,9 +3513,16 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 // in the display text so they don't confuse MediaWiki's wikilink parser.
                 const refHref = r.refElement && r.refElement.getAttribute('href');
                 const refAnchor = refHref && refHref.startsWith('#') ? refHref.substring(1) : null;
-                const citationCell = (revId && refAnchor)
+                let citationCell = (revId && refAnchor)
                     ? `[[Special:PermanentLink/${revId}#${refAnchor}|&#91;${r.citationNumber}&#93;]]`
                     : `[${r.citationNumber}]`;
+                // Flag grouped citations so editors reading the wikitext can
+                // see which rows belong to the same multi-source claim. Using
+                // a group token rather than rowspan keeps the table sortable.
+                if (r.groupSize && r.groupSize > 1 && r.groupCitationNumbers) {
+                    const groupToken = r.groupCitationNumbers.map(n => `[${n}]`).join('');
+                    citationCell += ` <small>(group ${groupToken})</small>`;
+                }
                 wikitext += `|-\n| ${citationCell} || ${verdictWiki} || ${sourceStr} || ${commentsClean}\n`;
             }
 
@@ -3292,6 +3696,19 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                             comments: 'Could not fetch source content',
                             truncated: false
                         };
+                    } else if (typeof sourceContent === 'object' && sourceContent.sourceUnavailable) {
+                        // Body classifier flagged the extracted content as structurally
+                        // unusable. Record SU verdict without invoking the LLM.
+                        result = {
+                            citationNumber: citation.citationNumber,
+                            claimText: citation.claimText,
+                            url: citation.url,
+                            refElement: citation.refElement,
+                            verdict: 'SOURCE UNAVAILABLE',
+                            confidence: 0,
+                            comments: `Pipeline-attributed (${sourceContent.reason})`,
+                            truncated: false
+                        };
                     } else {
                         const sourceTruncated = sourceContent.includes('\nTruncated: true');
                         // Verify via LLM
@@ -3377,6 +3794,13 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 }
 
                 if (result) {
+                    // Carry the group metadata from the citation onto the
+                    // result so the renderer and the wikitext exporter can
+                    // cluster sibling citations without re-deriving groups.
+                    result.groupId = citation.groupId;
+                    result.groupSize = citation.groupSize;
+                    result.groupIndex = citation.groupIndex;
+                    result.groupCitationNumbers = citation.groupCitationNumbers;
                     this.reportResults.push(result);
                     this.renderReportCard(result, this.reportResults.length - 1);
                     this.renderReportSummary();
@@ -3453,7 +3877,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
         clearResult() {
             const verdictEl = document.getElementById('verifier-verdict');
             const commentsEl = document.getElementById('verifier-comments');
-            
+
             if (verdictEl) {
                 verdictEl.textContent = '';
                 verdictEl.className = '';
@@ -3465,6 +3889,32 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
             if (actionContainer) {
                 actionContainer.innerHTML = '';
             }
+            const groupEl = document.getElementById('verifier-claim-group-indicator');
+            if (groupEl) {
+                groupEl.style.display = 'none';
+                groupEl.innerHTML = '';
+            }
+        }
+
+        renderClaimGroupIndicator(refElement) {
+            const indicatorEl = document.getElementById('verifier-claim-group-indicator');
+            if (!indicatorEl) return;
+            const group = this.getCitationGroup(refElement);
+            if (!group || group.length <= 1) {
+                indicatorEl.style.display = 'none';
+                indicatorEl.innerHTML = '';
+                return;
+            }
+            const activeWrapper = refElement.closest('.reference');
+            const numbers = group.map(wrapper => {
+                const anchor = wrapper.querySelector('a');
+                const text = anchor ? anchor.textContent.replace(/[\[\]]/g, '').trim() : '?';
+                const isActive = wrapper === activeWrapper;
+                const span = `<span class="${isActive ? 'group-active' : ''}">[${this.escapeHtml(text)}]</span>`;
+                return span;
+            }).join(' ');
+            indicatorEl.innerHTML = `Part of a group of ${group.length} citations: ${numbers}`;
+            indicatorEl.style.display = '';
         }
     }
     

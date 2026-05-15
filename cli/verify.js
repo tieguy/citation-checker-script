@@ -145,7 +145,7 @@ export function classifyProviderError(err) {
 
 const PROVIDER_MODELS = {
     publicai:    'aisingapore/Qwen-SEA-LION-v4-32B-IT',
-    huggingface: 'Qwen/Qwen3-32B',
+    huggingface: 'openai/gpt-oss-20b',
     claude:      'claude-sonnet-4-6',
     gemini:      'gemini-flash-latest',
     openai:      'gpt-4o',
@@ -297,6 +297,13 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
     const sourceInfo = await fetchSourceContent(sourceUrl, pageNum);
     if (!sourceInfo) {
         stderr.write(`ccs: source unavailable: ${sourceUrl}\n`);
+        return 7;
+    }
+    if (typeof sourceInfo === 'object' && sourceInfo.sourceUnavailable) {
+        // Body classifier flagged extracted content as structurally unusable
+        // (Wayback chrome, JS-only skeleton, anti-bot challenge, etc.). The
+        // verdict is pipeline-attributed; no LLM call needed.
+        stderr.write(`ccs: source unavailable (${sourceInfo.reason}): ${sourceUrl}\n`);
         return 7;
     }
 
