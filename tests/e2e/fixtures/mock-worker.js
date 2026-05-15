@@ -19,12 +19,16 @@ const CORS_HEADERS = {
 
 function defaultFetchResponse(url) {
   // Map source URLs to deterministic text for assertion in tests.
-  // Content must be > 100 chars to pass the minimum-content-length check in fetchSourceContent().
+  // Content must be > 100 chars to pass the minimum-content-length check in
+  // fetchSourceContent(), AND > 300 chars to pass core/body-classifier.js's
+  // SHORT_BODY_FLOOR on branches where the body-usability classifier is wired
+  // in (e.g., body-classifier-on-pr203 / PR #217). Padding the strings keeps
+  // tests passing on both pre- and post-classifier code paths.
   const map = {
-    'https://example.com/source-1': 'Source 1 fully supports the claim that the sky is blue. This is a comprehensive source that discusses the color and properties of the sky in detail. The evidence is clear and direct.',
-    'https://example.com/source-2': 'Source 2 mentions the color green tangentially. While the article discusses many colors, green appears in the context of grass and vegetation. The reference is relevant to botanical claims.',
+    'https://example.com/source-1': 'Source 1 fully supports the claim that the sky is blue. This is a comprehensive source that discusses the color and properties of the sky in detail. The evidence is clear and direct. Multiple paragraphs cover atmospheric science, light scattering, and historical observations to substantiate the claim with rigor and clarity for the reader.',
+    'https://example.com/source-2': 'Source 2 mentions the color green tangentially. While the article discusses many colors, green appears in the context of grass and vegetation. The reference is relevant to botanical claims. The text continues with discussions of chlorophyll, photosynthesis, and the visible-light spectrum, providing supporting background context.',
   };
-  const content = map[url] || `Generic source content for ${url}. This is placeholder content to ensure minimum length requirements are met for the fetch response.`;
+  const content = map[url] || `Generic source content for ${url}. This is placeholder content to ensure minimum length requirements are met for the fetch response. Additional substantive prose is appended so the body-usability classifier does not flag the response as short_body during e2e test runs. The fallback text includes enough body to clear the SHORT_BODY_FLOOR threshold defined in core/body-classifier.js.`;
   return { content, truncated: false, pdf: false, totalPages: 1, page: 1 };
 }
 
