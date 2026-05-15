@@ -21,8 +21,8 @@ bin/ccs                          # Executable shim for the CLI
 scripts/sync-main.js             # Inlines core/ modules into main.js for the userscript build
 tests/                           # `node --test` suite (run via `npm test`)
 tests/e2e/                       # Playwright browser tests (run via `npm run test:e2e`)
-  smoke.spec.js, verify-flow.spec.js
-  fixtures/                      # article.html, mw-stubs.js, mock-worker.js, load-userscript.js
+  smoke.spec.js, verify-flow.spec.js, real-article.spec.js
+  fixtures/                      # article.html (synthetic), real-article.html (Wikipedia snapshot), mw-stubs.js, mock-worker.js, load-userscript.js
 benchmark/
   package.json                   # Benchmark-only deps
   extract_dataset.js             # Extract claim/source pairs from Wikipedia
@@ -114,7 +114,7 @@ npm run report                # Generate markdown report
 ## Development Workflow
 
 - **Unit tests:** `node --test` via `npm test` from the repo root, runs everything in `tests/**/*.test.js`. New helpers should get a sibling `*.test.js` file. Behavioral validation also goes through the benchmark suite against the human-labeled citation dataset.
-- **Browser/e2e tests:** `npm run test:e2e` runs Playwright (chromium, headless) against `tests/e2e/*.spec.js`. `pretest:e2e` rebuilds `main.js` so the harness loads the same bytes the userscript ships. Tests load `main.js` byte-identically into a fake-Wikipedia fixture page (`tests/e2e/fixtures/article.html`) with `mw.*` stubs (`mw-stubs.js`) plus the real `oojs-ui` library loaded from `node_modules`, and all Cloudflare-Worker traffic intercepted (`mock-worker.js`). The harness navigates to a real `en.wikipedia.org/wiki/Test_Article` origin (routed to the fixture) so `localStorage` works. See `tests/e2e/fixtures/load-userscript.js` for the load order (jQuery → oojs → oojs-ui → mw-stubs → main.js) and `mock-worker.js` for the per-spec response overrides.
+- **Browser/e2e tests:** `npm run test:e2e` runs Playwright (chromium, headless) against `tests/e2e/*.spec.js`. `pretest:e2e` rebuilds `main.js` so the harness loads the same bytes the userscript ships. Tests load `main.js` byte-identically into a fixture page — either the synthetic minimal `article.html` (most tests) or `real-article.html` (a trimmed Wikipedia snapshot, for tests that need real-DOM coverage) — with `mw.*` stubs (`mw-stubs.js`) plus the real `oojs-ui` library loaded from `node_modules`, and all Cloudflare-Worker traffic intercepted (`mock-worker.js`). The harness navigates to a real `en.wikipedia.org/wiki/Test_Article` origin (routed to the fixture) so `localStorage` works. See `tests/e2e/fixtures/load-userscript.js` for the load order (jQuery → oojs → oojs-ui → mw-stubs → main.js) and `mock-worker.js` for the per-spec response overrides. `loadUserscript(page, { fixturePath })` accepts an optional fixture path; defaults to `article.html`.
 - **No test/build CI** is wired up (the only GitHub Actions workflow is a scheduled talk-page scraper).
 - **No linter** configured
 - **Branching:** Feature branches off `main`, merged via pull requests
