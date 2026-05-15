@@ -6,16 +6,23 @@ import { classifyBody } from './body-classifier.js';
 // fetchSourceContent return shapes:
 //   string                                  — usable body, formatted as
 //                                             "Source URL: <u>\n\nSource Content:\n<body>"
-//   null                                    — fetch failed (network/proxy/Google Books skip)
-//   { sourceUnavailable, reason }           — body is structurally bad (Wayback chrome,
-//                                             CSS leak, JSON-LD blob, anti-bot challenge,
-//                                             etc.). Callers should record a deterministic
-//                                             "Source unavailable" verdict without invoking
-//                                             the LLM. See core/body-classifier.js.
+//   { sourceUnavailable, reason }           — source cannot be verified deterministically.
+//                                             Callers should record a "Source unavailable"
+//                                             verdict without invoking the LLM. Reasons:
+//                                               'google_books_skip' — Google Books URL,
+//                                                                    intentionally not fetched
+//                                               'fetch_failed'      — proxy error, empty response,
+//                                                                    or network exception
+//                                               '<classifier code>' — body fetched but flagged
+//                                                                    structurally bad by
+//                                                                    core/body-classifier.js
+//                                                                    (wayback_chrome, short_body,
+//                                                                    json_ld_leak, css_leak,
+//                                                                    amazon_stub, anti_bot_challenge)
 export async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
     if (isGoogleBooksUrl(url)) {
         console.log('[CitationVerifier] Skipping Google Books URL:', url);
-        return null;
+        return { sourceUnavailable: true, reason: 'google_books_skip' };
     }
 
     try {
@@ -28,7 +35,7 @@ export async function fetchSourceContent(url, pageNum, { workerBase = 'https://p
 
         if (data.error) {
             console.warn('[CitationVerifier] Proxy error:', data.error);
-            return null;
+            return { sourceUnavailable: true, reason: 'fetch_failed' };
         }
 
         if (data.content && data.content.length > 100) {
@@ -61,7 +68,9 @@ export async function fetchSourceContent(url, pageNum, { workerBase = 'https://p
     } catch (error) {
         console.error('Proxy fetch failed:', error);
     }
-    return null; // Falls back to manual input
+    // Reached when content is missing/too-short or an exception was caught.
+    // Both are forms of "couldn't get usable content" → fetch_failed SU.
+    return { sourceUnavailable: true, reason: 'fetch_failed' };
 }
 
 export function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {

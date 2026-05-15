@@ -314,13 +314,14 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
     // 8. Fetch the source content via the worker proxy.
     const sourceInfo = await fetchSourceContent(sourceUrl, pageNum);
     if (!sourceInfo) {
+        // Defensive: worker.js no longer returns null; only retained in case a
+        // future caller path or test mock returns null.
         stderr.write(`ccs: source unavailable: ${sourceUrl}\n`);
         return 7;
     }
     if (typeof sourceInfo === 'object' && sourceInfo.sourceUnavailable) {
-        // Body classifier flagged extracted content as structurally unusable
-        // (Wayback chrome, JS-only skeleton, anti-bot challenge, etc.). The
-        // verdict is pipeline-attributed; no LLM call needed.
+        // Source cannot be verified deterministically — fetch failure, skip-listed
+        // URL (Google Books), or body-classifier rejection. No LLM call needed.
         stderr.write(`ccs: source unavailable (${sourceInfo.reason}): ${sourceUrl}\n`);
         return 7;
     }

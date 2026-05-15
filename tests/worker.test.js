@@ -12,12 +12,48 @@ function mockFetch(impl) {
   return { calls, restore: () => { globalThis.fetch = original; } };
 }
 
-test('fetchSourceContent returns null for Google Books URLs without hitting the network', async () => {
+test('fetchSourceContent returns SU(google_books_skip) for Google Books URLs without hitting the network', async () => {
   const mock = mockFetch(async () => { throw new Error('should not be called'); });
   try {
     const result = await fetchSourceContent('https://books.google.com/books?id=abc', null);
-    assert.equal(result, null);
+    assert.deepEqual(result, { sourceUnavailable: true, reason: 'google_books_skip' });
     assert.equal(mock.calls.length, 0);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('fetchSourceContent returns SU(fetch_failed) on proxy error', async () => {
+  const mock = mockFetch(async () => ({
+    ok: true,
+    json: async () => ({ error: 'upstream timeout' }),
+  }));
+  try {
+    const result = await fetchSourceContent('https://example.com/doc', null);
+    assert.deepEqual(result, { sourceUnavailable: true, reason: 'fetch_failed' });
+  } finally {
+    mock.restore();
+  }
+});
+
+test('fetchSourceContent returns SU(fetch_failed) on empty proxy response', async () => {
+  const mock = mockFetch(async () => ({
+    ok: true,
+    json: async () => ({ content: '', truncated: false }),
+  }));
+  try {
+    const result = await fetchSourceContent('https://example.com/doc', null);
+    assert.deepEqual(result, { sourceUnavailable: true, reason: 'fetch_failed' });
+  } finally {
+    mock.restore();
+  }
+});
+
+test('fetchSourceContent returns SU(fetch_failed) on network exception', async () => {
+  const mock = mockFetch(async () => { throw new Error('network down'); });
+  try {
+    const result = await fetchSourceContent('https://example.com/doc', null);
+    assert.deepEqual(result, { sourceUnavailable: true, reason: 'fetch_failed' });
   } finally {
     mock.restore();
   }

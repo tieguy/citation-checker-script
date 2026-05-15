@@ -336,3 +336,19 @@ test('synthesizePipelineSU handles missing body_unusable_reason gracefully', () 
     const result = synthesizePipelineSU(entry, 'p', 'm');
     assert.equal(result.comments, 'Pipeline-attributed (unknown)');
 });
+
+test('synthesizePipelineSU uses fetch_failed reason for source_fetch_failed rows', () => {
+    // source_fetch_failed rows have no body_unusable_reason (the proxy never
+    // returned content for the classifier to inspect). The synthesizer should
+    // tag them as fetch_failed rather than 'unknown'.
+    const entry = {
+        id: 'row_77',
+        ground_truth: 'Source unavailable',
+        extraction_status: 'source_fetch_failed',
+    };
+    const result = synthesizePipelineSU(entry, 'p', 'm');
+    assert.equal(result.predicted_verdict, 'Source unavailable');
+    assert.equal(result.comments, 'Pipeline-attributed (fetch_failed)');
+    assert.equal(result.pipeline_attributed, true);
+    assert.equal(result.correct, 'exact');
+});

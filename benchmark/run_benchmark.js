@@ -506,17 +506,26 @@ async function main() {
     const datasetMetadata = loadMetadata(DATASET_PATH);
     console.log(`Loaded ${dataset.length} entries from dataset`);
 
-    // Filter to entries ready for benchmarking. Includes both:
-    //   - extraction_status === 'complete'        — feeds normal LLM flow
-    //   - extraction_status === 'body_unusable'   — feeds the synthetic-SU
-    //     path below (no LLM call, deterministic SU verdict per provider)
+    // Filter to entries ready for benchmarking. Three buckets:
+    //   - extraction_status === 'complete'             — feeds normal LLM flow
+    //   - extraction_status === 'body_unusable'        — synthetic SU (no LLM call);
+    //                                                    reason from body_unusable_reason
+    //   - extraction_status === 'source_fetch_failed'  — synthetic SU (no LLM call);
+    //                                                    reason 'fetch_failed'. Mirrors
+    //                                                    production userscript behavior
+    //                                                    where worker.js returns the
+    //                                                    same { sourceUnavailable } shape
+    //                                                    on proxy/network failure.
     let entries = dataset.filter(
-        e => (e.extraction_status === 'complete' || e.extraction_status === 'body_unusable')
+        e => (e.extraction_status === 'complete'
+              || e.extraction_status === 'body_unusable'
+              || e.extraction_status === 'source_fetch_failed')
              && !e.needs_manual_review
     );
     const usableCount = entries.filter(e => e.extraction_status === 'complete').length;
-    const unusableCount = entries.length - usableCount;
-    console.log(`${entries.length} entries ready for benchmarking (${usableCount} usable, ${unusableCount} body_unusable → synthetic SU)`);
+    const unusableCount = entries.filter(e => e.extraction_status === 'body_unusable').length;
+    const fetchFailedCount = entries.filter(e => e.extraction_status === 'source_fetch_failed').length;
+    console.log(`${entries.length} entries ready for benchmarking (${usableCount} usable, ${unusableCount} body_unusable → synthetic SU, ${fetchFailedCount} source_fetch_failed → synthetic SU)`);
 
     if (VERSION_FILTER !== 'all') {
         const before = entries.length;
@@ -625,14 +634,19 @@ async function main() {
     await Promise.all(
         [...tasksByHost.entries()].map(([host, hostTasks]) =>
             runPool(hostTasks, CONCURRENCY, async ({ entry, provider }) => {
-                // body_unusable rows synthesize a "Source unavailable" verdict
-                // for every provider without invoking the LLM. The body-classifier
-                // (in extract_dataset.js) already determined the answer; the
-                // benchmark just records it.
-                if (entry.extraction_status === 'body_unusable') {
+                // body_unusable + source_fetch_failed rows synthesize a
+                // "Source unavailable" verdict for every provider without invoking the
+                // LLM. body_unusable is the body-classifier path; source_fetch_failed
+                // is the pre-LLM-fetch path (proxy/network failure). Mirrors
+                // production worker.js behavior where both surface as the same
+                // { sourceUnavailable, reason } shape.
+                if (entry.extraction_status === 'body_unusable'
+                    || entry.extraction_status === 'source_fetch_failed') {
                     results.push(synthesizePipelineSU(entry, provider, PROVIDERS[provider].model));
                     completed++;
-                    console.log(`[${completed}/${totalTasks}] ${entry.id} / ${provider} (pipeline_attributed=${entry.body_unusable_reason})`);
+                    const reason = entry.body_unusable_reason
+                        || (entry.extraction_status === 'source_fetch_failed' ? 'fetch_failed' : 'unknown');
+                    console.log(`[${completed}/${totalTasks}] ${entry.id} / ${provider} (pipeline_attributed=${reason})`);
                     requestSave();
                     return;
                 }
@@ -675,15 +689,20 @@ async function main() {
 }
 
 /**
- * Synthesize a deterministic "Source unavailable" result for a body_unusable
- * dataset row, without invoking the LLM. Used by the runner for rows where
- * the body-classifier flagged structurally-bad extracted content (Wayback
- * chrome, CSS leak, anti-bot challenge, etc.). The `pipeline_attributed`
- * flag lets analyze_results.js split pipeline-vs-model attribution in the
- * per-provider accuracy metric.
+ * Synthesize a deterministic "Source unavailable" result for a dataset row
+ * that won't reach the LLM. Used by the runner for two cases:
+ *  - extraction_status === 'body_unusable': body-classifier flagged
+ *    structurally-bad extracted content (Wayback chrome, CSS leak, anti-bot
+ *    challenge, etc.); reason is in entry.body_unusable_reason.
+ *  - extraction_status === 'source_fetch_failed': the proxy never produced
+ *    usable content (network/proxy failure); reason defaults to 'fetch_failed'.
+ * The `pipeline_attributed` flag lets analyze_results.js split pipeline-vs-
+ * model attribution in the per-provider accuracy metric.
  */
 export function synthesizePipelineSU(entry, provider, model) {
     const verdict = 'Source unavailable';
+    const reason = entry.body_unusable_reason
+        || (entry.extraction_status === 'source_fetch_failed' ? 'fetch_failed' : 'unknown');
     return {
         entry_id: entry.id,
         provider,
@@ -691,7 +710,7 @@ export function synthesizePipelineSU(entry, provider, model) {
         ground_truth: entry.ground_truth,
         predicted_verdict: verdict,
         confidence: 'High',
-        comments: `Pipeline-attributed (${entry.body_unusable_reason || 'unknown'})`,
+        comments: `Pipeline-attributed (${reason})`,
         latency_ms: 0,
         error: null,
         correct: compareVerdicts(verdict, entry.ground_truth),

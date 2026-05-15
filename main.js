@@ -779,16 +779,23 @@ function classifyBody(text) {
 // fetchSourceContent return shapes:
 //   string                                  — usable body, formatted as
 //                                             "Source URL: <u>\n\nSource Content:\n<body>"
-//   null                                    — fetch failed (network/proxy/Google Books skip)
-//   { sourceUnavailable, reason }           — body is structurally bad (Wayback chrome,
-//                                             CSS leak, JSON-LD blob, anti-bot challenge,
-//                                             etc.). Callers should record a deterministic
-//                                             "Source unavailable" verdict without invoking
-//                                             the LLM. See core/body-classifier.js.
+//   { sourceUnavailable, reason }           — source cannot be verified deterministically.
+//                                             Callers should record a "Source unavailable"
+//                                             verdict without invoking the LLM. Reasons:
+//                                               'google_books_skip' — Google Books URL,
+//                                                                    intentionally not fetched
+//                                               'fetch_failed'      — proxy error, empty response,
+//                                                                    or network exception
+//                                               '<classifier code>' — body fetched but flagged
+//                                                                    structurally bad by
+//                                                                    core/body-classifier.js
+//                                                                    (wayback_chrome, short_body,
+//                                                                    json_ld_leak, css_leak,
+//                                                                    amazon_stub, anti_bot_challenge)
 async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
     if (isGoogleBooksUrl(url)) {
         console.log('[CitationVerifier] Skipping Google Books URL:', url);
-        return null;
+        return { sourceUnavailable: true, reason: 'google_books_skip' };
     }
 
     try {
@@ -801,7 +808,7 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
 
         if (data.error) {
             console.warn('[CitationVerifier] Proxy error:', data.error);
-            return null;
+            return { sourceUnavailable: true, reason: 'fetch_failed' };
         }
 
         if (data.content && data.content.length > 100) {
@@ -834,7 +841,9 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
     } catch (error) {
         console.error('Proxy fetch failed:', error);
     }
-    return null; // Falls back to manual input
+    // Reached when content is missing/too-short or an exception was caught.
+    // Both are forms of "couldn't get usable content" → fetch_failed SU.
+    return { sourceUnavailable: true, reason: 'fetch_failed' };
 }
 
 function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
@@ -2370,17 +2379,25 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                 }
 
                 if (!sourceInfo) {
+                    // Defensive: callers may cache null on exception (see batch report
+                    // path). worker.js itself no longer returns null.
                     this.showSourceTextInput();
                     this.updateStatus('Could not fetch source. Please paste the source text below.');
                     return;
                 }
 
                 if (typeof sourceInfo === 'object' && sourceInfo.sourceUnavailable) {
-                    // Body classifier flagged the extracted content as structurally
-                    // unusable (Wayback chrome, JS-only skeleton, anti-bot challenge,
-                    // etc.). The verdict is determined here without invoking the LLM.
+                    // Source cannot be verified deterministically — either fetch failed
+                    // (network/proxy/empty body), URL is on the skip list (Google Books),
+                    // or the body-classifier flagged the extracted content as structurally
+                    // unusable. No LLM call is made.
                     this.showSourceTextInput();
-                    this.updateStatus(`Source unavailable (${sourceInfo.reason}). Paste the source text below if you have it.`);
+                    const reason = sourceInfo.reason;
+                    if (reason === 'fetch_failed') {
+                        this.updateStatus('Could not fetch source. Please paste the source text below.');
+                    } else {
+                        this.updateStatus(`Source unavailable (${reason}). Paste the source text below if you have it.`);
+                    }
                     return;
                 }
 
@@ -3535,6 +3552,8 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     const sourceContent = this.sourceCache.get(cacheKey);
 
                     if (!sourceContent) {
+                        // Defensive: an exception in fetchSourceContent was caught above
+                        // and cached as null. worker.js itself no longer returns null.
                         result = {
                             citationNumber: citation.citationNumber,
                             claimText: citation.claimText,
@@ -3546,8 +3565,13 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                             truncated: false
                         };
                     } else if (typeof sourceContent === 'object' && sourceContent.sourceUnavailable) {
-                        // Body classifier flagged the extracted content as structurally
-                        // unusable. Record SU verdict without invoking the LLM.
+                        // Source cannot be verified deterministically — fetch failure,
+                        // skip-listed URL (Google Books), or body-classifier rejection.
+                        // No LLM call is made.
+                        const reason = sourceContent.reason;
+                        const comments = reason === 'fetch_failed'
+                            ? 'Could not fetch source content'
+                            : `Pipeline-attributed (${reason})`;
                         result = {
                             citationNumber: citation.citationNumber,
                             claimText: citation.claimText,
@@ -3555,7 +3579,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                             refElement: citation.refElement,
                             verdict: 'SOURCE UNAVAILABLE',
                             confidence: 0,
-                            comments: `Pipeline-attributed (${sourceContent.reason})`,
+                            comments,
                             truncated: false
                         };
                     } else {
