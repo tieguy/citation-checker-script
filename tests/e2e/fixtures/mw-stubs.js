@@ -88,6 +88,14 @@
     this._btn.textContent = String(label);
     return this;
   };
+  ButtonWidget.prototype.setIcon = function (icon) {
+    if (icon) {
+      this._btn.setAttribute('data-icon', String(icon));
+    } else {
+      this._btn.removeAttribute('data-icon');
+    }
+    return this;
+  };
 
   function MenuOptionWidget(opts) {
     opts = opts || {};
