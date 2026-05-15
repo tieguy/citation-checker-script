@@ -19,16 +19,18 @@ const CORS_HEADERS = {
 
 function defaultFetchResponse(url) {
   // Map source URLs to deterministic text for assertion in tests.
+  // Content must be > 100 chars to pass the minimum-content-length check in fetchSourceContent().
   const map = {
-    'https://example.com/source-1': 'Source 1 fully supports the claim that the sky is blue.',
-    'https://example.com/source-2': 'Source 2 mentions the color green tangentially.',
+    'https://example.com/source-1': 'Source 1 fully supports the claim that the sky is blue. This is a comprehensive source that discusses the color and properties of the sky in detail. The evidence is clear and direct.',
+    'https://example.com/source-2': 'Source 2 mentions the color green tangentially. While the article discusses many colors, green appears in the context of grass and vegetation. The reference is relevant to botanical claims.',
   };
-  const content = map[url] || `Generic source content for ${url}.`;
+  const content = map[url] || `Generic source content for ${url}. This is placeholder content to ensure minimum length requirements are met for the fetch response.`;
   return { content, truncated: false, pdf: false, totalPages: 1, page: 1 };
 }
 
 function defaultLlmResponse() {
   // OpenAI-compatible chat completion shape (what the PublicAI route returns).
+  // Note: verdict must be in UPPERCASE (SUPPORTED, NOT SUPPORTED, etc.) to match main.js display logic.
   return {
     id: 'mock-id',
     object: 'chat.completion',
@@ -38,7 +40,7 @@ function defaultLlmResponse() {
         message: {
           role: 'assistant',
           content: JSON.stringify({
-            verdict: 'Supported',
+            verdict: 'SUPPORTED',
             confidence: 'High',
             comments: 'Mock verdict from setupWorkerMocks default.',
           }),
@@ -105,8 +107,8 @@ export async function setupWorkerMocks(page, overrides = {}) {
       return;
     }
 
-    // LLM call: POST to base worker URL (no path or empty path).
-    if (method === 'POST' && (url.pathname === '/' || url.pathname === '')) {
+    // LLM call: POST to base worker URL (no path or empty path) or /hf (HuggingFace route).
+    if (method === 'POST' && (url.pathname === '/' || url.pathname === '' || url.pathname === '/hf')) {
       const body = safeJson(request.postData());
       await page.evaluate((b) => { window.__llmRequests.push(b); }, body);
       const override = overrides.llm;
