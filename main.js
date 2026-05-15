@@ -658,7 +658,8 @@ async function callClaudeAPI({ apiKey, model, systemPrompt, userContent, maxToke
         model: model,
         max_tokens: maxTokens,
         system: systemPrompt,
-        messages: [{ role: "user", content: userContent }]
+        messages: [{ role: "user", content: userContent }],
+        temperature: 0.1
     };
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
