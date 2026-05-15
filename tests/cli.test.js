@@ -608,9 +608,11 @@ test('VERIFY_HELP_TEXT: documents the verify subcommand usage', () => {
   assert.match(VERIFY_HELP_TEXT, /ccs verify <wikipedia-url> <citation-number>/);
 });
 
-test('VERIFY_HELP_TEXT: documents --provider with all four user-facing aliases', () => {
+test('VERIFY_HELP_TEXT: documents --provider with at least two PROVIDERS-registry keys', () => {
   assert.match(VERIFY_HELP_TEXT, /--provider/);
-  for (const p of ['publicai', 'claude', 'gemini', 'openai']) {
+  // The CLI accepts any PROVIDERS-registry key; document at least two so users
+  // see the pattern and know where to find the rest.
+  for (const p of ['claude-sonnet-4-5', 'gemini-2.5-flash']) {
     assert.match(VERIFY_HELP_TEXT, new RegExp(p), `VERIFY_HELP_TEXT missing provider: ${p}`);
   }
 });
@@ -620,14 +622,9 @@ test('VERIFY_HELP_TEXT: documents --no-log', () => {
 });
 
 test('VERIFY_HELP_TEXT: documents the API key env vars for external providers', () => {
-  for (const v of ['CLAUDE_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY']) {
+  for (const v of ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'PUBLICAI_API_KEY', 'HF_TOKEN', 'OPENROUTER_API_KEY']) {
     assert.match(VERIFY_HELP_TEXT, new RegExp(v), `VERIFY_HELP_TEXT missing env var: ${v}`);
   }
-  // PublicAI goes through the proxy and needs no client-side key — document
-  // that explicitly so users don't go looking for a PUBLICAI_API_KEY.
-  // Use [\s\S] (not [^\n]*) so the match can span the line break between
-  // "publicai" and "no API key" in the formatted block.
-  assert.match(VERIFY_HELP_TEXT, /publicai[\s\S]*?no API key/i);
 });
 
 test('VERIFY_HELP_TEXT: documents every exit code from the error table', () => {
