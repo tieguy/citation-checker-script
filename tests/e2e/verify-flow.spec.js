@@ -72,7 +72,7 @@ test.describe('verify flow', () => {
     await expect(page.getByRole('button', { name: 'Edit Section' })).toBeVisible();
   });
 
-  test('worker fetch error → user is notified', async ({ page }) => {
+  test('worker fetch error → source-text fallback shown', async ({ page }) => {
     await setupWorkerMocks(page, {
       fetch: { status: 500, body: { error: 'Source temporarily unavailable' } },
     });
