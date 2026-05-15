@@ -393,7 +393,7 @@ function extractClaimText(refElement) {
 // OpenRouter (which adds attribution headers and surfaces per-call cost),
 // and the benchmark runner (which calls direct PublicAI/OpenAI endpoints
 // with bearer auth from environment variables).
-async function callOpenAICompatibleChat({ url, apiKey, model, systemPrompt, userContent, label, extraHeaders, maxTokens = 2048, temperature = 0.1 }) {
+async function callOpenAICompatibleChat({ url, apiKey, model, systemPrompt, userContent, label, extraHeaders, extraBody, maxTokens = 2048, temperature = 0.1 }) {
     const requestBody = {
         model: model,
         messages: [
@@ -403,6 +403,7 @@ async function callOpenAICompatibleChat({ url, apiKey, model, systemPrompt, user
         max_tokens: maxTokens,
         temperature: temperature
     };
+    if (extraBody) Object.assign(requestBody, extraBody);
 
     const headers = { 'Content-Type': 'application/json' };
     if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
@@ -471,11 +472,11 @@ async function callHuggingFaceAPI({ apiKey, model, systemPrompt, userContent, wo
 // as of 2026; the older `usage: { include: true }` parameter is deprecated).
 // Attribution headers (HTTP-Referer + X-Title) are recommended by OpenRouter
 // for analytics; they don't affect routing.
-async function callOpenRouterAPI({ apiKey, model, systemPrompt, userContent, maxTokens, temperature }) {
+async function callOpenRouterAPI({ apiKey, model, systemPrompt, userContent, maxTokens, temperature, extraBody }) {
     return callOpenAICompatibleChat({
         url: 'https://openrouter.ai/api/v1/chat/completions',
         apiKey,
-        model, systemPrompt, userContent, maxTokens, temperature,
+        model, systemPrompt, userContent, maxTokens, temperature, extraBody,
         label: 'OpenRouter',
         extraHeaders: {
             'HTTP-Referer': 'https://github.com/alex-o-748/citation-checker-script',
