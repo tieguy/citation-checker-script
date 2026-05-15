@@ -20,6 +20,17 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('real Wikipedia article fixture', () => {
   test('loads on a real Wikipedia article fixture and mounts the sidebar', async ({ page }) => {
+    // Capture console errors and page errors before loading to catch init-time errors.
+    const consoleMessages = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleMessages.push(msg.text());
+      }
+    });
+    page.on('pageerror', (err) => {
+      consoleMessages.push(`pageerror: ${err.message}`);
+    });
+
     await setupWorkerMocks(page);
     await loadUserscript(page, { fixturePath: REAL_ARTICLE_FIXTURE });
 
@@ -27,28 +38,22 @@ test.describe('real Wikipedia article fixture', () => {
     const sidebar = page.locator('#source-verifier-sidebar');
     await expect(sidebar).toBeAttached({ timeout: 5000 });
 
-    // Verify no console errors.
-    const consoleMessages = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleMessages.push(msg.text());
-      }
-    });
     // Give a brief moment for any deferred errors to surface.
     await page.waitForTimeout(500);
-    expect(consoleMessages).toEqual([]);
+    // Verify no console errors during load or deferred execution.
+    expect(consoleMessages, `unexpected console errors:\n${consoleMessages.join('\n')}`).toEqual([]);
   });
 
   test('clicking a reference in a real Wikipedia article populates the claim', async ({ page }) => {
     await setupWorkerMocks(page);
     await loadUserscript(page, { fixturePath: REAL_ARTICLE_FIXTURE });
 
-    // Click the first reference marker [1].
+    // Click the stable [1] reference marker.
     // Real article has: "Gehry originally called the house Ginger and Fred (after the dancers Ginger Rogers and Fred Astaire – the house resembles a pair of dancers),[1]"
-    await page.locator('sup.reference').first().locator('a').click();
+    await page.locator('sup#cite_ref-1 a').click();
 
     const claim = page.locator('#verifier-claim-text');
-    // Verify that a portion of the extracted claim appears. The fixture has this claim in reference [1].
-    await expect(claim).toContainText('Ginger', { timeout: 5000 });
+    // Verify that a unique phrase from the [1] claim context appears. "Gehry originally called the house" is unique to [1].
+    await expect(claim).toContainText('Gehry originally called the house', { timeout: 5000 });
   });
 });
