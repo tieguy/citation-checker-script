@@ -29,14 +29,11 @@ import {
 } from '../core/providers.js';
 import { parseVerificationResult } from '../core/parsing.js';
 import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
+import { withRetry } from '../core/retry.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-const MAX_RETRIES = 5;
-const RETRYABLE_STATUS = /^HTTP (429|500|502|503|504)\b/;
-const RETRYABLE_NETWORK = /timeout|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up/i;
 
 // Configuration
 const DATASET_PATH = path.join(__dirname, 'dataset.json');
@@ -233,27 +230,6 @@ function getSystemPrompt() {
 }
 
 /**
- * Retry `fn` on transient failures (429, 5xx, network) with exponential
- * backoff + jitter. `sleepFn` is injectable so tests can run instantly.
- */
-export async function withRetry(fn, { maxRetries = MAX_RETRIES, sleepFn = sleep } = {}) {
-    let lastError = null;
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-            return await fn();
-        } catch (error) {
-            lastError = error;
-            const retryable = RETRYABLE_STATUS.test(error.message)
-                || RETRYABLE_NETWORK.test(error.message);
-            if (!retryable || attempt === maxRetries - 1) break;
-            const backoff = Math.min(30000, 1000 * Math.pow(2, attempt)) + Math.random() * 500;
-            await sleepFn(backoff);
-        }
-    }
-    throw lastError;
-}
-
-/**
  * Make API call to provider. Delegates HTTP transport to core/providers.js
  * (single source of truth shared with main.js + cli/verify.js); the runner
  * adds env-var auth, latency timing, retry, and error-to-verdict-shape conversion.
@@ -416,13 +392,6 @@ async function callHuggingFace(config, systemPrompt, userPrompt) {
 function normalizeVerdict(verdict) {
     const canonical = canonicalizeVerdict(verdict);
     return canonical ? toTitleCase(canonical) : 'PARSE_ERROR';
-}
-
-/**
- * Sleep helper
- */
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
