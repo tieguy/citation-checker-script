@@ -1,62 +1,58 @@
-> **Status (2026-05-15):** Rebase in progress. The implementation lives on `tieguy/fresh-prompt-rewrite` (37 commits ahead of `origin/main`) and is being rebased onto a new base of `origin/main + PR #203 (citoid + two-step prompt → drop the prompt commit, this design's atomized prompts replace it) + PR #217 (body-usability classifier)`. PAP #14 (Defuddle) is explicitly not a dependency — prior testing showed Defuddle alone regresses every panel member by 3-7 pp exact, so the production proxy stays on strip extraction. The Results section below carries the pre-rebase numbers (measured against the old base, which lacked PR #217's body-usability classifier and PR #214/#215/#216's consolidation work); **those numbers will be regenerated from scratch on the rebased branch before this design's status moves to "Implemented".** See `workbench/HANDOFF.md` for the rebase plan.
+> **Status (2026-05-15):** Implemented on `fresh-prompt-on-217` (the rebased branch). The implementation was rebased from `tieguy/fresh-prompt-rewrite` onto `origin/main` + PR #203 (citoid header, two-step prompt commit dropped — this design's atomized prompts replace it) + PR #217 (body-usability classifier). PAP #14 (Defuddle) is explicitly not a dependency — prior testing showed Defuddle alone regresses every panel member by 3-7 pp exact, so the production proxy stays on strip extraction. Results section below reflects the rebased branch measured against the legacy single-call verifier on the same integration-base substrate.
 
 # Fresh prompt rewrite for citation verification
 
-## Results (2026-05-14, full panel on 180-row apples-to-apples overlap with April baseline)
-
-> **STALE — TO BE REGENERATED.** These numbers were measured against the pre-rebase base (`tieguy/citoid-defuddle-combined` ≈ `origin/main + #203` *with* the two-step prompt commit and *without* PR #217's body-usability classifier). The implementation is being rebased onto `origin/main + #203 (minus the two-step prompt commit) + #217 (body-classifier)`. Body-classifier will short-circuit some rows to `Source unavailable` deterministically, which is expected to shift exact-match and recall numbers; editor-FP-rate semantics also change because the LLM no longer sees those rows. The Results section below is preserved for reference but **will be replaced wholesale once the rebased branch is benchmarked from scratch**. See `workbench/HANDOFF.md`.
+## Results (2026-05-15, full panel on 185-row dataset, atomized vs legacy single-call on `origin/main + #203 + #217`)
 
 The headline finding has two parts and is best read together. They are not independent gains — they are the same trade made deliberately in one direction.
 
-**1. The system catches a lot more problems.** "Catches a problem" = a citation whose ground-truth verdict is *Not supported* or *Partially supported*, and where the panel emitted *Not supported* or *Partially supported* (i.e., flagged it for editor attention rather than passing it). All comparisons below are restricted to the 180-row overlap between the April benchmark set and the current benchmark set (`n = 96` problematic rows on the April side, `n = 100` on the current side — the small difference comes from the 12 GT-correction flips in PR #205 reclassifying some rows from *Supported* to *Partially supported* or *Not supported*). April-side numbers are recomputed from `benchmark/historical-runs/2026-04-19-results.json` against the corrected GT, so the comparison is apples-to-apples on the same rows.
+**1. The system catches more problems.** "Catches a problem" = a citation whose ground-truth verdict is *Not supported* or *Partially supported*, and where the panel emitted *Not supported* or *Partially supported* (i.e., flagged it for editor attention rather than passing it). Comparison is over the 1554-cell intersection of the legacy single-call control and the atomized treatment, both run on the same dataset (176 complete + 9 body-classifier-attributed *Source unavailable* + 4 fetch-failed errors). Control was measured on 2026-05-14 on the `body-classifier-bench` worktree (integration base + #217 commits); treatment was measured 2026-05-15 on `fresh-prompt-on-217` (this branch) with the atomized pipeline. Body-classifier is active on both sides so its 9 short-circuited rows are pipeline-attributed in both.
 
-| Provider                          | April (single-call, 9 few-shots) | Current (atomize + verify + deterministic rollup) |
-|-----------------------------------|---------------------------------:|--------------------------------------------------:|
-| `claude-sonnet-4-5`               | 30 / 96  (31 %)                  | 95 / 100  (95 %)                                  |
-| `openrouter-mistral-small-3.2`    | 24 / 96  (25 %)                  | 90 / 100  (90 %)                                  |
-| `openrouter-deepseek-v3.2` / `-v3`| 16 / 96  (17 %)                  | 87 / 100  (87 %)                                  |
-| `openrouter-olmo-3.1-32b`         | 19 / 96  (20 %)                  | n/a (excluded — empty-body bug)                   |
-| `openrouter-vote-3` (4-class)     | 16 / 96  (17 %)                  | 91 / 100  (91 %)                                  |
-| `gemini-2.5-flash`                | 81 / 96  (84 %)                  | (not in current panel)                            |
+| Provider | n | gt_pos | Recall control → treatment | Δ recall | gt_neg | Editor-FP control → treatment | Δ FP |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `claude-sonnet-4-5` | 185 | 102 | 80 (78.4%) → 89 (87.3%) | **+8.8** | 48 | 10 (20.8%) → 8 (16.7%) | -4.2 |
+| `gemini-2.5-flash` | 185 | 95 | 80 (84.2%) → 83 (87.4%) | **+3.2** | 46 | 8 (17.4%) → 8 (17.4%) | +0.0 |
+| `hf-deepseek-v3` | 185 | 102 | 82 (80.4%) → 84 (82.4%) | **+2.0** | 48 | 11 (22.9%) → 10 (20.8%) | -2.1 |
+| `hf-gpt-oss-20b` | 185 | 90 | 80 (88.9%) → 82 (91.1%) | **+2.2** | 44 | 2 (4.5%) → 5 (11.4%) | +6.8 |
+| `hf-qwen3-32b` | 185 | 102 | 83 (81.4%) → 91 (89.2%) | **+7.8** | 48 | 7 (14.6%) → 7 (14.6%) | +0.0 |
+| `openrouter-gemma-4-26b-a4b` | 185 | 102 | 91 (89.2%) → 91 (89.2%) | **+0.0** | 48 | 7 (14.6%) → 6 (12.5%) | -2.1 |
+| `openrouter-granite-4.1-8b` | 185 | 101 | 69 (68.3%) → 83 (82.2%) | **+13.9** | 47 | 14 (29.8%) → 11 (23.4%) | -6.4 |
+| `openrouter-mistral-small-3.2` | 185 | 102 | 67 (65.7%) → 87 (85.3%) | **+19.6** | 48 | 25 (52.1%) → 9 (18.8%) | -33.3 |
+| `openrouter-qwen-3-32b` | 185 | 101 | 84 (83.2%) → 91 (90.1%) | **+6.9** | 48 | 7 (14.6%) → 8 (16.7%) | +2.1 |
 
-Gemini's April-side outlier (84 %) reflects an already-lenient flagger — it traded recall for editor-FP rate at the time (see below).
+Recall on problem rows improves on every panel member. The biggest gains are on Mistral Small 3.2 (+19.6 pp), Granite 4.1-8B (+13.9 pp), Claude Sonnet 4.5 (+8.8 pp), and HF Qwen3-32B (+7.8 pp). The smallest move is `openrouter-gemma-4-26b-a4b` at +0.0 pp; that cell already caught 89.2% in the control, so the headroom was small.
 
-**2. The editor-perspective false-positive rate is roughly flat (and in some cells, better).** "Editor-FP" = of the rows whose ground truth is *Not supported*, the share where the panel said *Supported* or *Partially supported* (i.e., wrongly accepted a citation that doesn't hold up under inspection). This is the metric editors care most about — it bounds how often the tool will tell an editor "this is fine" when the editor would conclude otherwise on review. Same 180-row overlap (`gt_neg = 44` on the April side, `45` on the current side — again the difference is the GT-correction flips):
+**2. The editor-perspective false-positive rate is roughly flat or better.** "Editor-FP" = of the rows whose ground truth is *Not supported*, the share where the panel said *Supported* or *Partially supported* (i.e., wrongly accepted a citation that doesn't hold up under inspection). This is the metric editors care most about — it bounds how often the tool will tell an editor "this is fine" when the editor would conclude otherwise on review. Editor-FP moves 0 or favorably (negative) on 7 of 9 cells. The two exceptions are `hf-gpt-oss-20b` (4.5% → 11.4%, still excellent in absolute terms) and `openrouter-qwen-3-32b` (14.6% → 16.7%, within noise). Mistral's editor-FP collapses from 52.1% to 18.8% — a structural improvement, not a noise-level shift.
 
-| Provider                          | April editor-FP | Current editor-FP |
-|-----------------------------------|----------------:|------------------:|
-| `claude-sonnet-4-5`               | 8 / 44 (18.2 %) | 8 / 45 (17.8 %)   |
-| `openrouter-mistral-small-3.2`    | 14 / 44 (31.8 %)| 10 / 45 (22.2 %)  |
-| `openrouter-deepseek-v3.2` / `-v3`| 5 / 44 (11.4 %) | 7 / 45 (15.6 %)   |
-| `openrouter-olmo-3.1-32b`         | 12 / 44 (27.3 %)| n/a               |
-| `openrouter-vote-3` (4-class)     | 9 / 44 (20.5 %) | 10 / 45 (22.2 %)  |
-| `gemini-2.5-flash`                | 3 / 44 (6.8 %)  | (not in current panel) |
-| `hf-gpt-oss-20b`                  | (not run)       | 4 / 45 (8.9 %)    |
-| `hf-qwen3-32b`                    | (not run)       | 8 / 45 (17.8 %)   |
-| `openrouter-qwen-3-32b`           | (not run)       | 9 / 45 (20.0 %)   |
-| `openrouter-granite-4.1-8b`       | (not run)       | 15 / 45 (33.3 %)  |
+For the flagship verifier (Claude Sonnet 4.5) recall improves from 78.4% to 87.3% **and** editor-FP improves from 20.8% to 16.7%. Catching more problems while wrongly accepting fewer of them is unambiguously good.
 
-For the flagship verifier (Claude Sonnet 4.5) the editor-FP rate moved from 18.2 % to 17.8 % — within noise. Mistral improves from 31.8 % to 22.2 %. The full current panel's editor-FP rate ranges from 8.9 % (gpt-oss) to 33.3 % (granite, the smallest model); most members sit in the 13–22 % band. Gemini was the April low at 6.8 % but at the cost of flagging only ~22 % of all citations (see flag-rate below).
+**3. Why the trade is the right one, restated for the user-facing audience.** Under the legacy single-call verifier, the flagship (Claude Sonnet 4.5) was already a fairly aggressive flagger on the integration base — it caught ~78% of problem rows at ~21% editor-FP. The atomized rewrite pushes that to ~87% caught at ~17% editor-FP — about a third fewer missed problems with a corresponding drop in false accepts. Smaller/cheaper panel members improve in roughly the same shape, with Mistral's enormous editor-FP collapse the standout result.
 
-**3. Why the trade is the right one, restated for the user-facing audience.** In April the script flagged ~22 % of citations total (Claude, 40 / 180) and missed ~69 % of real problems (66 / 96). After the rewrite the script flags ~72 % of citations (130 / 180) and misses only ~5 % (5 / 100). The "wrongly accepts a bad cite" rate stayed in the same range — around one in five for Claude. The change is essentially: **trade a higher inspection load for catching ~3× more problems, without making the false-acceptance rate worse**. For an editor working a referenced article this means the tool now flags most of the cites that warrant inspection, instead of mostly only the cites that were already obviously broken.
+**4. Exact-match regresses by 1–14 pp across the panel.** This is the deliberate cost of the trade. The atomized verifier is more willing to emit `Partially supported` on compound claims where some atoms are supported and others aren't — correct against `Partially supported` GT, but wrong against `Supported` GT. The 4-way exact-match metric penalizes that uniformly; the editor-perspective recall + editor-FP framing rewards it on problem rows and is neutral on it on `Supported` rows. Full exact / lenient / binary deltas:
 
-**4. Caveats on the binary ensembles.** `openrouter-vote-3-binary` and `hf-vote-3-binary` (collapse Supported / Partially supported / Not supported to a 2-way support / no-support before voting) show much lower recall (48 / 100 = 48 % and 57 / 100 = 57 % respectively) because the binary collapse can only catch *Not supported*-class problems — Partially-supported claims, which are most of the problem rows, fall into the "support" bucket by collapse rule and are uncatchable. The 4-class `openrouter-vote-3` and `hf-vote-3` are the right ensembles to read for the recall claim above.
+| Provider | n | Control exact | Treatment exact | Δ exact | Δ lenient | Δ binary |
+|---|---:|---:|---:|---:|---:|---:|
+| `claude-sonnet-4-5` (noise) | 176 | 59.7% | 58.5% | -1.1 | -1.1 | -1.1 |
+| `gemini-2.5-flash` | 167 | 67.7% | 62.3% | -5.4 | -4.8 | -4.8 |
+| `hf-deepseek-v3` | 176 | 71.6% | 64.2% | -7.4 | -2.3 | -2.3 |
+| `hf-gpt-oss-20b` | 158 | 62.0% | 48.1% | -13.9 | -12.0 | -12.0 |
+| `hf-qwen3-32b` | 176 | 68.2% | 54.5% | -13.6 | -8.0 | -8.5 |
+| `openrouter-gemma-4-26b-a4b` | 176 | 61.4% | 54.5% | -6.8 | -4.0 | -4.0 |
+| `openrouter-granite-4.1-8b` | 175 | 63.4% | 57.7% | -5.7 | -2.9 | -2.9 |
+| `openrouter-mistral-small-3.2` (noise) | 176 | 60.2% | 60.2% | +0.0 | +0.6 | +0.6 |
+| `openrouter-qwen-3-32b` | 174 | 68.4% | 56.3% | -12.1 | -6.3 | -6.3 |
 
-**5. Exact-match metric (for completeness, though it's not the load-bearing one for the editor audience).** On 4-way exact-match (Supported / Partially / Not / Source-unavailable, normalized for casing) restricted to the 180-row overlap, `claude-sonnet-4-5` improves 47.8 % → 64.4 %, `openrouter-mistral-small-3.2` 48.3 % → 63.3 %, `openrouter-vote-3` 47.2 % → 65.0 %. Most current panel members are in the 52–65 % band; the headline editor-facing argument carries on the recall + editor-FP framing above, not on exact-match.
+The cells with the largest exact-match regression (`hf-gpt-oss-20b`, `hf-qwen3-32b`, `openrouter-qwen-3-32b`) are also among the cells with the largest recall gains. That's the trade made visible.
 
-**6. User-facing model coverage (gap-fill run, 2026-05-14 evening).** The headline panel above is the model selection used during development; it is not the same set of model IDs the userscript currently exposes to end users. The userscript's `WikipediaSourceVerifier.providers` registry in `main.js` offers five options (`publicai` = Qwen-SEA-LION-v4-32B-IT, `huggingface` = Qwen3-32B, `claude` = Sonnet 4.6, `gemini` = Flash-latest, `openai` = gpt-4o). To bound the gap between *measured* and *user-facing* numbers, a gap-fill cell was run against the same 180-row overlap with the same atomized pipeline, same cached Haiku atoms, deterministic rollup:
+**5. Caveats.** The headline panel is the model selection used during development. Two integration-base providers that ship with the userscript or are available on this branch are not in the headline comparison:
 
-| User-facing cell | Model ID | Recall (caught/100) | Editor-FP (fp/45) | Status |
-|---|---|---:|---:|---|
-| `huggingface` (default for no-BYOK users) | `Qwen/Qwen3-32B` via `/hf` | 95 / 100 (95.0 %) | 8 / 45 (17.8 %) | ✅ Same cell as `hf-qwen3-32b` in headline panel |
-| `claude` | `claude-sonnet-4-6` | 95 / 100 (95.0 %) | 8 / 45 (17.8 %) | ✅ Behavior-equivalent to 4.5 on the editor metrics; 4-way exact drops 64.4 % → 57.8 % (4.6 splits Supported/Partially differently, neutral on the user-facing aggregate) |
-| `gemini` | `gemini-2.5-flash` | 96 / 100 (96.0 %) | 10 / 45 (22.2 %) | ✅ Versus April 84.4 % / 6.8 %: moves up the precision/recall tradeoff curve — catches 15 more real problems, accepts 7 more bad cites |
-| `publicai` | `aisingapore/Qwen-SEA-LION-v4-32B-IT` | (unreliable) | (unreliable) | ⚠️ The PublicAI route (via the `publicai-proxy.alaexis.workers.dev` worker — same path as production) returned errors on 134 / 181 rows (98 sub-500ms fast-fail + 34 60-second timeouts + 2 other-fail). Only 47 rows had all atom calls succeed; on those 47 the verifier reads 21.3 % exact-match. **The 100 %-recall / 0 %-editor-FP figure on this cell is an artifact of failed-call → NOT SUPPORTED collapse in `parseAtomResultResponse`, not a real measurement.** This is a live production-reliability problem for the userscript's `publicai` default — worth filing upstream against PAP and/or PublicAI before continuing to recommend Qwen-SEA-LION as a no-BYOK option. |
-| `openai` | `gpt-4o` | (not run) | (not run) | ❌ Out-of-pocket BYOK; not measured under the new pipeline. Closest reference: `hf-gpt-oss-20b` (an unrelated open-weight model that happens to share a vendor name) at 99 / 100 recall and 4 / 45 editor-FP. Not a substitute. |
+- `claude-sonnet-4-6` — added to PROVIDERS in this design's bucket 5 commit but not run for this Results section. It can be added with one fresh treatment-side sweep (no control re-run needed, since the control is already locked) when a maintainer wants the user-facing 4.6 cell. The closest reference is `claude-sonnet-4-5` (+8.8 pp recall, -4.2 pp editor-FP); 4.6 is expected to behave similarly on the editor-perspective metrics.
+- `openrouter-nemotron-nano-9b-v2` — added to PROVIDERS via #211 on `origin/main`. Same situation: addable in a follow-up sweep, no control re-run needed.
+- `publicai` (Qwen-SEA-LION via the production proxy) — not in this run. The PR-114 / PAP-8 prior measurement noted reliability problems on the PublicAI route (98 sub-500ms fast-fails out of 181); diagnosing those is upstream of this design.
 
-**Takeaway.** Three of the five user-facing cells (`huggingface`, `claude`, `gemini`) are now empirically covered under the new pipeline at the exact model IDs the userscript ships with. The `publicai` cell is unusable on the benchmark route and worth investigating before it is recommended to users. The `openai` cell is unmeasured.
+The `openrouter-olmo-3.1-32b` cell is permanently disabled on this panel (sub-100ms empty responses on the OR route; see `core/providers.js` for the comment).
 
-**Data location.** `benchmark/results.json` (current panel, 2026-05-14 run, including the three gap-fill cells appended via `--resume`) and `benchmark/historical-runs/2026-04-19-results.json` (April single-call baseline) are the committed artifacts. Both are scored against the same corrected `dataset.json` (the 12-row GT-corrections set lands in PR #205 as a sibling of this design's implementation PR). All numbers in this section are derived from those files; the scoring is reproducible from the repo without any external state.
+**6. Data location.** `benchmark/results.json` is the treatment-side run; the 9-provider control snapshot and the `ccs compare` report are committed at [`benchmark/historical-runs/2026-05-15-atomized-pipeline/`](../../benchmark/historical-runs/2026-05-15-atomized-pipeline/). Both are scored against `benchmark/dataset.json` post-#205 ground-truth corrections (the 12-row GT-corrections set landed upstream as PR #205). The recall + editor-FP table above is reproducible via `python3 benchmark/historical-runs/2026-05-15-atomized-pipeline/recall_table.py` with no external state.
 
 ## Summary
 
