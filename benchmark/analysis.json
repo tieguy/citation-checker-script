@@ -1,5 +1,5 @@
 {
-  "generated": "2026-05-15T01:38:01.980Z",
+  "generated": "2026-05-15T18:22:24.710Z",
   "overview": {
     "datasetVersion": "all",
     "totalEntries": 186,
@@ -9,7 +9,12 @@
       "qwen-sealion",
       "claude-sonnet-4-5",
       "gemini-2.5-flash"
-    ]
+    ],
+    "pipelineCoverage": {
+      "ratio": 1,
+      "usableEntries": 186,
+      "pipelineAttributedEntries": 0
+    }
   },
   "providers": {
     "apertus-70b": {
@@ -17,6 +22,53 @@
       "model": "swiss-ai/apertus-70b-instruct",
       "sampleCount": 186,
       "metrics": {
+        "total": 186,
+        "valid": 155,
+        "errors": 31,
+        "exactMatches": 83,
+        "partialMatches": 47,
+        "exactAccuracy": 0.535483870967742,
+        "lenientAccuracy": 0.8387096774193549,
+        "binaryAccuracy": 0.8451612903225807,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 50,
+            "Partially supported": 21,
+            "Not supported": 7,
+            "Source unavailable": 2
+          },
+          "Partially supported": {
+            "Supported": 26,
+            "Partially supported": 24,
+            "Not supported": 2,
+            "Source unavailable": 0
+          },
+          "Not supported": {
+            "Supported": 2,
+            "Partially supported": 11,
+            "Not supported": 9,
+            "Source unavailable": 1
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 3443.1774193548385,
+          "min": 504,
+          "max": 9519
+        },
+        "confidence": {
+          "avg": 79.0728476821192,
+          "avgWhenCorrect": 79.81927710843374,
+          "avgWhenWrong": 73.81944444444444,
+          "calibration": 5.999832663989295
+        }
+      },
+      "metricsOnUsable": {
         "total": 186,
         "valid": 155,
         "errors": 31,
@@ -114,6 +166,53 @@
           "avgWhenWrong": 66.93548387096774,
           "calibration": 9.516129032258064
         }
+      },
+      "metricsOnUsable": {
+        "total": 186,
+        "valid": 155,
+        "errors": 31,
+        "exactMatches": 93,
+        "partialMatches": 40,
+        "exactAccuracy": 0.6,
+        "lenientAccuracy": 0.8580645161290322,
+        "binaryAccuracy": 0.8709677419354839,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 68,
+            "Partially supported": 4,
+            "Not supported": 2,
+            "Source unavailable": 6
+          },
+          "Partially supported": {
+            "Supported": 36,
+            "Partially supported": 12,
+            "Not supported": 3,
+            "Source unavailable": 1
+          },
+          "Not supported": {
+            "Supported": 4,
+            "Partially supported": 4,
+            "Not supported": 13,
+            "Source unavailable": 2
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 3425.2741935483873,
+          "min": 458,
+          "max": 7381
+        },
+        "confidence": {
+          "avg": 77.65517241379311,
+          "avgWhenCorrect": 76.45161290322581,
+          "avgWhenWrong": 66.93548387096774,
+          "calibration": 9.516129032258064
+        }
       }
     },
     "claude-sonnet-4-5": {
@@ -166,6 +265,53 @@
           "avgWhenWrong": 42.78947368421053,
           "calibration": 39.02371312897629
         }
+      },
+      "metricsOnUsable": {
+        "total": 186,
+        "valid": 186,
+        "errors": 0,
+        "exactMatches": 91,
+        "partialMatches": 37,
+        "exactAccuracy": 0.489247311827957,
+        "lenientAccuracy": 0.6881720430107527,
+        "binaryAccuracy": 0.8494623655913979,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 68,
+            "Partially supported": 6,
+            "Not supported": 2,
+            "Source unavailable": 5
+          },
+          "Partially supported": {
+            "Supported": 31,
+            "Partially supported": 16,
+            "Not supported": 5,
+            "Source unavailable": 6
+          },
+          "Not supported": {
+            "Supported": 3,
+            "Partially supported": 7,
+            "Not supported": 7,
+            "Source unavailable": 30
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 4021.1182795698924,
+          "min": 2377,
+          "max": 8974
+        },
+        "confidence": {
+          "avg": 79.93055555555556,
+          "avgWhenCorrect": 81.81318681318682,
+          "avgWhenWrong": 42.78947368421053,
+          "calibration": 39.02371312897629
+        }
       }
     },
     "gemini-2.5-flash": {
@@ -173,6 +319,53 @@
       "model": "gemini-2.5-flash",
       "sampleCount": 186,
       "metrics": {
+        "total": 186,
+        "valid": 186,
+        "errors": 0,
+        "exactMatches": 123,
+        "partialMatches": 36,
+        "exactAccuracy": 0.6612903225806451,
+        "lenientAccuracy": 0.8548387096774194,
+        "binaryAccuracy": 0.8548387096774194,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 52,
+            "Partially supported": 21,
+            "Not supported": 6,
+            "Source unavailable": 2
+          },
+          "Partially supported": {
+            "Supported": 15,
+            "Partially supported": 32,
+            "Not supported": 10,
+            "Source unavailable": 1
+          },
+          "Not supported": {
+            "Supported": 1,
+            "Partially supported": 7,
+            "Not supported": 39,
+            "Source unavailable": 0
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 3742.1989247311826,
+          "min": 1358,
+          "max": 16386
+        },
+        "confidence": {
+          "avg": 60,
+          "avgWhenCorrect": 51.016260162601625,
+          "avgWhenWrong": 39.44444444444444,
+          "calibration": 11.571815718157183
+        }
+      },
+      "metricsOnUsable": {
         "total": 186,
         "valid": 186,
         "errors": 0,
