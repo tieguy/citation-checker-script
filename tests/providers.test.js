@@ -297,6 +297,54 @@ test('callOpenRouterAPI returns cost_usd: null when usage.cost missing', async (
   }
 });
 
+test('callOpenRouterAPI forwards extraBody fields into the request body', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: 'ok' } }],
+      usage: { prompt_tokens: 1, completion_tokens: 1 },
+    }),
+  }));
+  try {
+    await callOpenRouterAPI({
+      apiKey: 'k',
+      model: 'nvidia/nemotron-nano-9b-v2',
+      systemPrompt: 's',
+      userContent: 'u',
+      extraBody: { reasoning: { enabled: false } },
+    });
+    const body = JSON.parse(mock.calls[0].opts.body);
+    assert.deepEqual(body.reasoning, { enabled: false });
+    assert.equal(body.model, 'nvidia/nemotron-nano-9b-v2');
+  } finally {
+    mock.restore();
+  }
+});
+
+test('callOpenRouterAPI omits extraBody fields when not provided', async () => {
+  const mock = withMockFetch(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: 'ok' } }],
+      usage: { prompt_tokens: 1, completion_tokens: 1 },
+    }),
+  }));
+  try {
+    await callOpenRouterAPI({
+      apiKey: 'k',
+      model: 'm',
+      systemPrompt: 's',
+      userContent: 'u',
+    });
+    const body = JSON.parse(mock.calls[0].opts.body);
+    assert.equal(body.reasoning, undefined);
+  } finally {
+    mock.restore();
+  }
+});
+
 test('callOpenRouterAPI surfaces upstream error messages', async () => {
   const mock = withMockFetch(async () => ({
     ok: false,

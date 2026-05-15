@@ -95,13 +95,21 @@ const PROVIDERS = {
         keyEnv: 'OPENROUTER_API_KEY',
         type: 'openrouter'
     },
-    'openrouter-olmo-3.1-32b': {
-        name: 'OLMo 3.1 32B (OpenRouter)',
-        model: 'allenai/olmo-3.1-32b-instruct',
+    // Nemotron Nano 9B v2 is a unified reasoning/non-reasoning model. We
+    // disable reasoning via OpenRouter's `reasoning: { enabled: false }`
+    // flag because the panel's verdict task is short-form JSON; reasoning
+    // tokens add latency and cost without measurable accuracy gain on
+    // this task. Verified 2026-05-14: with the flag, completion_tokens
+    // ~36 and reasoning_tokens 0; without it, reasoning_tokens ~100+ on
+    // even trivial inputs.
+    'openrouter-nemotron-nano-9b-v2': {
+        name: 'Nemotron Nano 9B v2 (OpenRouter)',
+        model: 'nvidia/nemotron-nano-9b-v2',
         endpoint: 'https://openrouter.ai/api/v1/chat/completions',
         requiresKey: true,
         keyEnv: 'OPENROUTER_API_KEY',
-        type: 'openrouter'
+        type: 'openrouter',
+        extraBody: { reasoning: { enabled: false } }
     },
     'openrouter-deepseek-v3.2': {
         name: 'DeepSeek V3.2 (OpenRouter)',
@@ -365,6 +373,7 @@ async function callOpenRouter(config, systemPrompt, userPrompt) {
         userContent: userPrompt,
         maxTokens: BENCHMARK_MAX_TOKENS,
         temperature: BENCHMARK_TEMPERATURE,
+        extraBody: config.extraBody,
     }));
 }
 
