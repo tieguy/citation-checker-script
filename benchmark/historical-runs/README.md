@@ -92,7 +92,7 @@ roughly flat for Claude (-0.5 pp Exact) and Gemini (-3.7 pp Exact, +2.1
 pp Lenient), and a notable regression for OLMo (-4.3 pp Exact). See
 `comparison-2026-05-02.md` for the full table. Numbers reflect the
 ground-truth corrections in `docs/design-plans/2026-05-08-gt-audit-corrections.md`
-(7 v1 rows corrected 2026-05-09, plus 4 more v1 rows corrected 2026-05-14)
+(7 v1 rows corrected 2026-05-09, plus 5 more v1 rows corrected 2026-05-14)
 applied in-place to the historical results files.
 
 ## How to add a new historical-replay run
