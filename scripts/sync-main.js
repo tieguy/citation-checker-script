@@ -17,6 +17,7 @@ const CORE_ORDER = [
   'prompts.js',
   'verdicts.js',
   'parsing.js',
+  'retry.js',
   'urls.js',
   'claim.js',
   'providers.js',
