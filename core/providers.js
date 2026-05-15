@@ -312,6 +312,16 @@ export const PROVIDERS = {
         supportsAtomize: true,
         smallModel: 'claude-haiku-4-5-20251001'
     },
+    'claude-sonnet-4-6': {
+        name: 'Claude Sonnet 4.6',
+        model: 'claude-sonnet-4-6',
+        endpoint: 'https://api.anthropic.com/v1/messages',
+        requiresKey: true,
+        keyEnv: 'ANTHROPIC_API_KEY',
+        type: 'claude',
+        supportsAtomize: true,
+        smallModel: 'claude-haiku-4-5-20251001'
+    },
     // Gemini
     'gemini-2.5-flash': {
         name: 'Gemini 2.5 Flash',

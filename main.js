@@ -1088,6 +1088,16 @@ const PROVIDERS = {
         supportsAtomize: true,
         smallModel: 'claude-haiku-4-5-20251001'
     },
+    'claude-sonnet-4-6': {
+        name: 'Claude Sonnet 4.6',
+        model: 'claude-sonnet-4-6',
+        endpoint: 'https://api.anthropic.com/v1/messages',
+        requiresKey: true,
+        keyEnv: 'ANTHROPIC_API_KEY',
+        type: 'claude',
+        supportsAtomize: true,
+        smallModel: 'claude-haiku-4-5-20251001'
+    },
     // Gemini
     'gemini-2.5-flash': {
         name: 'Gemini 2.5 Flash',
@@ -1110,15 +1120,18 @@ const PROVIDERS = {
         type: 'openrouter',
         supportsAtomize: true
     },
-    'openrouter-olmo-3.1-32b': {
-        name: 'OLMo 3.1 32B (OpenRouter)',
-        model: 'allenai/olmo-3.1-32b-instruct',
-        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-        requiresKey: true,
-        keyEnv: 'OPENROUTER_API_KEY',
-        type: 'openrouter',
-        supportsAtomize: true
-    },
+    // OLMo 3.1 32B via OpenRouter is currently busted — verifier returns
+    // sub-100ms responses with no usable verdict (probably routing to a
+    // dead/misconfigured upstream). Disabled until OR sorts out the route.
+    // 'openrouter-olmo-3.1-32b': {
+    //     name: 'OLMo 3.1 32B (OpenRouter)',
+    //     model: 'allenai/olmo-3.1-32b-instruct',
+    //     endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    //     requiresKey: true,
+    //     keyEnv: 'OPENROUTER_API_KEY',
+    //     type: 'openrouter',
+    //     supportsAtomize: true
+    // },
     'openrouter-deepseek-v3.2': {
         name: 'DeepSeek V3.2 (OpenRouter)',
         model: 'deepseek/deepseek-v3.2',
@@ -1435,13 +1448,17 @@ async function verifyClaim(claim, sourceText, providerConfig, opts = {}) {
  *   atomize() as context-only.
  * @param {boolean} [opts.useSmallAtomizer] — opt into providerConfig.smallModel for atomize()
  * @param {'deterministic'|'judge'} [opts.rollupMode] — defaults 'deterministic'
+ * @param {Array<{id, assertion, kind}>} [opts.atoms] — when provided, skip the
+ *   atomize() LLM call and verify against these atoms directly. Used by the
+ *   benchmark --atoms-cache flag to share a single decomposition across many
+ *   verifier providers (eliminates atomizer noise as a cross-provider confound).
  * @param {AbortSignal} [opts.signal]
  * @returns {Promise<{verdict, comments, atoms, atomResults, rollupMode, judgeReasoning?}>}
  */
 async function verifyClaimAtomized(claim, sourceText, metadata, providerConfig, opts = {}) {
     const rollupMode = opts.rollupMode ?? 'deterministic';
 
-    const atoms = await atomize(claim, providerConfig, {
+    const atoms = opts.atoms ?? await atomize(claim, providerConfig, {
         claimContainer: opts.claimContainer,
         useSmallModel: opts.useSmallAtomizer,
         signal: opts.signal,
@@ -1674,6 +1691,8 @@ function parseAtomResultResponse(text, atomId) {
     try {
         parsed = JSON.parse(cleaned);
     } catch {
+        const salvaged = salvageVerdictJson(cleaned);
+        if (salvaged) return { atomId, ...salvaged, salvaged: true };
         return { atomId, verdict: 'not_supported', error: 'unparseable JSON' };
     }
     const verdict = parsed?.verdict;
@@ -1682,6 +1701,20 @@ function parseAtomResultResponse(text, atomId) {
     }
     const result = { atomId, verdict };
     if (typeof parsed.evidence === 'string') result.evidence = parsed.evidence;
+    return result;
+}
+
+// Salvage path for the common LLM error: trailing prose after a string value
+// breaks JSON.parse, but the verdict field itself is well-formed. Pull the
+// verdict and a best-effort evidence snippet via regex so we don't silently
+// flip the atom to not_supported on a parse hiccup.
+function salvageVerdictJson(text) {
+    const verdictMatch = text.match(/"verdict"\s*:\s*"(supported|not_supported)"/);
+    if (!verdictMatch) return null;
+    const verdict = verdictMatch[1];
+    const evidenceMatch = text.match(/"evidence"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+    const result = { verdict };
+    if (evidenceMatch) result.evidence = evidenceMatch[1].replace(/\\(.)/g, '$1');
     return result;
 }
 
@@ -1694,7 +1727,18 @@ async function verifyOneAtom(atom, sourceText, metadata, providerConfig, transpo
             userPrompt,
             signal,
         });
-        return parseAtomResultResponse(response?.text ?? '', atom.id);
+        const result = parseAtomResultResponse(response?.text ?? '', atom.id);
+        if (result.error === 'unparseable JSON') {
+            const retry = await transport(providerConfig, {
+                systemPrompt,
+                userPrompt,
+                signal,
+            });
+            const retryResult = parseAtomResultResponse(retry?.text ?? '', atom.id);
+            if (!retryResult.error) return { ...retryResult, retried: true };
+            return result;
+        }
+        return result;
     } catch (e) {
         return {
             atomId: atom.id,
