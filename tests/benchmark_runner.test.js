@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { runPool, withRetry, makeSaver, hostForProvider } from '../benchmark/run_benchmark.js';
+import { runPool, withRetry, makeSaver, hostForProvider, shapeResult } from '../benchmark/run_benchmark.js';
 
 // ---- runPool ----------------------------------------------------------------
 
@@ -259,4 +259,31 @@ test('hostForProvider: real PROVIDERS — PublicAI models share one host', () =>
 test('hostForProvider: Anthropic and Gemini are independent hosts', () => {
     assert.equal(hostForProvider('claude-sonnet-4-5'), 'api.anthropic.com');
     assert.equal(hostForProvider('gemini-2.5-flash'), 'generativelanguage.googleapis.com');
+});
+
+// ---- shapeResult (parse delegation to core/parsing.js) ----------------------
+// Behavioral wiring tests — full parser coverage lives in tests/parsing.test.js.
+
+test('shapeResult: delegates JSON parsing to core and title-cases the verdict', () => {
+    const text = JSON.stringify({ verdict: 'SUPPORTED', confidence: 90, comments: 'ok' });
+    const out = shapeResult({ text, usage: { input: 10, output: 5, cost_usd: null } });
+    assert.equal(out.verdict, 'Supported');
+    assert.equal(out.confidence, 90);
+    assert.equal(out.raw_response, text);
+    assert.deepEqual(out.usage, { input: 10, output: 5, cost_usd: null });
+});
+
+test('shapeResult: recovers verdict from the Granite-style markdown fallback', () => {
+    // Regression guard: pre-consolidation, the benchmark's local regex
+    // (/verdict["\s:]+([A-Z_ ]+)/i) could not advance past "**" in
+    // "**Verdict:** SUPPORTED". The shared parser now strips emphasis first.
+    const text = '**Verdict:** SUPPORTED\n**Comments:** matches the source.';
+    const out = shapeResult({ text, usage: null });
+    assert.equal(out.verdict, 'Supported');
+});
+
+test('shapeResult: returns PARSE_ERROR sentinel on unrecoverable prose', () => {
+    const out = shapeResult({ text: 'I cannot determine this.', usage: null });
+    assert.equal(out.verdict, 'PARSE_ERROR');
+    assert.equal(out.confidence, 0);
 });

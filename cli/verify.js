@@ -347,7 +347,7 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
 
     // 10. Parse the verdict.
     const verdict = parseVerificationResult(providerResult.text);
-    if (verdict.verdict === 'ERROR') {
+    if (verdict.verdict === 'PARSE_ERROR') {
         stderr.write(`ccs: LLM returned malformed JSON. Raw (first 200 chars): ${providerResult.text.slice(0, 200)}\n`);
         return 11;
     }

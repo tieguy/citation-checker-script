@@ -27,6 +27,7 @@ import {
     callOpenRouterAPI,
     callHuggingFaceAPI,
 } from '../core/providers.js';
+import { parseVerificationResult } from '../core/parsing.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -287,10 +288,25 @@ export async function callProvider(provider, systemPrompt, userPrompt) {
     }
 }
 
-// Shim helper: parse the raw response text into the verdict shape and
-// attach the usage object captured by core/providers.js.
-function shapeResult({ text, usage }) {
-    return { ...parseResponse(text), usage };
+// Shim helper: parse the raw response text into the benchmark's verdict
+// shape and attach the usage object captured by core/providers.js.
+//
+// Verdict parsing is delegated to core/parsing.js (single source of truth
+// shared with main.js + cli/verify.js). The runner then post-processes the
+// core parser's output: title-cases the verdict via the benchmark-local
+// normalizeVerdict ('SUPPORTED' → 'Supported') for results.json schema
+// compatibility, defaults missing confidence to 0 (the benchmark's
+// historical default; core returns null), and stitches in raw_response /
+// usage for downstream analysis.
+export function shapeResult({ text, usage }) {
+    const parsed = parseVerificationResult(text);
+    return {
+        verdict: normalizeVerdict(parsed.verdict),
+        confidence: parsed.confidence ?? 0,
+        comments: parsed.comments,
+        raw_response: text,
+        usage,
+    };
 }
 
 // Benchmark-side knobs preserved verbatim from the pre-consolidation runner.
@@ -391,46 +407,11 @@ async function callHuggingFace(config, systemPrompt, userPrompt) {
 }
 
 /**
- * Parse LLM response to extract verdict
- */
-function parseResponse(content) {
-    // Try to extract JSON from response
-    let jsonStr = content;
-
-    // Handle markdown code blocks
-    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (jsonMatch) {
-        jsonStr = jsonMatch[1];
-    }
-
-    // Try to find JSON object
-    const objMatch = jsonStr.match(/\{[\s\S]*\}/);
-    if (objMatch) {
-        jsonStr = objMatch[0];
-    }
-
-    try {
-        const parsed = JSON.parse(jsonStr);
-        return {
-            verdict: normalizeVerdict(parsed.verdict || ''),
-            confidence: parsed.confidence || 0,
-            comments: parsed.comments || '',
-            raw_response: content
-        };
-    } catch (e) {
-        // Fallback: try to extract verdict from text
-        const verdictMatch = content.match(/verdict["\s:]+([A-Z_ ]+)/i);
-        return {
-            verdict: verdictMatch ? normalizeVerdict(verdictMatch[1]) : 'PARSE_ERROR',
-            confidence: 0,
-            comments: 'Failed to parse JSON response',
-            raw_response: content
-        };
-    }
-}
-
-/**
- * Normalize verdict string
+ * Normalize verdict string to the benchmark's title-case categories.
+ * Kept local to the runner because the benchmark's results.json schema
+ * stores verdicts as 'Supported' / 'Not supported' / ... while the
+ * userscript and CLI consume the canonical UPPERCASE form returned by
+ * core/parsing.js. shapeResult bridges the two.
  */
 function normalizeVerdict(verdict) {
     const v = verdict.toUpperCase().trim();
