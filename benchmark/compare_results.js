@@ -1,15 +1,14 @@
+import { canonicalizeVerdict, toShortCode } from '../core/verdicts.js';
+
 /**
  * Normalize a verdict string to its canonical short form.
  * Returns one of: 'support' | 'partial' | 'not' | 'unavailable' | <other-lowercased>.
  * Handles null/undefined and case/whitespace variations.
  */
 export function normalizeVerdict(v) {
-    const s = String(v ?? '').toLowerCase().trim();
-    if (s.includes('partial')) return 'partial';
-    if (s.includes('not support') || s.includes('not-support') || s.includes('not_support')) return 'not';
-    if (s.includes('support')) return 'support';
-    if (s.includes('unavailable')) return 'unavailable';
-    return s;
+    const canonical = canonicalizeVerdict(v);
+    if (canonical) return toShortCode(canonical);
+    return String(v ?? '').toLowerCase().trim();
 }
 
 export function verdictsEqualExact(a, b) {

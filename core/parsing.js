@@ -7,21 +7,7 @@
 // failure, returns the 'PARSE_ERROR' sentinel — chosen to match what the
 // benchmark already records for unrecoverable responses.
 
-const FALLBACK_VERDICT_PATTERNS = [
-    { prefix: 'NOT SUPPORTED',      canonical: 'NOT SUPPORTED' },
-    { prefix: 'PARTIALLY',          canonical: 'PARTIALLY SUPPORTED' },
-    { prefix: 'SOURCE UNAVAILABLE', canonical: 'SOURCE UNAVAILABLE' },
-    { prefix: 'UNAVAILABLE',        canonical: 'SOURCE UNAVAILABLE' },
-    { prefix: 'SUPPORTED',          canonical: 'SUPPORTED' },
-];
-
-function canonicalizeFallbackVerdict(raw) {
-    const v = raw.toUpperCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
-    for (const { prefix, canonical } of FALLBACK_VERDICT_PATTERNS) {
-        if (v.startsWith(prefix)) return canonical;
-    }
-    return null;
-}
+import { canonicalizeVerdict } from './verdicts.js';
 
 export function parseVerificationResult(response) {
     const trimmed = response.trim();
@@ -50,7 +36,7 @@ export function parseVerificationResult(response) {
     const stripped = trimmed.replace(/\*+|__+/g, '');
     const match = stripped.match(/verdict[\s:"']+([A-Z][A-Z _]*)/i);
     if (match) {
-        const verdict = canonicalizeFallbackVerdict(match[1]);
+        const verdict = canonicalizeVerdict(match[1]);
         if (verdict) {
             return { verdict, confidence: null, comments: '<extracted from non-JSON response>' };
         }

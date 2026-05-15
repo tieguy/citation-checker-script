@@ -28,6 +28,7 @@ import {
     callHuggingFaceAPI,
 } from '../core/providers.js';
 import { parseVerificationResult } from '../core/parsing.js';
+import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -406,20 +407,15 @@ async function callHuggingFace(config, systemPrompt, userPrompt) {
     }));
 }
 
-/**
- * Normalize verdict string to the benchmark's title-case categories.
- * Kept local to the runner because the benchmark's results.json schema
- * stores verdicts as 'Supported' / 'Not supported' / ... while the
- * userscript and CLI consume the canonical UPPERCASE form returned by
- * core/parsing.js. shapeResult bridges the two.
- */
+// Title-case the canonical verdict for the benchmark's results.json schema,
+// preserving the runner's historical 'PARSE_ERROR' fallback for inputs the
+// shared canonicalizer doesn't recognize (e.g. the 'UNKNOWN' / 'PARSE_ERROR'
+// sentinels emitted by core/parsing.js, or a raw LLM string like 'options'
+// that the pre-1a12753 code would have silently propagated as a predicted
+// verdict — see the commit for the rationale).
 function normalizeVerdict(verdict) {
-    const v = verdict.toUpperCase().trim();
-    if (v.includes('NOT SUPPORTED') || v.includes('NOT_SUPPORTED')) return 'Not supported';
-    if (v.includes('PARTIALLY')) return 'Partially supported';
-    if (v.includes('UNAVAILABLE')) return 'Source unavailable';
-    if (v.includes('SUPPORTED')) return 'Supported';
-    return 'PARSE_ERROR';
+    const canonical = canonicalizeVerdict(verdict);
+    return canonical ? toTitleCase(canonical) : 'PARSE_ERROR';
 }
 
 /**

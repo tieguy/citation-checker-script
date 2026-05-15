@@ -27,6 +27,7 @@ import { JSDOM } from 'jsdom';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { extractClaimText as extractClaimTextFromRef } from '../core/claim.js';
+import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
 import { writeWithMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -294,15 +295,14 @@ function sleep(ms) {
 }
 
 /**
- * Normalize ground truth values
+ * Normalize ground-truth values from the CSV. Returns title case for any
+ * recognized verdict; unrecognized input passes through unchanged so that
+ * dataset extraction surfaces unexpected GT values visibly rather than
+ * silently coercing them.
  */
 function normalizeVerdict(verdict) {
-    const v = verdict.toLowerCase().trim();
-    if (v.includes('not supported') || v === 'not_supported') return 'Not supported';
-    if (v.includes('partially')) return 'Partially supported';
-    if (v.includes('supported')) return 'Supported';
-    if (v.includes('unavailable')) return 'Source unavailable';
-    return verdict;
+    const canonical = canonicalizeVerdict(verdict);
+    return canonical ? toTitleCase(canonical) : verdict;
 }
 
 /**
