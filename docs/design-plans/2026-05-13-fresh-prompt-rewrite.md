@@ -1,10 +1,32 @@
-> **Status (2026-05-15):** Implemented on `fresh-prompt-on-217` (the rebased branch). The implementation was rebased from `tieguy/fresh-prompt-rewrite` onto `origin/main` + PR #203 (citoid header, two-step prompt commit dropped — this design's atomized prompts replace it) + PR #217 (body-usability classifier). PAP #14 (Defuddle) is explicitly not a dependency — prior testing showed Defuddle alone regresses every panel member by 3-7 pp exact, so the production proxy stays on strip extraction. Results section below reflects the rebased branch measured against the legacy single-call verifier on the same integration-base substrate.
+> **Status (2026-05-15):** Implementation complete on `fresh-prompt-on-217`; **not ready for upstream submission**. First measurement on the rebased branch shows a regression under the maintainer's preferred binary metric (atomized verifier over-emits "Not supported", producing wasted hard flags on supported and partially-supported citations across 7 of 9 panel members). Mistral Small 3.2 is the only clear-cut win. The rewrite was rebased from `tieguy/fresh-prompt-rewrite` onto `origin/main` + PR #203 (citoid header, two-step prompt commit dropped) + PR #217 (body-usability classifier). PAP #14 (Defuddle) is explicitly not a dependency. Next workstream: per-atom verifier prompt tuning (the per-atom verifier is too strict on hedged / paraphrased / loosely-supported atoms; the deterministic rollup then escalates a single false-negative atom to "Partially supported" and an all-false-negative set to "Not supported"). The Results section below carries the first-measurement numbers and explicitly reports both the binary-metric regression and the recall-on-problem-rows finding so the trade is visible.
 
 # Fresh prompt rewrite for citation verification
 
-## Results (2026-05-15, full panel on 185-row dataset, atomized vs legacy single-call on `origin/main + #203 + #217`)
+## Results (2026-05-15, first measurement; rewrite is NOT ready for upstream — see Status header)
 
-The headline finding has two parts and is best read together. They are not independent gains — they are the same trade made deliberately in one direction.
+### Top-line: the rewrite regresses under the maintainer's binary metric on 7 of 9 providers
+
+The binary metric collapses verdicts to {Supported, Partially supported} vs {Not supported, Source unavailable} — i.e., "does the panel raise an action-required flag on this citation?" Under that lens, an `S → PS` shift on a fully-supported citation is *not* a wasted click (the editor wouldn't necessarily act on a "Partially supported" verdict either), so the only costs that count are (a) bad citations that get no action-required flag at all and (b) supported / partially-supported citations that get the hard "Not supported" flag the editor *will* act on.
+
+Net binary errors per provider over the 185-row dataset (lower is better):
+
+| Provider | Old (legacy single-call) | New (atomized) | Δ |
+|---|---:|---:|---:|
+| Mistral Small 3.2 | 36 | 35 | **−1** (the only win — and offset by the wasted-hard-flag column; see breakdown) |
+| Claude Sonnet 4.5 | 39 | 41 | +2 (wash) |
+| Granite 4.1-8B | 32 | 37 | +5 |
+| DeepSeek-V3 (HF) | 28 | 32 | +4 |
+| Gemma 4-26B | 39 | 46 | +7 |
+| Gemini 2.5 Flash | 28 | 36 | +8 |
+| Qwen-3-32B (OR) | 28 | 39 | +11 |
+| Qwen3-32B (HF) | 27 | 43 | **+16** |
+| gpt-oss-20b (HF) | 38 | 57 | **+19** |
+
+The driver is uniform across the panel: the atomized verifier emits more "Not supported" verdicts on citations that don't actually need the source removed. Mechanically, the atomizer breaks claims into atoms; the per-atom verifier judges each atom; the deterministic rollup escalates any single false-negative atom to `Partially supported` and an all-false-negative atom set to `Not supported`. Small models with over-strict per-atom judgments end up producing more hard flags than the original single-call verifier did. That's the followup workstream — the prompt is too strict, not the architecture.
+
+### Secondary view: the rewrite catches more "Partially supported" problems under the recall lens
+
+The headline finding has two parts and is best read together. **This framing makes the rewrite look better than it is under the binary metric above — both views are real, but the binary view is what governs editor workflow per the maintainer's preference.**
 
 **1. The system catches more problems.** "Catches a problem" = a citation whose ground-truth verdict is *Not supported* or *Partially supported*, and where the panel emitted *Not supported* or *Partially supported* (i.e., flagged it for editor attention rather than passing it). Comparison is over the 1554-cell intersection of the legacy single-call control and the atomized treatment, both run on the same dataset (176 complete + 9 body-classifier-attributed *Source unavailable* + 4 fetch-failed errors). Control was measured on 2026-05-14 on the `body-classifier-bench` worktree (integration base + #217 commits); treatment was measured 2026-05-15 on `fresh-prompt-on-217` (this branch) with the atomized pipeline. Body-classifier is active on both sides so its 9 short-circuited rows are pipeline-attributed in both.
 
