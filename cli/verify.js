@@ -8,7 +8,7 @@ import { JSDOM } from 'jsdom';
 import { extractClaimText } from '../core/claim.js';
 import { extractReferenceUrl, extractPageNumber } from '../core/urls.js';
 import { fetchSourceContent, logVerification } from '../core/worker.js';
-import { generateSystemPrompt, generateUserPrompt } from '../core/prompts.js';
+import { generateLegacySystemPrompt, generateLegacyUserPrompt } from '../core/prompts.js';
 import { callProviderAPI } from '../core/providers.js';
 import { parseVerificationResult } from '../core/parsing.js';
 import { parseCompareArgs, COMPARE_HELP_TEXT, runCompare } from './compare.js';
@@ -327,13 +327,13 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
 
     // 9. Build prompts and call the LLM.
     //    fetchSourceContent returns a string shaped "Source URL: <u>\n\n
-    //    Source Content:\n<body>"; generateUserPrompt parses that shape,
+    //    Source Content:\n<body>"; generateLegacyUserPrompt parses that shape,
     //    so we pass it through unchanged.
     //    callProviderAPI returns { text, usage } on success; extra keys in
     //    providerConfig are ignored by the destructure so it's safe to
     //    include apiKey for publicai (which won't read it).
-    const systemPrompt = generateSystemPrompt();
-    const userContent = generateUserPrompt(claim, sourceInfo);
+    const systemPrompt = generateLegacySystemPrompt();
+    const userContent = generateLegacyUserPrompt(claim, sourceInfo);
     const optionalEnvVar = PROVIDER_OPTIONAL_ENV_VARS[provider];
     const providerConfig = {
         model: PROVIDER_MODELS[provider],

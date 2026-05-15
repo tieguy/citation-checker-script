@@ -19,7 +19,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { generateSystemPrompt as coreGenerateSystemPrompt, generateUserPrompt } from '../core/prompts.js';
+import { generateLegacySystemPrompt as coreGenerateSystemPrompt, generateLegacyUserPrompt as generateUserPrompt } from '../core/prompts.js';
 import {
     callOpenAICompatibleChat,
     callClaudeAPI,

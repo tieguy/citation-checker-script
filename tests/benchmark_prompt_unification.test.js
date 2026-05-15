@@ -22,10 +22,8 @@ test('run_benchmark.js imports both prompt builders from core/prompts.js', () =>
     path.join(__dirname, '..', 'benchmark', 'run_benchmark.js'),
     'utf-8'
   );
-  assert.match(src, /import\s*\{[^}]*generateSystemPrompt[^}]*\}\s*from\s*['"]\.\.\/core\/prompts\.js['"]/,
-    'run_benchmark.js must import generateSystemPrompt from ../core/prompts.js');
-  assert.match(src, /import\s*\{[^}]*generateUserPrompt[^}]*\}\s*from\s*['"]\.\.\/core\/prompts\.js['"]/,
-    'run_benchmark.js must import generateUserPrompt from ../core/prompts.js');
+  assert.match(src, /import\s*\{[^}]*generateLegacy[^}]*\}\s*from\s*['"]\.\.\/core\/prompts\.js['"]/,
+    'run_benchmark.js must import generateLegacy* from ../core/prompts.js');
   assert.doesNotMatch(src, /^function\s+generateSystemPrompt\s*\(/m,
     'run_benchmark.js must not define a local generateSystemPrompt — re-introducing it would re-create the prompt drift this PR closed');
   assert.doesNotMatch(src, /CLAIM FROM WIKIPEDIA:/,
