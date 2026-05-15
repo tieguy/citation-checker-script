@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchSourceContent, logVerification } from '../core/worker.js';
+import {
+  fetchSourceContent,
+  logVerification,
+  sourceUnavailableStatusText,
+  sourceUnavailableComment,
+} from '../core/worker.js';
 
 function mockFetch(impl) {
   const original = globalThis.fetch;
@@ -106,6 +111,79 @@ test('fetchSourceContent passes usable body through unchanged (Wayback prefix + 
   } finally {
     mock.restore();
   }
+});
+
+// ---- sourceUnavailableStatusText (user-facing status in single-Verify) -----
+
+test('sourceUnavailableStatusText: fetch_failed preserves pre-unification wording', () => {
+  // Regression guard: before the SU-shape unification, the userscript showed
+  // "Could not fetch source. Please paste the source text below." on null
+  // returns. Preserved verbatim for the fetch_failed reason so users don't
+  // see new jargon on the most common failure mode.
+  assert.equal(
+    sourceUnavailableStatusText('fetch_failed'),
+    'Could not fetch source. Please paste the source text below.'
+  );
+});
+
+test('sourceUnavailableStatusText: classifier reasons surface in parens', () => {
+  assert.equal(
+    sourceUnavailableStatusText('wayback_chrome'),
+    'Source unavailable (wayback_chrome). Paste the source text below if you have it.'
+  );
+  assert.equal(
+    sourceUnavailableStatusText('short_body'),
+    'Source unavailable (short_body). Paste the source text below if you have it.'
+  );
+});
+
+test('sourceUnavailableStatusText: google_books_skip surfaces with reason', () => {
+  // No special-case wording yet; if/when we add user-friendly copy for Google
+  // Books citations specifically, update this test alongside the helper.
+  assert.equal(
+    sourceUnavailableStatusText('google_books_skip'),
+    'Source unavailable (google_books_skip). Paste the source text below if you have it.'
+  );
+});
+
+test('sourceUnavailableStatusText: unknown reason still produces a coherent message', () => {
+  assert.equal(
+    sourceUnavailableStatusText('something_new'),
+    'Source unavailable (something_new). Paste the source text below if you have it.'
+  );
+});
+
+// ---- sourceUnavailableComment (report comment field) ------------------------
+
+test('sourceUnavailableComment: fetch_failed preserves pre-unification wording', () => {
+  // Batch-report results.json previously recorded "Could not fetch source
+  // content" for null returns. Preserved verbatim for fetch_failed so the
+  // benchmark-runner's synthesizePipelineSU output for source_fetch_failed
+  // rows matches the userscript's batch-report comment string.
+  assert.equal(
+    sourceUnavailableComment('fetch_failed'),
+    'Could not fetch source content'
+  );
+});
+
+test('sourceUnavailableComment: classifier reasons use Pipeline-attributed prefix', () => {
+  // Pattern that analyze_results.js readers and human reviewers can grep on
+  // to attribute outcomes to the deterministic pipeline rather than the LLM.
+  assert.equal(
+    sourceUnavailableComment('json_ld_leak'),
+    'Pipeline-attributed (json_ld_leak)'
+  );
+  assert.equal(
+    sourceUnavailableComment('amazon_stub'),
+    'Pipeline-attributed (amazon_stub)'
+  );
+});
+
+test('sourceUnavailableComment: unknown reason produces a coherent comment', () => {
+  assert.equal(
+    sourceUnavailableComment('unknown'),
+    'Pipeline-attributed (unknown)'
+  );
 });
 
 test('logVerification posts payload and swallows failures', async () => {

@@ -73,6 +73,31 @@ export async function fetchSourceContent(url, pageNum, { workerBase = 'https://p
     return { sourceUnavailable: true, reason: 'fetch_failed' };
 }
 
+// User-facing status text for an SU return shape. Used by main.js's
+// single-citation Verify path. fetch_failed preserves the pre-unification
+// wording ("Could not fetch source…") since users see "fetched nothing"
+// as different in tone from "fetched but body is bad," even though the
+// runtime treats them identically. All other reasons surface the reason
+// code in parentheses so the user can distinguish patterns over time.
+export function sourceUnavailableStatusText(reason) {
+    if (reason === 'fetch_failed') {
+        return 'Could not fetch source. Please paste the source text below.';
+    }
+    return `Source unavailable (${reason}). Paste the source text below if you have it.`;
+}
+
+// Report-comment text for an SU return shape. Used by main.js's batch-report
+// path and by benchmark/run_benchmark.js's synthesizePipelineSU. fetch_failed
+// preserves the pre-unification "Could not fetch source content" wording;
+// other reasons use the Pipeline-attributed prefix so analyze_results.js
+// (and human reviewers) can pattern-match on it.
+export function sourceUnavailableComment(reason) {
+    if (reason === 'fetch_failed') {
+        return 'Could not fetch source content';
+    }
+    return `Pipeline-attributed (${reason})`;
+}
+
 export function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
     // Wrap the fetch POST in try/catch exactly as main.js does.
     // `payload` replaces the constructed object in main.js — caller supplies

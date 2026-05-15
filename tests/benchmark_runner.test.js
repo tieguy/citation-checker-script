@@ -3,7 +3,16 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { runPool, withRetry, makeSaver, hostForProvider, shapeResult, synthesizePipelineSU, compareVerdicts } from '../benchmark/run_benchmark.js';
+import {
+    runPool,
+    withRetry,
+    makeSaver,
+    hostForProvider,
+    shapeResult,
+    synthesizePipelineSU,
+    compareVerdicts,
+    filterBenchmarkableEntries,
+} from '../benchmark/run_benchmark.js';
 
 // ---- runPool ----------------------------------------------------------------
 
@@ -348,7 +357,67 @@ test('synthesizePipelineSU uses fetch_failed reason for source_fetch_failed rows
     };
     const result = synthesizePipelineSU(entry, 'p', 'm');
     assert.equal(result.predicted_verdict, 'Source unavailable');
-    assert.equal(result.comments, 'Pipeline-attributed (fetch_failed)');
+    // fetch_failed routes through sourceUnavailableComment which preserves the
+    // pre-unification "Could not fetch source content" wording, matching
+    // main.js's batch-report path. Other reasons get "Pipeline-attributed (X)".
+    assert.equal(result.comments, 'Could not fetch source content');
     assert.equal(result.pipeline_attributed, true);
     assert.equal(result.correct, 'exact');
+});
+
+// ---- filterBenchmarkableEntries --------------------------------------------
+
+test('filterBenchmarkableEntries: admits complete + non-NMR rows', () => {
+    const dataset = [
+        { id: 'a', extraction_status: 'complete', needs_manual_review: false },
+        { id: 'b', extraction_status: 'complete', needs_manual_review: true },
+    ];
+    const admitted = filterBenchmarkableEntries(dataset);
+    assert.deepEqual(admitted.map(e => e.id), ['a']);
+});
+
+test('filterBenchmarkableEntries: admits body_unusable when not NMR', () => {
+    const dataset = [
+        { id: 'a', extraction_status: 'body_unusable', needs_manual_review: false, body_unusable_reason: 'wayback_chrome' },
+        { id: 'b', extraction_status: 'body_unusable', needs_manual_review: true,  body_unusable_reason: 'short_body' },
+    ];
+    const admitted = filterBenchmarkableEntries(dataset);
+    assert.deepEqual(admitted.map(e => e.id), ['a']);
+});
+
+test('filterBenchmarkableEntries: admits source_fetch_failed when not NMR', () => {
+    // Regression guard for the unification: rows whose proxy fetch failed
+    // (no source_text, no body_unusable_reason) were previously excluded as
+    // unbenchmarkable. They now flow through synthesizePipelineSU as
+    // deterministic SU. NMR rows are still rejected — those need human GT
+    // reconciliation before they enter metrics.
+    const dataset = [
+        { id: 'a', extraction_status: 'source_fetch_failed', needs_manual_review: false },
+        { id: 'b', extraction_status: 'source_fetch_failed', needs_manual_review: true },
+    ];
+    const admitted = filterBenchmarkableEntries(dataset);
+    assert.deepEqual(admitted.map(e => e.id), ['a']);
+});
+
+test('filterBenchmarkableEntries: rejects unknown extraction_status', () => {
+    // Defensive: a typo or a new status that hasn't been wired through the
+    // synthesize path yet should not silently enter the benchmark.
+    const dataset = [
+        { id: 'a', extraction_status: 'pending_review', needs_manual_review: false },
+        { id: 'b', extraction_status: 'something_new',  needs_manual_review: false },
+    ];
+    assert.equal(filterBenchmarkableEntries(dataset).length, 0);
+});
+
+test('filterBenchmarkableEntries: preserves order and does not mutate input', () => {
+    const dataset = [
+        { id: 'a', extraction_status: 'complete', needs_manual_review: false },
+        { id: 'b', extraction_status: 'body_unusable', needs_manual_review: true },
+        { id: 'c', extraction_status: 'source_fetch_failed', needs_manual_review: false },
+        { id: 'd', extraction_status: 'complete', needs_manual_review: false },
+    ];
+    const snapshot = JSON.stringify(dataset);
+    const admitted = filterBenchmarkableEntries(dataset);
+    assert.deepEqual(admitted.map(e => e.id), ['a', 'c', 'd']);
+    assert.equal(JSON.stringify(dataset), snapshot, 'input dataset must not be mutated');
 });

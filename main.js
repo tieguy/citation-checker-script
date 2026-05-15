@@ -846,6 +846,31 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
     return { sourceUnavailable: true, reason: 'fetch_failed' };
 }
 
+// User-facing status text for an SU return shape. Used by main.js's
+// single-citation Verify path. fetch_failed preserves the pre-unification
+// wording ("Could not fetch source…") since users see "fetched nothing"
+// as different in tone from "fetched but body is bad," even though the
+// runtime treats them identically. All other reasons surface the reason
+// code in parentheses so the user can distinguish patterns over time.
+function sourceUnavailableStatusText(reason) {
+    if (reason === 'fetch_failed') {
+        return 'Could not fetch source. Please paste the source text below.';
+    }
+    return `Source unavailable (${reason}). Paste the source text below if you have it.`;
+}
+
+// Report-comment text for an SU return shape. Used by main.js's batch-report
+// path and by benchmark/run_benchmark.js's synthesizePipelineSU. fetch_failed
+// preserves the pre-unification "Could not fetch source content" wording;
+// other reasons use the Pipeline-attributed prefix so analyze_results.js
+// (and human reviewers) can pattern-match on it.
+function sourceUnavailableComment(reason) {
+    if (reason === 'fetch_failed') {
+        return 'Could not fetch source content';
+    }
+    return `Pipeline-attributed (${reason})`;
+}
+
 function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
     // Wrap the fetch POST in try/catch exactly as main.js does.
     // `payload` replaces the constructed object in main.js — caller supplies
@@ -2390,14 +2415,10 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     // Source cannot be verified deterministically — either fetch failed
                     // (network/proxy/empty body), URL is on the skip list (Google Books),
                     // or the body-classifier flagged the extracted content as structurally
-                    // unusable. No LLM call is made.
+                    // unusable. No LLM call is made. Message wording is in
+                    // sourceUnavailableStatusText() (core/worker.js) for unit testability.
                     this.showSourceTextInput();
-                    const reason = sourceInfo.reason;
-                    if (reason === 'fetch_failed') {
-                        this.updateStatus('Could not fetch source. Please paste the source text below.');
-                    } else {
-                        this.updateStatus(`Source unavailable (${reason}). Paste the source text below if you have it.`);
-                    }
+                    this.updateStatus(sourceUnavailableStatusText(sourceInfo.reason));
                     return;
                 }
 
@@ -3567,11 +3588,8 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                     } else if (typeof sourceContent === 'object' && sourceContent.sourceUnavailable) {
                         // Source cannot be verified deterministically — fetch failure,
                         // skip-listed URL (Google Books), or body-classifier rejection.
-                        // No LLM call is made.
-                        const reason = sourceContent.reason;
-                        const comments = reason === 'fetch_failed'
-                            ? 'Could not fetch source content'
-                            : `Pipeline-attributed (${reason})`;
+                        // No LLM call is made. Comment wording is in
+                        // sourceUnavailableComment() (core/worker.js) for unit testability.
                         result = {
                             citationNumber: citation.citationNumber,
                             claimText: citation.claimText,
@@ -3579,7 +3597,7 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
                             refElement: citation.refElement,
                             verdict: 'SOURCE UNAVAILABLE',
                             confidence: 0,
-                            comments,
+                            comments: sourceUnavailableComment(sourceContent.reason),
                             truncated: false
                         };
                     } else {

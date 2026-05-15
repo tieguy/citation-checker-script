@@ -28,6 +28,7 @@ import {
     callHuggingFaceAPI,
 } from '../core/providers.js';
 import { parseVerificationResult } from '../core/parsing.js';
+import { sourceUnavailableComment } from '../core/worker.js';
 import { loadRows, loadMetadata, todayIso } from './io.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -506,22 +507,7 @@ async function main() {
     const datasetMetadata = loadMetadata(DATASET_PATH);
     console.log(`Loaded ${dataset.length} entries from dataset`);
 
-    // Filter to entries ready for benchmarking. Three buckets:
-    //   - extraction_status === 'complete'             — feeds normal LLM flow
-    //   - extraction_status === 'body_unusable'        — synthetic SU (no LLM call);
-    //                                                    reason from body_unusable_reason
-    //   - extraction_status === 'source_fetch_failed'  — synthetic SU (no LLM call);
-    //                                                    reason 'fetch_failed'. Mirrors
-    //                                                    production userscript behavior
-    //                                                    where worker.js returns the
-    //                                                    same { sourceUnavailable } shape
-    //                                                    on proxy/network failure.
-    let entries = dataset.filter(
-        e => (e.extraction_status === 'complete'
-              || e.extraction_status === 'body_unusable'
-              || e.extraction_status === 'source_fetch_failed')
-             && !e.needs_manual_review
-    );
+    let entries = filterBenchmarkableEntries(dataset);
     const usableCount = entries.filter(e => e.extraction_status === 'complete').length;
     const unusableCount = entries.filter(e => e.extraction_status === 'body_unusable').length;
     const fetchFailedCount = entries.filter(e => e.extraction_status === 'source_fetch_failed').length;
@@ -689,6 +675,31 @@ async function main() {
 }
 
 /**
+ * Decide which dataset rows are eligible for benchmarking. Three admit buckets:
+ *   - extraction_status === 'complete'             — normal LLM flow.
+ *   - extraction_status === 'body_unusable'        — synthetic SU via
+ *                                                    synthesizePipelineSU (no LLM call);
+ *                                                    reason comes from
+ *                                                    entry.body_unusable_reason.
+ *   - extraction_status === 'source_fetch_failed'  — synthetic SU via
+ *                                                    synthesizePipelineSU (no LLM call);
+ *                                                    reason defaults to 'fetch_failed'.
+ *                                                    Mirrors production worker.js, which
+ *                                                    returns { sourceUnavailable, reason }
+ *                                                    on proxy/network failure.
+ * Rows with needs_manual_review === true are rejected regardless of status —
+ * GT for those rows is held out of metrics until a human reconciles.
+ */
+export function filterBenchmarkableEntries(dataset) {
+    return dataset.filter(
+        e => (e.extraction_status === 'complete'
+              || e.extraction_status === 'body_unusable'
+              || e.extraction_status === 'source_fetch_failed')
+             && !e.needs_manual_review
+    );
+}
+
+/**
  * Synthesize a deterministic "Source unavailable" result for a dataset row
  * that won't reach the LLM. Used by the runner for two cases:
  *  - extraction_status === 'body_unusable': body-classifier flagged
@@ -710,7 +721,7 @@ export function synthesizePipelineSU(entry, provider, model) {
         ground_truth: entry.ground_truth,
         predicted_verdict: verdict,
         confidence: 'High',
-        comments: `Pipeline-attributed (${reason})`,
+        comments: sourceUnavailableComment(reason),
         latency_ms: 0,
         error: null,
         correct: compareVerdicts(verdict, entry.ground_truth),
