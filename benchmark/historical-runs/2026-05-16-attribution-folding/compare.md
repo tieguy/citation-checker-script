@@ -1,16 +1,18 @@
-# Compare Results — 2026-05-16T05:17:26.818Z
+# Compare Results — 2026-05-16T05:41:10.420Z
 
 Change axes: `prompt`, `atomizer`
 Control run at: 2026-05-15T19:26:34.418Z
-Treatment run at: 2026-05-16T02:18:08.016Z
+Treatment run at: 2026-05-16T05:34:42.533Z
 
-Compared cells: **1055** of 1109 intersection (553 control-only, 1 treatment-only excluded). Dataset: 176 valid of 189.
+Compared cells: **1405** of 1477 intersection (185 control-only, 3 treatment-only excluded). Dataset: 176 valid of 189.
 Noise floor: ±5pp (single-provider 95% CI heuristic).
 
 ## Headline accuracy
 
 | Provider | n | Control exact | Treatment exact | Δ exact | Control lenient | Treatment lenient | Δ lenient | Control binary | Treatment binary | Δ binary |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| claude-sonnet-4-5 (noise) | 176 | 58.5% | 58.5% | +0.0 | 76.7% | 75.0% | -1.7 | 76.7% | 75.0% | -1.7 |
+| gemini-2.5-flash (noise) | 174 | 60.9% | 64.4% | +3.4 | 76.4% | 77.6% | +1.1 | 76.4% | 77.6% | +1.1 |
 | openrouter-mistral-small-3.2 (noise) | 176 | 60.2% | 63.1% | +2.8 | 80.1% | 80.1% | +0.0 | 80.1% | 80.1% | +0.0 |
 | openrouter-gemma-4-26b-a4b (noise) | 176 | 54.5% | 55.1% | +0.6 | 73.9% | 71.0% | -2.8 | 73.9% | 71.0% | -2.8 |
 | openrouter-granite-4.1-8b | 175 | 57.7% | 62.9% | +5.1 | 78.9% | 78.9% | +0.0 | 78.9% | 78.9% | +0.0 |
@@ -22,37 +24,104 @@ Noise floor: ±5pp (single-provider 95% CI heuristic).
 
 | Provider | Entry ID | Claim | Control | Treatment | Ground truth | Direction |
 |---|---|---|---|---|---|---|
+| claude-sonnet-4-5 | row_2 | Immigration has been a major source of population growth and… | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
+| claude-sonnet-4-5 | row_3 | While the United States represented about 4% of the total gl… | NOT SUPPORTED | PARTIALLY SUPPORTED | Supported | lateral |
+| claude-sonnet-4-5 | row_5 | In 2024, immigrants and their U.S.-born children number more… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
+| claude-sonnet-4-5 | row_7 | and 1.0% who were granted the Special Immigrant Visa (SIV) f… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
+| claude-sonnet-4-5 | row_15 | During the 17th century, approximately 400,000 English peopl… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| claude-sonnet-4-5 | row_16 | Over half of all European immigrants to Colonial America dur… | NOT SUPPORTED | SUPPORTED | Supported | improvement |
+| claude-sonnet-4-5 | row_28 | On 7 January, the Saudi-backed forces began advancing toward… | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
+| claude-sonnet-4-5 | row_31 | After Aden's fall to the PLC, Zoubaidi went missing for a br… | SUPPORTED | NOT SUPPORTED | Supported | regression |
+| claude-sonnet-4-5 | row_30 | PLC forces captured the city's international airport and the… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| claude-sonnet-4-5 | row_40 | That evening, Benomar announced an agreement that would end … | SUPPORTED | NOT SUPPORTED | Supported | regression |
+| claude-sonnet-4-5 | row_46 | Al Jazeera later claimed to have received taped phone conver… | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
+| claude-sonnet-4-5 | row_47 | Saleh's party, the General People's Congress, joined the Hou… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
+| claude-sonnet-4-5 | row_54 | President Maskhadov started a major campaign against hostage… | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
+| claude-sonnet-4-5 | row_57 | Gehry himself later discarded his own idea, as he was "afrai… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| claude-sonnet-4-5 | row_58 | Dancers Fred Astaire and Ginger Rogers are represented in th… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| claude-sonnet-4-5 | row_61 | AJMN receives public funding from the Qatari government, and… | PARTIALLY SUPPORTED | NOT SUPPORTED | Partially supported | regression |
+| claude-sonnet-4-5 | row_60 | AJMN receives public funding from the Qatari government, and… | PARTIALLY SUPPORTED | NOT SUPPORTED | Partially supported | regression |
+| claude-sonnet-4-5 | row_68 | The original settlement area contained the site of the Chart… | PARTIALLY SUPPORTED | NOT SUPPORTED | Partially supported | regression |
+| claude-sonnet-4-5 | row_83 | Retired Australian Army Major General Mick Ryan characterize… | PARTIALLY SUPPORTED | SUPPORTED | Partially supported | regression |
+| claude-sonnet-4-5 | row_85 | Those who reached Almería were largely rejected by the city’… | PARTIALLY SUPPORTED | NOT SUPPORTED | Partially supported | regression |
+| claude-sonnet-4-5 | row_96 | On 6 March 2024, Welch made his senior debut for the club, r… | PARTIALLY SUPPORTED | NOT SUPPORTED | Not supported | improvement |
+| claude-sonnet-4-5 | row_97 | Shreve's literary works have been featured in The New Yorker… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
+| claude-sonnet-4-5 | row_112 | Since 2013, she has guest-starred in several episodes of Law… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
+| claude-sonnet-4-5 | row_119 | At the time, he was a member of the House General Investigat… | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
+| claude-sonnet-4-5 | row_122 | Alexander Muss prioritizes safety for their students and wor… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| claude-sonnet-4-5 | row_131 | In December 2024, the House of Lords recommended that Lord S… | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
+| claude-sonnet-4-5 | row_130 | It defines itself as a home for the growing community of dev… | NOT SUPPORTED | SUPPORTED | Supported | improvement |
+| claude-sonnet-4-5 | row_132 | Based on polo, two players moved miniature motorbikes around… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
+| claude-sonnet-4-5 | row_133 | In December 2008, Bettencourt stepped down from his role sho… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
+| claude-sonnet-4-5 | row_135 | There, she completed her doctoral training and collaborated … | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
+| claude-sonnet-4-5 | row_140 | Thagunna made his Twenty20 International (T20I) debut for Ne… | SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
+| claude-sonnet-4-5 | row_141 | She became a full member of the European Parliament Committe… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| claude-sonnet-4-5 | row_157 | During recovery, he would watch Janet Jackson's video anthol… | SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
+| claude-sonnet-4-5 | row_158 | Its goal is to allow consumers to compare the overall nutrit… | SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
+| claude-sonnet-4-5 | row_165 | The 1980 NBA Finals was dramatized in the Season 1 of HBO's … | PARTIALLY SUPPORTED | NOT SUPPORTED | Not supported | improvement |
+| claude-sonnet-4-5 | row_167 | Other risk factors for developing adhesive capsulitis includ… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
+| claude-sonnet-4-5 | row_171 | United Records operated during a period of rapid growth in t… | NOT SUPPORTED | PARTIALLY SUPPORTED | Not supported | regression |
+| claude-sonnet-4-5 | row_173 | First Nations peoples believe that the berry has many health… | PARTIALLY SUPPORTED | SUPPORTED | Partially supported | regression |
+| claude-sonnet-4-5 | row_182 | Her father (Rameshwar) wanted a son, but despite being a gir… | PARTIALLY SUPPORTED | NOT SUPPORTED | Partially supported | regression |
+| gemini-2.5-flash | row_4 | In March 2025, the Federation for American Immigration Refor… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-granite-4.1-8b | row_2 | Immigration has been a major source of population growth and… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_6 | According to the 2016 Yearbook of Immigration Statistics, th… | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
+| gemini-2.5-flash | row_7 | and 1.0% who were granted the Special Immigrant Visa (SIV) f… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
 | openrouter-granite-4.1-8b | row_4 | In March 2025, the Federation for American Immigration Refor… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-gemma-4-26b-a4b | row_4 | In March 2025, the Federation for American Immigration Refor… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-mistral-small-3.2 | row_4 | In March 2025, the Federation for American Immigration Refor… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_19 | By comparison, in the first federal census, in 1790, the pop… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-qwen-3-32b | row_4 | In March 2025, the Federation for American Immigration Refor… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-mistral-small-3.2 | row_6 | According to the 2016 Yearbook of Immigration Statistics, th… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_24 | On 7 January 2026, Yemeni government forces (Presidential Le… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
 | openrouter-granite-4.1-8b | row_6 | According to the 2016 Yearbook of Immigration Statistics, th… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-gemma-4-26b-a4b | row_6 | According to the 2016 Yearbook of Immigration Statistics, th… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_31 | After Aden's fall to the PLC, Zoubaidi went missing for a br… | SUPPORTED | NOT SUPPORTED | Supported | regression |
 | openrouter-qwen-3-32b | row_6 | According to the 2016 Yearbook of Immigration Statistics, th… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_36 | In August, the Houthis began holding mass demonstrations in … | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
 | openrouter-mistral-small-3.2 | row_9 | of these ethnic quotas with per-country limits for family-sp… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
 | openrouter-granite-4.1-8b | row_9 | of these ethnic quotas with per-country limits for family-sp… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_40 | That evening, Benomar announced an agreement that would end … | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
 | openrouter-mistral-small-3.2 | row_11 | In 2017, out of the U.S. foreign-born population, some 45% (… | PARTIALLY SUPPORTED | SUPPORTED | Partially supported | regression |
+| gemini-2.5-flash | row_44 | The rebels signed a deal with the government, prompting Prim… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-mistral-small-3.2 | row_12 | The United States led the world in refugee resettlement for … | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_47 | Saleh's party, the General People's Congress, joined the Hou… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
 | openrouter-qwen-3-32b | row_13 | Causes of migration include poverty, crime | NOT SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-mistral-small-3.2 | row_15 | During the 17th century, approximately 400,000 English peopl… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
 | openrouter-gemma-4-26b-a4b | row_15 | During the 17th century, approximately 400,000 English peopl… | SUPPORTED | NOT SUPPORTED | Supported | regression |
 | openrouter-qwen-3-32b | row_15 | During the 17th century, approximately 400,000 English peopl… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
+| gemini-2.5-flash | row_83 | Retired Australian Army Major General Mick Ryan characterize… | PARTIALLY SUPPORTED | SUPPORTED | Partially supported | regression |
+| gemini-2.5-flash | row_85 | Those who reached Almería were largely rejected by the city’… | PARTIALLY SUPPORTED | NOT SUPPORTED | Partially supported | regression |
+| gemini-2.5-flash | row_96 | On 6 March 2024, Welch made his senior debut for the club, r… | PARTIALLY SUPPORTED | NOT SUPPORTED | Not supported | improvement |
+| gemini-2.5-flash | row_97 | Shreve's literary works have been featured in The New Yorker… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
 | openrouter-qwen-3-32b | row_21 | The peak year of European immigration was in 1907, when 1,28… | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
+| gemini-2.5-flash | row_104 | As of December 2024, the company operates six locations: one… | PARTIALLY SUPPORTED | NOT SUPPORTED | Not supported | improvement |
 | openrouter-mistral-small-3.2 | row_24 | On 7 January 2026, Yemeni government forces (Presidential Le… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
+| gemini-2.5-flash | row_112 | Since 2013, she has guest-starred in several episodes of Law… | SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
 | openrouter-qwen-3-32b | row_19 | By comparison, in the first federal census, in 1790, the pop… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-granite-4.1-8b | row_25 | Following Aden's capture, the secretary-general of the STC a… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-mistral-small-3.2 | row_27 | A few weeks later, the Battle of Aden broke out between the … | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-qwen-3-32b | row_25 | Following Aden's capture, the secretary-general of the STC a… | NOT SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_129 | Any movement, especially rapid or unguarded movement, can ag… | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
 | openrouter-mistral-small-3.2 | row_28 | On 7 January, the Saudi-backed forces began advancing toward… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_133 | In December 2008, Bettencourt stepped down from his role sho… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
 | openrouter-qwen-3-32b | row_27 | A few weeks later, the Battle of Aden broke out between the … | NOT SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-qwen-3-32b | row_28 | On 7 January, the Saudi-backed forces began advancing toward… | SUPPORTED | PARTIALLY SUPPORTED | Supported | regression |
 | openrouter-mistral-small-3.2 | row_31 | After Aden's fall to the PLC, Zoubaidi went missing for a br… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_145 | Thus, the ½ ton Dodge was now called the D100, the ¾ ton D20… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
 | openrouter-qwen-3-32b | row_31 | After Aden's fall to the PLC, Zoubaidi went missing for a br… | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
+| gemini-2.5-flash | row_158 | Its goal is to allow consumers to compare the overall nutrit… | PARTIALLY SUPPORTED | NOT SUPPORTED | Partially supported | regression |
+| gemini-2.5-flash | row_162 | As of December 2025, OneNote had more than 500M+ downloads o… | SUPPORTED | NOT SUPPORTED | Not supported | improvement |
+| gemini-2.5-flash | row_167 | Other risk factors for developing adhesive capsulitis includ… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
+| gemini-2.5-flash | row_171 | United Records operated during a period of rapid growth in t… | NOT SUPPORTED | PARTIALLY SUPPORTED | Not supported | regression |
 | openrouter-gemma-4-26b-a4b | row_34 | The flag of Yemen was raised over government buildings in th… | SUPPORTED | NOT SUPPORTED | Supported | regression |
+| gemini-2.5-flash | row_178 | This creates a new way for native areas to get extra revenue… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
 | openrouter-mistral-small-3.2 | row_37 | Fighting broke out between the Houthis and army units in nor… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_179 | These groups are fighting for gender equailty and continuing… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
+| gemini-2.5-flash | row_180 | In 2024, Keoghan publicly announced his relationship with Sa… | NOT SUPPORTED | PARTIALLY SUPPORTED | Supported | lateral |
+| gemini-2.5-flash | row_184 | It is managed as part of the Nature Reserve of Orange County… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
 | openrouter-qwen-3-32b | row_37 | Fighting broke out between the Houthis and army units in nor… | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
+| gemini-2.5-flash | row_186 | Combat Zone Wrestling (CZW) is an American independent profe… | NOT SUPPORTED | PARTIALLY SUPPORTED | Partially supported | improvement |
 | openrouter-mistral-small-3.2 | row_40 | That evening, Benomar announced an agreement that would end … | NOT SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-granite-4.1-8b | row_40 | That evening, Benomar announced an agreement that would end … | PARTIALLY SUPPORTED | SUPPORTED | Supported | improvement |
 | openrouter-gemma-4-26b-a4b | row_40 | That evening, Benomar announced an agreement that would end … | PARTIALLY SUPPORTED | NOT SUPPORTED | Supported | lateral |
