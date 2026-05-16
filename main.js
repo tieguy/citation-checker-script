@@ -637,10 +637,15 @@ async function callProviderAPI(name, config) {
 // Calls to the Cloudflare Worker proxy: source fetching and verification logging.
 
 
+// Always returns { content, error, status }. `content` is the formatted source
+// text on success and null on any failure; `error` is a short human-readable
+// reason when content is null; `status` is the upstream HTTP status code if the
+// proxy reports one (`data.status`), otherwise the proxy's own response status,
+// or null if we never got a response at all.
 async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
     if (isGoogleBooksUrl(url)) {
         console.log('[CitationVerifier] Skipping Google Books URL:', url);
-        return null;
+        return { content: null, error: 'Google Books URL skipped (no fetchable content)', status: null };
     }
 
     try {
@@ -649,11 +654,19 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
             proxyUrl += `&page=${pageNum}`;
         }
         const response = await fetch(proxyUrl);
-        const data = await response.json();
+        const proxyStatus = response.status;
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (_) {
+            return { content: null, error: `Proxy returned non-JSON response (HTTP ${proxyStatus})`, status: proxyStatus };
+        }
+
+        const status = (data && typeof data.status === 'number') ? data.status : proxyStatus;
 
         if (data.error) {
             console.warn('[CitationVerifier] Proxy error:', data.error);
-            return null;
+            return { content: null, error: data.error, status };
         }
 
         if (data.content && data.content.length > 100) {
@@ -671,7 +684,7 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
             if (isTruncated) {
                 meta += `\nTruncated: true`;
             }
-            return `${meta}\n\nSource Content:\n${data.content}`;
+            return { content: `${meta}\n\nSource Content:\n${data.content}`, error: null, status };
         }
 
         // If PDF was large and we didn't request a specific page, retry
@@ -679,10 +692,11 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
         if (data.pdf && !pageNum && data.totalPages > 15) {
             console.log('[CitationVerifier] Large PDF without page param, content may be truncated');
         }
+        return { content: null, error: 'Source content was empty or too short to verify', status };
     } catch (error) {
         console.error('Proxy fetch failed:', error);
+        return { content: null, error: error?.message || String(error), status: null };
     }
-    return null; // Falls back to manual input
 }
 
 function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
@@ -735,6 +749,10 @@ const DATASET_SUBMISSION_ENTRY_IDS = {
     llmRationale:   'entry.PLACEHOLDER_6',
     llmProvider:    'entry.PLACEHOLDER_7',
     llmModel:       'entry.PLACEHOLDER_8',
+    // Populated only for SOURCE UNAVAILABLE rows where the proxy reported an
+    // HTTP status — lets the dataset distinguish "we never fetched" from
+    // "we fetched and the source returned 4xx/5xx".
+    fetchStatus:    'entry.PLACEHOLDER_11',
     editorHandle:   'entry.PLACEHOLDER_9',
     notes:          'entry.PLACEHOLDER_10',
 };
@@ -2289,18 +2307,21 @@ function buildDatasetSubmissionUrl(
                 this.updateStatus('Fetching source content...');
                 const fetchId = ++this.currentFetchId;
                 const pageNum = this.extractPageNumber(refElement);
-                const sourceInfo = await this.fetchSourceContent(refUrl, pageNum);
+                const fetchResult = await this.fetchSourceContent(refUrl, pageNum);
 
                 if (fetchId !== this.currentFetchId) {
                     return;
                 }
 
-                if (!sourceInfo) {
+                if (!fetchResult.content) {
                     this.showSourceTextInput();
-                    this.updateStatus('Could not fetch source. Please paste the source text below.');
+                    const status = fetchResult.status != null ? ` (HTTP ${fetchResult.status})` : '';
+                    const reason = fetchResult.error ? `: ${fetchResult.error}` : '';
+                    this.updateStatus(`Could not fetch source${status}${reason}. Please paste the source text below.`, true);
                     return;
                 }
 
+                const sourceInfo = fetchResult.content;
                 this.activeSource = sourceInfo;
                 const sourceElement = document.getElementById('verifier-source-text');
 
@@ -3445,16 +3466,18 @@ function buildDatasetSubmissionUrl(
                         truncated: false
                     };
                 } else {
-                    // Fetch source if not cached
+                    // Fetch source if not cached. Cache value is always the
+                    // full { content, error, status } shape so retries on the
+                    // same URL preserve the diagnostic for the submission link.
                     const cacheKey = citation.pageNum ? `${citation.url}|page=${citation.pageNum}` : citation.url;
 
                     if (!this.sourceCache.has(cacheKey)) {
                         this.updateReportProgress(i, citations.length, `Fetching source for [${citation.citationNumber}]`, startTime);
                         try {
-                            const sourceContent = await this.fetchSourceContent(citation.url, citation.pageNum);
-                            this.sourceCache.set(cacheKey, sourceContent);
+                            const fetchResult = await this.fetchSourceContent(citation.url, citation.pageNum);
+                            this.sourceCache.set(cacheKey, fetchResult);
                         } catch (e) {
-                            this.sourceCache.set(cacheKey, null);
+                            this.sourceCache.set(cacheKey, { content: null, error: e?.message || 'fetch threw', status: null });
                         }
                         // Rate limit delay after fetch
                         if (!this.reportCancelled) {
@@ -3464,9 +3487,13 @@ function buildDatasetSubmissionUrl(
 
                     if (this.reportCancelled) break;
 
-                    const sourceContent = this.sourceCache.get(cacheKey);
+                    const fetchResult = this.sourceCache.get(cacheKey) || { content: null, error: null, status: null };
+                    const sourceContent = fetchResult.content;
 
                     if (!sourceContent) {
+                        const statusPart = fetchResult.status != null ? `HTTP ${fetchResult.status}` : null;
+                        const reasonPart = fetchResult.error || 'Could not fetch source content';
+                        const comments = statusPart ? `${statusPart}: ${reasonPart}` : reasonPart;
                         result = {
                             citationNumber: citation.citationNumber,
                             claimText: citation.claimText,
@@ -3474,7 +3501,9 @@ function buildDatasetSubmissionUrl(
                             refElement: citation.refElement,
                             verdict: 'SOURCE UNAVAILABLE',
                             confidence: 0,
-                            comments: 'Could not fetch source content',
+                            comments,
+                            fetchStatus: fetchResult.status,
+                            fetchError: fetchResult.error,
                             truncated: false
                         };
                     } else {
@@ -3676,6 +3705,7 @@ function buildDatasetSubmissionUrl(
                 llmRationale: result?.comments ?? '',
                 llmProvider: result?.providerName ?? provider.name ?? '',
                 llmModel: result?.model ?? provider.model ?? '',
+                fetchStatus: result?.fetchStatus ?? '',
             });
         }
 

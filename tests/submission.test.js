@@ -17,6 +17,7 @@ const REAL_ENTRY_IDS = {
   llmRationale:   'entry.666',
   llmProvider:    'entry.777',
   llmModel:       'entry.888',
+  fetchStatus:    'entry.1111',
   editorHandle:   'entry.999',
   notes:          'entry.1010',
 };
@@ -59,6 +60,7 @@ test('buildDatasetSubmissionUrl maps every supplied field to its entry ID', () =
     llmRationale: 'Source states sky is blue.',
     llmProvider: 'Claude',
     llmModel: 'claude-sonnet-4-6',
+    fetchStatus: 503,
     editorHandle: 'Alice',
     notes: 'Cross-checked manually',
   }, REAL_FORM_URL, REAL_ENTRY_IDS);
@@ -71,6 +73,7 @@ test('buildDatasetSubmissionUrl maps every supplied field to its entry ID', () =
   assert.equal(params.get('entry.666'), 'Source states sky is blue.');
   assert.equal(params.get('entry.777'), 'Claude');
   assert.equal(params.get('entry.888'), 'claude-sonnet-4-6');
+  assert.equal(params.get('entry.1111'), '503');
   assert.equal(params.get('entry.999'), 'Alice');
   assert.equal(params.get('entry.1010'), 'Cross-checked manually');
 });

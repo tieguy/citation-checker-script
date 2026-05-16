@@ -32,6 +32,10 @@ export const DATASET_SUBMISSION_ENTRY_IDS = {
     llmRationale:   'entry.PLACEHOLDER_6',
     llmProvider:    'entry.PLACEHOLDER_7',
     llmModel:       'entry.PLACEHOLDER_8',
+    // Populated only for SOURCE UNAVAILABLE rows where the proxy reported an
+    // HTTP status — lets the dataset distinguish "we never fetched" from
+    // "we fetched and the source returned 4xx/5xx".
+    fetchStatus:    'entry.PLACEHOLDER_11',
     editorHandle:   'entry.PLACEHOLDER_9',
     notes:          'entry.PLACEHOLDER_10',
 };
