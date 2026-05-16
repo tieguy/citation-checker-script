@@ -11,22 +11,21 @@ import {
 
 // === Atomizer ===
 
-test('generateAtomizerSystemPrompt instructs JSON output with content/provenance kinds', () => {
+test('generateAtomizerSystemPrompt instructs JSON output with atom schema', () => {
   const out = generateAtomizerSystemPrompt();
   assert.match(out, /JSON/);
-  assert.match(out, /content/);
-  assert.match(out, /provenance/);
   assert.match(out, /atoms/i);
+  assert.match(out, /assertion/i);
   // Structural cues for small models
   assert.match(out, /1\./);
   assert.match(out, /2\./);
 });
 
-test('generateAtomizerSystemPrompt explicitly distinguishes content vs provenance', () => {
+test('generateAtomizerSystemPrompt does not emit a content/provenance kind tag', () => {
   const out = generateAtomizerSystemPrompt();
-  // Must define both kinds explicitly so small models can follow
-  assert.match(out, /provenance.*author|provenance.*publication|provenance.*publication date/i);
-  assert.match(out, /content.*assertion|content.*body|content.*article/i);
+  // The two-kind split was removed (premature optimization); atoms are uniform.
+  // The schema example must not include a "kind" field.
+  assert.doesNotMatch(out, /"kind"\s*:/);
 });
 
 test('generateAtomizerUserPrompt embeds the claim verbatim', () => {
@@ -80,29 +79,36 @@ test('generateVerifierSystemPrompt includes structural cues for small models', (
   assert.match(out, /verdict/i);
 });
 
-test('generateVerifierUserPrompt embeds atom assertion and source text', () => {
-  const atom = { id: 'a1', assertion: 'The dam is 95 meters tall.', kind: 'content' };
+test('generateVerifierUserPrompt embeds atom assertion, body, and metadata together', () => {
+  const atom = { id: 'a1', assertion: 'The dam is 95 meters tall.' };
   const sourceText = 'The dam, completed in 1972, stands 95 meters tall and spans the river.';
-  const out = generateVerifierUserPrompt(atom, sourceText);
-  assert.ok(out.includes(atom.assertion));
-  assert.ok(out.includes('95 meters tall'));
-});
-
-test('generateVerifierUserPrompt scopes provenance atoms to metadata only', () => {
-  const atom = { id: 'p1', assertion: 'Published in The Guardian.', kind: 'provenance' };
-  const sourceText = 'The dam, completed in 1972, stands 95 meters tall.';
   const metadata = { publication: 'The Guardian', published: '2019-04-12' };
   const out = generateVerifierUserPrompt(atom, sourceText, metadata);
-  // Provenance prompts must reference the metadata block, not just the body
-  assert.match(out, /metadata|provenance|publication/i);
+  assert.ok(out.includes(atom.assertion));
+  assert.ok(out.includes('95 meters tall'));
+  // Every verification — even non-bibliographic ones — sees the metadata block,
+  // so the verifier can decide which side carries the evidence.
   assert.ok(out.includes('The Guardian'));
 });
 
 test('generateVerifierUserPrompt handles no-metadata case gracefully', () => {
-  const atom = { id: 'a1', assertion: 'The dam is 95 meters tall.', kind: 'content' };
+  const atom = { id: 'a1', assertion: 'The dam is 95 meters tall.' };
   const out = generateVerifierUserPrompt(atom, 'body text', undefined);
   assert.equal(typeof out, 'string');
   assert.ok(out.length > 0);
+  // Must still include the body so the verifier has something to work with.
+  assert.ok(out.includes('body text'));
+});
+
+test('generateVerifierUserPrompt does not branch on atom kind', () => {
+  const atom = { id: 'a1', assertion: 'Published in The Guardian.' };
+  const sourceText = 'body text';
+  const metadata = { publication: 'The Guardian' };
+  const out = generateVerifierUserPrompt(atom, sourceText, metadata);
+  // Body must always be visible — the previous kind=provenance branch
+  // hid it, and that's what we're collapsing.
+  assert.ok(out.includes(sourceText));
+  assert.ok(out.includes('The Guardian'));
 });
 
 // === Judge rollup ===

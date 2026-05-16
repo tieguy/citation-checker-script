@@ -80,7 +80,7 @@ test('verifyOneAtom retries once on unparseable JSON and succeeds', async () => 
   ];
   let i = 0;
   const transport = async () => responses[i++];
-  const atoms = [{ id: 'a1', assertion: 'A.', kind: 'content' }];
+  const atoms = [{ id: 'a1', assertion: 'A.' }];
   const results = await verifyAtoms(atoms, 'src', null, { type: 'claude' }, { transport });
   assert.equal(results[0].verdict, 'supported');
   assert.equal(results[0].evidence, 'on retry');
@@ -91,7 +91,7 @@ test('verifyOneAtom retries once on unparseable JSON and succeeds', async () => 
 test('verifyOneAtom keeps original error if retry also fails', async () => {
   let i = 0;
   const transport = async () => { i++; return { text: 'still not json' }; };
-  const atoms = [{ id: 'a1', assertion: 'A.', kind: 'content' }];
+  const atoms = [{ id: 'a1', assertion: 'A.' }];
   const results = await verifyAtoms(atoms, 'src', null, { type: 'claude' }, { transport });
   assert.equal(results[0].verdict, 'not_supported');
   assert.equal(results[0].error, 'unparseable JSON');
@@ -104,7 +104,7 @@ test('verifyOneAtom does NOT retry when first response parses successfully', asy
     i++;
     return { text: JSON.stringify({ verdict: 'supported', evidence: 'ok' }) };
   };
-  const atoms = [{ id: 'a1', assertion: 'A.', kind: 'content' }];
+  const atoms = [{ id: 'a1', assertion: 'A.' }];
   const results = await verifyAtoms(atoms, 'src', null, { type: 'claude' }, { transport });
   assert.equal(results[0].verdict, 'supported');
   assert.equal(results[0].retried, undefined);
@@ -129,9 +129,9 @@ function recordingTransport(responsesByOrder) {
 
 test('verifyAtoms makes one call per atom and returns AtomResult[] in order', async () => {
   const atoms = [
-    { id: 'a1', assertion: 'A.', kind: 'content' },
-    { id: 'a2', assertion: 'B.', kind: 'content' },
-    { id: 'p1', assertion: 'C.', kind: 'provenance' },
+    { id: 'a1', assertion: 'A.' },
+    { id: 'a2', assertion: 'B.' },
+    { id: 'a3', assertion: 'C.' },
   ];
   const { calls, transport } = recordingTransport([
     { text: JSON.stringify({ verdict: 'supported' }) },
@@ -146,25 +146,30 @@ test('verifyAtoms makes one call per atom and returns AtomResult[] in order', as
   assert.equal(results[2].verdict, 'supported');
 });
 
-test('verifyAtoms scopes provenance atoms to metadata', async () => {
+test('verifyAtoms shows every atom both the metadata and the body', async () => {
+  // The previous design split kind=content (body-only) and kind=provenance (metadata-only)
+  // into two prompt paths. That collapsed when citoid metadata lacked a field the atom
+  // referenced (e.g., ISBN absent for Goodreads). We now always show both sections to
+  // every atom and let the verifier pick the side with evidence.
   const atoms = [
-    { id: 'a1', assertion: 'About body.', kind: 'content' },
-    { id: 'p1', assertion: 'About publication.', kind: 'provenance' },
+    { id: 'a1', assertion: 'About body.' },
+    { id: 'a2', assertion: 'About publication.' },
   ];
   const { calls, transport } = recordingTransport([
     { text: JSON.stringify({ verdict: 'supported' }) },
     { text: JSON.stringify({ verdict: 'supported' }) },
   ]);
   await verifyAtoms(atoms, 'body content', { publication: 'NYT' }, { type: 'claude', model: 'm' }, { transport });
-  // The content atom should reference the source body; the provenance atom should reference metadata
-  assert.ok(calls[0].userPrompt.includes('body content'));
-  assert.ok(calls[1].userPrompt.includes('NYT'));
+  for (const c of calls) {
+    assert.ok(c.userPrompt.includes('body content'), 'every atom prompt must include the body');
+    assert.ok(c.userPrompt.includes('NYT'), 'every atom prompt must include the metadata');
+  }
 });
 
 test('verifyAtoms surfaces per-atom errors as not_supported with error', async () => {
   const atoms = [
-    { id: 'a1', assertion: 'A.', kind: 'content' },
-    { id: 'a2', assertion: 'B.', kind: 'content' },
+    { id: 'a1', assertion: 'A.' },
+    { id: 'a2', assertion: 'B.' },
   ];
   const { transport } = recordingTransport([
     { text: JSON.stringify({ verdict: 'supported' }) },
@@ -179,7 +184,7 @@ test('verifyAtoms surfaces per-atom errors as not_supported with error', async (
 
 test('verifyAtoms respects bounded concurrency', async () => {
   const atoms = Array.from({ length: 10 }, (_, i) => ({
-    id: 'a' + i, assertion: 'A' + i, kind: 'content',
+    id: 'a' + i, assertion: 'A' + i,
   }));
   let active = 0;
   let maxActive = 0;

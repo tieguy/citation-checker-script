@@ -117,8 +117,8 @@ function withTempFile(contents, fn) {
 test('loadAtomsCache: results.json shape (rows[].entry_id + rows[].atoms)', () => {
   const fixture = {
     rows: [
-      { entry_id: 'row_2', atoms: [{ id: 'a1', assertion: 'X.', kind: 'content' }] },
-      { entry_id: 'row_3', atoms: [{ id: 'a1', assertion: 'Y.', kind: 'content' }] },
+      { entry_id: 'row_2', atoms: [{ id: 'a1', assertion: 'X.' }] },
+      { entry_id: 'row_3', atoms: [{ id: 'a1', assertion: 'Y.' }] },
     ],
   };
   withTempFile(fixture, (tmp) => {
@@ -133,7 +133,7 @@ test('loadAtomsCache: atoms.json sweep shape (rows[].id + rows[].atoms)', () => 
   const fixture = {
     ran_at: '2026-05-14T21:27:07.167Z',
     rows: [
-      { id: 'row_2', atoms: [{ id: 'a1', assertion: 'X.', kind: 'content' }] },
+      { id: 'row_2', atoms: [{ id: 'a1', assertion: 'X.' }] },
     ],
   };
   withTempFile(fixture, (tmp) => {
@@ -147,7 +147,7 @@ test('loadAtomsCache: multi-provider results.json (same entry_id repeated) — f
   // run_benchmark.js writes one row per (entry_id, provider). Atomization is
   // deterministic across providers when --atoms-cache fed in, so any provider's
   // row carries the same atoms — but we should still de-duplicate.
-  const sharedAtoms = [{ id: 'a1', assertion: 'shared.', kind: 'content' }];
+  const sharedAtoms = [{ id: 'a1', assertion: 'shared.' }];
   const fixture = {
     rows: [
       { entry_id: 'row_2', provider: 'claude-sonnet-4-5', atoms: sharedAtoms },
@@ -166,7 +166,7 @@ test('loadAtomsCache: skips rows with null/empty atoms', () => {
     rows: [
       { entry_id: 'row_2', atoms: null },
       { entry_id: 'row_3', atoms: [] },
-      { entry_id: 'row_4', atoms: [{ id: 'a1', assertion: 'real.', kind: 'content' }] },
+      { entry_id: 'row_4', atoms: [{ id: 'a1', assertion: 'real.' }] },
     ],
   };
   withTempFile(fixture, (tmp) => {

@@ -58,8 +58,8 @@ test('deterministicVerdict: empty array → NOT SUPPORTED (defensive)', () => {
 
 test('summarizeAtomResults includes assertion text and verdict', () => {
   const atoms = [
-    { id: 'a1', assertion: 'The dam is 95m tall.', kind: 'content' },
-    { id: 'p1', assertion: 'Published in Guardian.', kind: 'provenance' },
+    { id: 'a1', assertion: 'The dam is 95m tall.' },
+    { id: 'p1', assertion: 'Published in Guardian.' },
   ];
   const results = [
     { atomId: 'a1', verdict: 'supported', evidence: 'body matches' },
@@ -114,7 +114,7 @@ test('parseJudgeResponse: lowercase verdict not in taxonomy → null', () => {
 // === rollup() in deterministic mode ===
 
 test('rollup deterministic: all-supported case', async () => {
-  const atoms = [{ id: 'a1', assertion: 'A', kind: 'content' }];
+  const atoms = [{ id: 'a1', assertion: 'A' }];
   const results = [{ atomId: 'a1', verdict: 'supported', evidence: 'body matches' }];
   const r = await rollup(atoms, results, 'deterministic');
   assert.equal(r.verdict, 'SUPPORTED');
@@ -124,8 +124,8 @@ test('rollup deterministic: all-supported case', async () => {
 
 test('rollup deterministic: mixed case → PARTIALLY SUPPORTED', async () => {
   const atoms = [
-    { id: 'a1', assertion: 'A', kind: 'content' },
-    { id: 'a2', assertion: 'B', kind: 'content' },
+    { id: 'a1', assertion: 'A' },
+    { id: 'a2', assertion: 'B' },
   ];
   const results = [
     { atomId: 'a1', verdict: 'supported' },
@@ -141,7 +141,7 @@ test('rollup judge: model returns SUPPORTED', async () => {
   const transport = async () => ({
     text: JSON.stringify({ verdict: 'SUPPORTED', reasoning: 'all good' }),
   });
-  const atoms = [{ id: 'a1', assertion: 'A', kind: 'content' }];
+  const atoms = [{ id: 'a1', assertion: 'A' }];
   const results = [{ atomId: 'a1', verdict: 'supported' }];
   const r = await rollup(atoms, results, 'judge', { type: 'claude', model: 'm' }, {
     transport,
@@ -154,8 +154,8 @@ test('rollup judge: model returns SUPPORTED', async () => {
 test('rollup judge: model returns garbage → deterministic fallback', async () => {
   const transport = async () => ({ text: 'unparseable' });
   const atoms = [
-    { id: 'a1', assertion: 'A', kind: 'content' },
-    { id: 'a2', assertion: 'B', kind: 'content' },
+    { id: 'a1', assertion: 'A' },
+    { id: 'a2', assertion: 'B' },
   ];
   const results = [
     { atomId: 'a1', verdict: 'supported' },
@@ -171,7 +171,7 @@ test('rollup judge: model returns garbage → deterministic fallback', async () 
 
 test('rollup judge: transport throws → deterministic fallback with annotation', async () => {
   const transport = async () => { throw new Error('429 rate limit'); };
-  const atoms = [{ id: 'a1', assertion: 'A', kind: 'content' }];
+  const atoms = [{ id: 'a1', assertion: 'A' }];
   const results = [{ atomId: 'a1', verdict: 'supported' }];
   const r = await rollup(atoms, results, 'judge', { type: 'claude', model: 'm' }, {
     transport,

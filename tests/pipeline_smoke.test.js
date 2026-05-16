@@ -8,8 +8,8 @@ test('atomize → verifyAtoms executes end-to-end against mocked transport', asy
   const atomizerTransport = async () => ({
     text: JSON.stringify({
       atoms: [
-        { id: 'a1', assertion: 'The dam is 95m tall.', kind: 'content' },
-        { id: 'p1', assertion: 'Published in 2019.', kind: 'provenance' },
+        { id: 'a1', assertion: 'The dam is 95m tall.' },
+        { id: 'p1', assertion: 'Published in 2019.' },
       ],
     }),
   });

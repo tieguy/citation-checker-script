@@ -133,7 +133,7 @@ function makeStubTransport(fixture) {
       const atoms = Array.from({ length: fixture.expectedAtoms }, (_, i) => ({
         id: `a${i + 1}`,
         assertion: `atomic assertion ${i + 1} from claim`,
-        kind: 'content',
+       
       }));
       return { text: JSON.stringify({ atoms }) };
     }

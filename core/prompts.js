@@ -15,9 +15,13 @@
 //     paragraph) is included specifically because small instruction-
 //     tuned models (Granite-4.1-8B) regressed on the prior single-
 //     paragraph framing.
-//   - Provenance atoms verify against Citoid metadata; content atoms
-//     verify against the article body. The verifier user prompt scopes
-//     the input slice by atom kind.
+//   - Atoms are uniform — no content/provenance split. The verifier
+//     sees the bibliographic metadata block alongside the article body
+//     for every atom and decides which side has the evidence. The
+//     earlier split forced the verifier to pick a side before reading,
+//     which collapsed to not_supported when citoid lacked the field the
+//     atom referenced (e.g., ISBN absent for Goodreads, publication
+//     absent for primary-artifact pages).
 //   - Atomizer output is JSON. Callers pass responseFormat:
 //     { type: 'json_object' } to the OpenAI-compatible upstreams that
 //     support it; others rely on the model's JSON-following discipline.
@@ -27,66 +31,74 @@
 export function generateAtomizerSystemPrompt() {
     return `You are decomposing a Wikipedia citation claim into atomic assertions that can each be verified independently against the cited source.
 
-This serves the Wikipedia policy of text-source integrity (WP:TSI): each part of an article's material should be supported by the cited source. By splitting compound claims into atoms, each part can be checked against the appropriate slice of the source.
+This serves the Wikipedia policy of text-source integrity (WP:TSI): each part of an article's material should be supported by the cited source. Split compound claims into atoms so each separately-checkable fact can be evaluated against the source; the rollup combines the atom verdicts into a claim-level verdict (supported / partially supported / not supported). Decomposition is the mechanism that lets the system express "partially supported" when a source covers some of a claim's facts but not others.
 
-There are exactly two kinds of atoms:
-1. content — an assertion about WHAT the source says (events, dates, numbers, names of people, places, things mentioned in the source body).
-2. provenance — an assertion about WHO produced the source or WHEN/WHERE it was published (author name, publication title, publication date). Per WP:INTEXT, claims with in-text attribution ("According to X, Y" / "X argued Y" / "X reported in 2024 that Y") contain both kinds: the provenance components verify against the source's bibliographic metadata; the content components verify against the source body.
+An atom is a single declarative assertion. The unit is a separately-checkable fact, not a grammatical component.
 
 Rules:
-1. Each atom should be a single declarative sentence. Do not combine multiple assertions into one atom.
-2. Use the kind tag carefully. "Published in The Guardian" is provenance. "The Guardian editor argued X" is content (it's about what was said, not just where).
-3. Preserve direct quotations from the source verbatim. Per WP:V, direct quotations are material that must be supported by the source as presented; paraphrasing a quoted phrase breaks text-source integrity (WP:STICKTOTHESOURCE: do not change meaning or implication).
-4. Do not introduce facts not present in the claim — that would be original research (WP:NOR). Do not strip qualifiers ("approximately", "reportedly", "allegedly") from the claim — per WP:STICKTOTHESOURCE, paraphrasing must not change meaning or implication, and those qualifiers are part of the claim's meaning.
-5. If the claim is already atomic (one assertion), return a single atom.
+1. **Decompose multiple independent assertions into separate atoms.** Independent assertions are distinct facts that could be verified against the source independently — different statistics, different events, different entities, different time points, different predicates. Conjunctions ("and", "but", "; "), appositives that introduce new facts ("the lowest three-year increase in decades"), and lists of distinct facts (not shared-predicate lists — see Rule 6) are all decomposition signals.
+2. **Treat in-text attribution as a qualifier, not a decomposition target.** Phrases like "According to X", "X reported in 2024 that", "Smith's 2020 study found" attach an author, publication, or date to the asserted content. Keep the attribution in the same atom as the content it modifies — do NOT emit a separate "The source was authored by X" or "The source was published in YEAR" atom. The verifier sees the source's bibliographic metadata alongside the body and can judge the attribution and the content together. If the attributed content itself contains multiple independent facts, decompose those facts (Rule 1) and repeat the attribution in each atom.
+3. **Treat temporal qualifiers about the claim's content as content, not as provenance.** "In 2024, immigrants numbered 53 million" is a content claim about a 2024 statistic, not a claim that the source was published in 2024. Do not manufacture a "source was published in YEAR" atom from a content-side date.
+4. Preserve direct quotations from the source verbatim. Per WP:V, direct quotations are material that must be supported by the source as presented; paraphrasing a quoted phrase breaks text-source integrity (WP:STICKTOTHESOURCE: do not change meaning or implication).
+5. Do not introduce facts not present in the claim — that would be original research (WP:NOR). Do not strip qualifiers ("approximately", "reportedly", "allegedly") from the claim — per WP:STICKTOTHESOURCE, paraphrasing must not change meaning or implication, and those qualifiers are part of the claim's meaning.
+6. **Shared-predicate lists stay as one atom.** "Languages spoken at the conference included French, Spanish, and Mandarin" is one atom — the verifiable unit is "the predicate applied to the list," not each list item. Distinguish from independent-facts lists (Rule 1): "the team won championships in 1982, 1991, and 2001" can be one atom (years of the same kind of championship), but "the team won the 1982 sectional, the 1991 state title, and the 2001 division championship" is multiple atoms (different championships).
+7. If the claim is already a single atomic assertion, return one atom.
 
 Output ONLY a JSON object of this shape, with no surrounding prose:
 
 {
   "atoms": [
-    { "id": "a1", "assertion": "<single declarative sentence>", "kind": "content" },
-    { "id": "p1", "assertion": "<single declarative sentence>", "kind": "provenance" }
+    { "id": "a1", "assertion": "<single declarative sentence>" },
+    { "id": "a2", "assertion": "<single declarative sentence>" }
   ]
 }
 
-Use 'a' prefix for content atoms, 'p' prefix for provenance atoms. Number them sequentially within each kind.
+Number atoms sequentially: a1, a2, a3, ...
 
 Examples:
 
 Claim: "In 2019, Jane Doe reported in The Guardian that the dam stands 95 meters tall."
 {
   "atoms": [
-    { "id": "p1", "assertion": "The source was published in The Guardian.", "kind": "provenance" },
-    { "id": "p2", "assertion": "The source was published in 2019.", "kind": "provenance" },
-    { "id": "p3", "assertion": "The source was authored by Jane Doe.", "kind": "provenance" },
-    { "id": "a1", "assertion": "The dam stands 95 meters tall.", "kind": "content" }
+    { "id": "a1", "assertion": "In 2019, Jane Doe reported in The Guardian that the dam stands 95 meters tall." }
   ]
 }
+(One atom. Attribution ("In 2019", "Jane Doe", "The Guardian") is folded into the content atom per Rule 2; no separate provenance atoms.)
+
+Claim: "Smith's 2020 study found a 15% reduction in cases and a 22% reduction in hospitalizations among vaccinated children aged 5-11."
+{
+  "atoms": [
+    { "id": "a1", "assertion": "Smith's 2020 study found a 15% reduction in cases among vaccinated children aged 5-11." },
+    { "id": "a2", "assertion": "Smith's 2020 study found a 22% reduction in hospitalizations among vaccinated children aged 5-11." }
+  ]
+}
+(Two atoms. The attribution stays folded into BOTH atoms — attribution-folding does not suppress multi-fact decomposition. The "15% reduction in cases" and "22% reduction in hospitalizations" are independent statistics, each separately checkable against the source.)
+
+Claim: "Census estimates show 45.3 million foreign-born residents in the United States as of March 2018 and 45.4 million in September 2021, the lowest three-year increase in decades."
+{
+  "atoms": [
+    { "id": "a1", "assertion": "Census estimates show 45.3 million foreign-born residents in the United States as of March 2018." },
+    { "id": "a2", "assertion": "Census estimates show 45.4 million foreign-born residents in the United States as of September 2021." },
+    { "id": "a3", "assertion": "The increase in foreign-born residents from March 2018 to September 2021 was the lowest three-year increase in decades." }
+  ]
+}
+(Three atoms. Two data points joined by "and" plus an appositive ("the lowest three-year increase in decades") that introduces a third separately-checkable fact.)
 
 Claim: "The hurricane made landfall on September 12, 2017."
 {
   "atoms": [
-    { "id": "a1", "assertion": "The hurricane made landfall on September 12, 2017.", "kind": "content" }
+    { "id": "a1", "assertion": "The hurricane made landfall on September 12, 2017." }
   ]
 }
-
-Claim: "Smith's 2020 study found a 15% reduction in cases among vaccinated children aged 5-11."
-{
-  "atoms": [
-    { "id": "p1", "assertion": "The source was authored by Smith.", "kind": "provenance" },
-    { "id": "p2", "assertion": "The source was published in 2020.", "kind": "provenance" },
-    { "id": "a1", "assertion": "The study found a 15% reduction in cases among vaccinated children aged 5-11.", "kind": "content" }
-  ]
-}
+(One atom — already atomic.)
 
 Claim: "Languages spoken at the conference included French, Spanish, and Mandarin."
 {
   "atoms": [
-    { "id": "a1", "assertion": "Languages spoken at the conference included French, Spanish, and Mandarin.", "kind": "content" }
+    { "id": "a1", "assertion": "Languages spoken at the conference included French, Spanish, and Mandarin." }
   ]
 }
-
-(Note: shared-predicate lists are a single atom, not one atom per item. The verifiable unit is "the predicate applied to the list," not each list item individually.)`;
+(Shared-predicate list per Rule 6: one atom, not three.)`;
 }
 
 export function generateAtomizerUserPrompt(claim, claimContainer) {
@@ -120,6 +132,10 @@ export function generateVerifierSystemPrompt() {
 
 Per Wikipedia's verifiability policy (WP:V), a source "directly supports" a claim if the information is present explicitly in the source, such that using the source to support the claim is not a violation of WP:NOR (no original research). The reader should not need outside knowledge, synthesis, or novel inference to connect source to atom. (Verifiability, not truth: the question is what the source says, not whether the atom is true.)
 
+The source you are given has two parts:
+- A bibliographic metadata block (publication, author, published date, title, url) — may be absent or partial.
+- The article body.
+
 There are exactly two verdicts:
 1. supported — the source directly supports the atom, in the sense above.
 2. not_supported — the source does not state the atom, or the source explicitly contradicts it, or the source is silent on the question.
@@ -127,19 +143,16 @@ There are exactly two verdicts:
 Rules:
 1. Use only the provided source. Stick to the source (WP:STICKTOTHESOURCE): summarize or rephrase without changing meaning or implication, and do not use the source out of context. Drawing a conclusion not evident in the source is original research, regardless of how reasonable the inference seems. Ambiguous source passages should not be relied on as support — when in doubt, return not_supported.
 
-2. For content atoms (kind=content), evaluate against the article body. The source must clearly support the atom "as presented" (WP:BURDEN). Rewriting the source's wording in different words while retaining substance is not original research (WP:NOR lead) — but changes that alter meaning or implication are.
+2. The source must clearly support the atom "as presented" (WP:BURDEN). Rewriting the source's wording in different words while retaining substance is not original research (WP:NOR lead) — but changes that alter meaning or implication are.
 
-3. For provenance atoms (kind=provenance), evaluate against the bibliographic metadata block — the fields enumerated in WP:CITEHOW (publication, published, author, title, url). If the metadata block does not contain the field the atom references, the citation as captured does not support the provenance claim — return not_supported.
-
-4. Routine calculations from the source are permitted under WP:CALC and are NOT original research. This includes:
+3. Routine calculations from the source are permitted under WP:CALC and are NOT original research. This includes:
    - Unit conversions ("5 km" supports "5 kilometers" or "~3.1 miles")
-   - Date equivalence (a "Wednesday" reference in a source dated January 7 supports a January 7 claim)
    - Basic arithmetic and age calculations
    Do NOT treat numeric tolerance as a match: if the atom says "95 meters" and the source says "approximately 80 meters", that is NOT a routine calculation — WP:CALC specifically warns that "editors should not compare statistics from sources that use different methodologies." The source must support the atom's specific value as presented.
 
-5. Non-English sources are valid (WP:NONENG). Faithful translation is not original research (WP:TRANSCRIPTION). Attempt to identify supporting content via cognates, proper nouns, and numerals. If the language barrier prevents finding clear support, return not_supported — guessing across languages risks the context-stretching WP:STICKTOTHESOURCE warns against.
+4. Non-English sources are valid (WP:NONENG). Faithful translation is not original research (WP:TRANSCRIPTION). Attempt to identify supporting content via cognates, proper nouns, and numerals. If the language barrier prevents finding clear support, return not_supported — guessing across languages risks the context-stretching WP:STICKTOTHESOURCE warns against.
 
-6. Do not hedge. Pick supported or not_supported. (Output-format instruction; ambiguous cases resolve to not_supported per Rule 1.)
+5. Do not hedge. Pick supported or not_supported. (Output-format instruction; ambiguous cases resolve to not_supported per Rule 1.)
 
 Output ONLY a JSON object of this shape, with no surrounding prose:
 
@@ -150,47 +163,44 @@ Output ONLY a JSON object of this shape, with no surrounding prose:
 
 Examples:
 
-Atom: { "assertion": "The dam stands 95 meters tall.", "kind": "content" }
+Atom: { "assertion": "The dam stands 95 meters tall." }
 Source body: "The dam, completed in 1972, stands 95 meters tall and spans the river."
 Output:
 { "verdict": "supported", "evidence": "stands 95 meters tall" }
 
-Atom: { "assertion": "The dam stands 95 meters tall.", "kind": "content" }
+Atom: { "assertion": "The dam stands 95 meters tall." }
 Source body: "The dam is approximately 80 meters tall."
 Output:
 { "verdict": "not_supported", "evidence": "source says approximately 80 meters, not 95" }
 
-Atom: { "assertion": "The source was published in The Guardian.", "kind": "provenance" }
-Metadata: { "publication": "The Guardian", "published": "2019-04-12" }
+Atom: { "assertion": "In 2019, Jane Doe reported in The Guardian that the dam stands 95 meters tall." }
+Metadata: { "publication": "The Guardian", "author": "Jane Doe", "published": "2019-04-12" }
+Source body: "The dam, completed in 1972, stands 95 meters tall and spans the river."
 Output:
-{ "verdict": "supported", "evidence": "metadata.publication = The Guardian" }
+{ "verdict": "supported", "evidence": "metadata confirms Guardian/Doe/2019 attribution; body confirms 95 meters" }
 
-Atom: { "assertion": "The source was published in The Guardian.", "kind": "provenance" }
-Metadata: { "publication": "The New York Times" }
+Atom: { "assertion": "In 2019, Jane Doe reported in The Guardian that the dam stands 95 meters tall." }
+Metadata: { "publication": "The New York Times", "author": "Jane Doe", "published": "2019-04-12" }
+Source body: "The dam, completed in 1972, stands 95 meters tall and spans the river."
 Output:
-{ "verdict": "not_supported", "evidence": "metadata.publication = The New York Times, not The Guardian" }
+{ "verdict": "not_supported", "evidence": "body confirms the 95-meter figure but metadata.publication = The New York Times, not The Guardian — the attribution is wrong" }
 
-Atom: { "assertion": "The hurricane made landfall on September 12, 2017.", "kind": "content" }
+Atom: { "assertion": "The hurricane made landfall on September 12, 2017." }
 Source body: "Strong winds and rain affected the coast that fall."
 Output:
 { "verdict": "not_supported", "evidence": "source describes the season but not a specific landfall date" }`;
 }
 
 export function generateVerifierUserPrompt(atom, sourceText, metadata) {
-    if (atom.kind === 'provenance') {
-        const metaBlock = metadata
-            ? JSON.stringify(metadata, null, 2)
-            : '{}';
-        return `Verify this provenance atom against the source metadata.
+    const metaBlock = metadata && Object.keys(metadata).length > 0
+        ? JSON.stringify(metadata, null, 2)
+        : '(no bibliographic metadata available)';
+    return `Verify this atom against the source.
 
-Atom: ${JSON.stringify({ assertion: atom.assertion, kind: 'provenance' })}
+Atom: ${JSON.stringify({ assertion: atom.assertion })}
 
 Metadata:
-${metaBlock}`;
-    }
-    return `Verify this content atom against the source body.
-
-Atom: ${JSON.stringify({ assertion: atom.assertion, kind: 'content' })}
+${metaBlock}
 
 Source body:
 ${sourceText}`;

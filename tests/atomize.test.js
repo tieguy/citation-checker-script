@@ -13,21 +13,54 @@ test('atomize() and parseAtomsResponse() are exported', () => {
 test('parseAtomsResponse parses well-formed JSON', () => {
   const text = JSON.stringify({
     atoms: [
-      { id: 'a1', assertion: 'Foo.', kind: 'content' },
-      { id: 'p1', assertion: 'Bar.', kind: 'provenance' },
+      { id: 'a1', assertion: 'Foo.' },
+      { id: 'a2', assertion: 'Bar.' },
     ],
   });
   const result = parseAtomsResponse(text);
   assert.equal(result.length, 2);
-  assert.equal(result[0].kind, 'content');
+  assert.equal(result[0].assertion, 'Foo.');
 });
 
 test('parseAtomsResponse strips markdown code fences', () => {
   const text = '```json\n' + JSON.stringify({
-    atoms: [{ id: 'a1', assertion: 'Foo.', kind: 'content' }],
+    atoms: [{ id: 'a1', assertion: 'Foo.' }],
   }) + '\n```';
   const result = parseAtomsResponse(text);
   assert.equal(result.length, 1);
+});
+
+test('parseAtomsResponse strips <think>...</think> reasoning blocks (Qwen3, DeepSeek-R1, etc.)', () => {
+  const text = '<think>\nThe claim has two parts...\n</think>\n\n' + JSON.stringify({
+    atoms: [
+      { id: 'a1', assertion: "Smith's 2020 study found a 15% reduction in cases." },
+      { id: 'a2', assertion: "Smith's 2020 study found a 22% reduction in hospitalizations." },
+    ],
+  });
+  const result = parseAtomsResponse(text);
+  assert.equal(result.length, 2);
+  assert.match(result[0].assertion, /15%/);
+  assert.match(result[1].assertion, /22%/);
+});
+
+test('parseAtomsResponse skips leading prose before the first {', () => {
+  const text = 'Here is the JSON:\n\n' + JSON.stringify({
+    atoms: [{ id: 'a1', assertion: 'Foo.' }],
+  });
+  const result = parseAtomsResponse(text);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].assertion, 'Foo.');
+});
+
+test('parseAtomsResponse strips legacy kind field for backward-compat with old caches', () => {
+  // The atoms cache at /tmp/atoms-cache-haiku-2026-05-15.json has atoms with kind;
+  // new pipeline ignores kind. parseAtomsResponse should normalize to { id, assertion }.
+  const text = JSON.stringify({
+    atoms: [{ id: 'a1', assertion: 'Foo.', kind: 'content' }],
+  });
+  const result = parseAtomsResponse(text);
+  assert.equal(result.length, 1);
+  assert.deepEqual(Object.keys(result[0]).sort(), ['assertion', 'id']);
 });
 
 test('parseAtomsResponse returns null for malformed JSON', () => {
@@ -43,11 +76,12 @@ test('parseAtomsResponse returns null when atoms array is missing or empty', () 
   assert.equal(parseAtomsResponse('{"atoms": "not an array"}'), null);
 });
 
-test('parseAtomsResponse filters out atoms with wrong kind', () => {
+test('parseAtomsResponse filters out atoms missing id or assertion', () => {
   const text = JSON.stringify({
     atoms: [
-      { id: 'a1', assertion: 'Good.', kind: 'content' },
-      { id: 'bad', assertion: 'Bad.', kind: 'invalid' },
+      { id: 'a1', assertion: 'Good.' },
+      { id: 'bad' },                 // no assertion
+      { assertion: 'No id.' },       // no id
     ],
   });
   const result = parseAtomsResponse(text);
@@ -64,8 +98,8 @@ function fakeTransport(textResponse) {
 test('atomize returns parsed atoms for well-formed model output', async () => {
   const transport = fakeTransport(JSON.stringify({
     atoms: [
-      { id: 'p1', assertion: 'Published in The Guardian.', kind: 'provenance' },
-      { id: 'a1', assertion: 'The dam is 95m tall.', kind: 'content' },
+      { id: 'a1', assertion: 'Published in The Guardian.' },
+      { id: 'a2', assertion: 'The dam is 95m tall.' },
     ],
   }));
   const result = await atomize('In 2019 The Guardian reported the dam is 95m tall.', {
@@ -73,8 +107,8 @@ test('atomize returns parsed atoms for well-formed model output', async () => {
     model: 'claude-sonnet-4-5',
   }, { transport });
   assert.equal(result.length, 2);
-  assert.equal(result[0].kind, 'provenance');
-  assert.equal(result[1].kind, 'content');
+  assert.equal(result[0].assertion, 'Published in The Guardian.');
+  assert.equal(result[1].assertion, 'The dam is 95m tall.');
 });
 
 test('atomize falls back to single-atom on malformed JSON', async () => {
@@ -82,7 +116,6 @@ test('atomize falls back to single-atom on malformed JSON', async () => {
   const claim = 'A compound claim about something.';
   const result = await atomize(claim, { type: 'claude', model: 'm' }, { transport });
   assert.equal(result.length, 1);
-  assert.equal(result[0].kind, 'content');
   assert.equal(result[0].assertion, claim);
   assert.equal(result[0].id, 'a1');
 });
@@ -91,7 +124,7 @@ test('atomize uses smallModel when useSmallModel is true', async () => {
   let receivedModel = null;
   const transport = async (_pc, { model }) => {
     receivedModel = model;
-    return { text: '{"atoms":[{"id":"a1","assertion":"x","kind":"content"}]}' };
+    return { text: '{"atoms":[{"id":"a1","assertion":"x"}]}' };
   };
   await atomize('claim', {
     type: 'claude',
@@ -105,7 +138,7 @@ test('atomize uses main model when useSmallModel is false', async () => {
   let receivedModel = null;
   const transport = async (_pc, { model }) => {
     receivedModel = model;
-    return { text: '{"atoms":[{"id":"a1","assertion":"x","kind":"content"}]}' };
+    return { text: '{"atoms":[{"id":"a1","assertion":"x"}]}' };
   };
   await atomize('claim', {
     type: 'claude',
@@ -127,7 +160,7 @@ test('atomize threads opts.claimContainer to the user prompt', async () => {
   let receivedUserPrompt = null;
   const transport = async (_pc, { userPrompt }) => {
     receivedUserPrompt = userPrompt;
-    return { text: '{"atoms":[{"id":"a1","assertion":"x","kind":"content"}]}' };
+    return { text: '{"atoms":[{"id":"a1","assertion":"x"}]}' };
   };
   const claim = 'the LTTE formally joined a common militant front';
   const container = 'In April 1984, the LTTE formally joined a common militant front, the ENLF.';
@@ -145,7 +178,7 @@ test('atomize omits container threading when claimContainer is identical to clai
   let receivedUserPrompt = null;
   const transport = async (_pc, { userPrompt }) => {
     receivedUserPrompt = userPrompt;
-    return { text: '{"atoms":[{"id":"a1","assertion":"x","kind":"content"}]}' };
+    return { text: '{"atoms":[{"id":"a1","assertion":"x"}]}' };
   };
   const claim = 'A complete sentence.';
   await atomize(claim, { type: 'claude', model: 'm' }, {
@@ -186,7 +219,7 @@ test('atomize defaultTransport (no opts.transport) routes providerConfig.maxToke
       return {
         ok: true,
         json: async () => ({
-          content: [{ type: 'text', text: JSON.stringify({ atoms: [{ id: 'a1', assertion: 'x', kind: 'content' }] }) }],
+          content: [{ type: 'text', text: JSON.stringify({ atoms: [{ id: 'a1', assertion: 'x' }] }) }],
         }),
       };
     }

@@ -47,10 +47,16 @@ export function parseAtomResultResponse(text, atomId) {
     if (!text || typeof text !== 'string') {
         return { atomId, verdict: 'not_supported', error: 'empty response' };
     }
-    const cleaned = text
+    // Reasoning models (Qwen3, DeepSeek-R1, etc.) emit <think>...</think>
+    // before the JSON; strip those. Then strip markdown fences. Then skip
+    // any leading prose before the first '{'.
+    let cleaned = text
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
         .replace(/^```(?:json)?\s*/i, '')
         .replace(/\s*```\s*$/i, '')
         .trim();
+    const firstBrace = cleaned.indexOf('{');
+    if (firstBrace > 0) cleaned = cleaned.slice(firstBrace);
     let parsed;
     try {
         parsed = JSON.parse(cleaned);
