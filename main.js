@@ -1343,13 +1343,6 @@ function buildDatasetSubmissionUrl(
                     cursor: pointer;
                     background: #fff;
                     border-left: 3px solid #ccc;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                .verifier-report-card-body {
-                    flex: 1;
-                    min-width: 0;
                 }
                 .verifier-report-card:hover {
                     background: #f0f4ff;
@@ -1392,20 +1385,25 @@ function buildDatasetSubmissionUrl(
                     font-size: 11px;
                     font-style: italic;
                 }
-                .verifier-report-card-actions {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
-                    flex-shrink: 0;
-                    align-items: stretch;
-                    justify-content: center;
+                .report-card-action {
+                    margin-top: 4px;
                 }
-                .verifier-report-card-actions .oo-ui-buttonElement {
+                .report-card-action .oo-ui-buttonElement-button {
+                    font-size: 11px;
+                    padding: 2px 4px;
+                }
+                .report-card-header-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    min-width: 0;
+                }
+                .report-card-header-actions .oo-ui-buttonElement {
                     margin: 0;
                 }
-                .verifier-report-card-actions .oo-ui-buttonElement-button {
+                .report-card-header-actions .oo-ui-buttonElement-button {
                     font-size: 11px;
-                    padding: 2px 6px;
+                    padding: 1px 6px;
                     white-space: nowrap;
                 }
                 .verifier-report-group {
@@ -1455,13 +1453,6 @@ function buildDatasetSubmissionUrl(
                     border-radius: 3px;
                     padding: 5px 8px;
                     cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                .verifier-report-group-row-body {
-                    flex: 1;
-                    min-width: 0;
                 }
                 .verifier-report-group-row:hover {
                     background: #f0f4ff;
@@ -3097,7 +3088,7 @@ function buildDatasetSubmissionUrl(
         attachRefScrollHandler(el, refElement) {
             if (!refElement) return;
             el.addEventListener('click', (e) => {
-                if (e.target.closest('.verifier-report-card-actions') || e.target.closest('.verifier-report-group-edit')) return;
+                if (e.target.closest('.report-card-action') || e.target.closest('.report-card-header-actions') || e.target.closest('.verifier-report-group-edit')) return;
                 refElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 this.clearHighlights();
                 const parentRef = refElement.closest('.reference');
@@ -3136,39 +3127,37 @@ function buildDatasetSubmissionUrl(
                 ? '<div class="report-card-truncated">⚠ Source is long, only partially checked.</div>'
                 : '';
             card.innerHTML = `
-                <div class="verifier-report-card-body">
-                    <div class="report-card-header">
-                        <span class="report-card-citation">[${result.citationNumber}]</span>
+                <div class="report-card-header">
+                    <span class="report-card-citation">[${result.citationNumber}]</span>
+                    <span class="report-card-header-actions">
                         <span class="report-card-verdict ${verdictClass}">${verdictLabel}</span>
-                    </div>
-                    <div class="report-card-claim">${this.escapeHtml(claimExcerpt)}</div>
-                    ${result.comments ? `<div class="report-card-comment">${this.escapeHtml(result.comments)}</div>` : ''}
-                    ${truncationHtml}
+                    </span>
                 </div>
+                <div class="report-card-claim">${this.escapeHtml(claimExcerpt)}</div>
+                ${result.comments ? `<div class="report-card-comment">${this.escapeHtml(result.comments)}</div>` : ''}
+                ${truncationHtml}
             `;
 
             this.attachRefScrollHandler(card, result.refElement);
 
-            const wantsEditBtn = result.refElement && (result.verdict === 'NOT SUPPORTED' || result.verdict === 'PARTIALLY SUPPORTED' || result.verdict === 'SOURCE UNAVAILABLE');
-            const wantsSubmitBtn = result.verdict && result.verdict !== 'ERROR' && this.isDatasetSubmissionConfigured();
-            if (wantsEditBtn || wantsSubmitBtn) {
-                const actionsCell = document.createElement('div');
-                actionsCell.className = 'verifier-report-card-actions';
-                if (wantsEditBtn) {
-                    const editBtn = new OO.ui.ButtonWidget({
-                        label: 'Edit Section',
-                        flags: ['progressive'],
-                        icon: 'edit',
-                        href: this.buildEditUrl(result.refElement),
-                        target: '_blank',
-                        framed: false
-                    });
-                    actionsCell.appendChild(editBtn.$element[0]);
-                }
-                if (wantsSubmitBtn) {
-                    actionsCell.appendChild(this.buildSubmitToDatasetButton(result, { label: 'Submit report' }).$element[0]);
-                }
-                card.appendChild(actionsCell);
+            if (result.verdict && result.verdict !== 'ERROR' && this.isDatasetSubmissionConfigured()) {
+                const submitBtn = this.buildSubmitToDatasetButton(result, { label: 'Submit report' });
+                card.querySelector('.report-card-header-actions').appendChild(submitBtn.$element[0]);
+            }
+
+            if (result.refElement && (result.verdict === 'NOT SUPPORTED' || result.verdict === 'PARTIALLY SUPPORTED' || result.verdict === 'SOURCE UNAVAILABLE')) {
+                const actionDiv = document.createElement('div');
+                actionDiv.className = 'report-card-action';
+                const editBtn = new OO.ui.ButtonWidget({
+                    label: 'Edit Section',
+                    flags: ['progressive'],
+                    icon: 'edit',
+                    href: this.buildEditUrl(result.refElement),
+                    target: '_blank',
+                    framed: false
+                });
+                actionDiv.appendChild(editBtn.$element[0]);
+                card.appendChild(actionDiv);
             }
             return card;
         }
@@ -3214,22 +3203,20 @@ function buildDatasetSubmissionUrl(
                 ? '<div class="report-card-truncated">⚠ Source is long, only partially checked.</div>'
                 : '';
             row.innerHTML = `
-                <div class="verifier-report-group-row-body">
-                    <div class="verifier-report-group-row-header">
-                        <span class="report-card-citation">[${result.citationNumber}]</span>
+                <div class="verifier-report-group-row-header">
+                    <span class="report-card-citation">[${result.citationNumber}]</span>
+                    <span class="report-card-header-actions">
                         <span class="report-card-verdict ${verdictClass}">${verdictLabel}</span>
-                    </div>
-                    ${result.comments ? `<div class="report-card-comment">${this.escapeHtml(result.comments)}</div>` : ''}
-                    ${truncationHtml}
+                    </span>
                 </div>
+                ${result.comments ? `<div class="report-card-comment">${this.escapeHtml(result.comments)}</div>` : ''}
+                ${truncationHtml}
             `;
             this.attachRefScrollHandler(row, result.refElement);
 
             if (result.verdict && result.verdict !== 'ERROR' && this.isDatasetSubmissionConfigured()) {
-                const actionsCell = document.createElement('div');
-                actionsCell.className = 'verifier-report-card-actions';
-                actionsCell.appendChild(this.buildSubmitToDatasetButton(result, { label: 'Submit report' }).$element[0]);
-                row.appendChild(actionsCell);
+                const submitBtn = this.buildSubmitToDatasetButton(result, { label: 'Submit report' });
+                row.querySelector('.report-card-header-actions').appendChild(submitBtn.$element[0]);
             }
 
             return row;
