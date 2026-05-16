@@ -1,19 +1,16 @@
 {
-  "generated": "2026-05-15T19:46:26.961Z",
+  "generated": "2026-05-16T05:16:28.001Z",
   "overview": {
     "datasetVersion": "all",
     "totalEntries": 185,
-    "totalCalls": 1665,
+    "totalCalls": 1110,
     "providers": [
-      "claude-sonnet-4-5",
-      "gemini-2.5-flash",
-      "openrouter-mistral-small-3.2",
-      "openrouter-gemma-4-26b-a4b",
-      "openrouter-granite-4.1-8b",
-      "openrouter-qwen-3-32b",
       "hf-qwen3-32b",
-      "hf-gpt-oss-20b",
-      "hf-deepseek-v3"
+      "openrouter-granite-4.1-8b",
+      "openrouter-mistral-small-3.2",
+      "hf-deepseek-v3",
+      "openrouter-gemma-4-26b-a4b",
+      "openrouter-qwen-3-32b"
     ],
     "pipelineCoverage": {
       "ratio": 0.9513513513513514,
@@ -22,36 +19,36 @@
     }
   },
   "providers": {
-    "claude-sonnet-4-5": {
-      "name": "Claude-sonnet-4-5",
-      "model": "claude-sonnet-4-5-20250929",
+    "hf-qwen3-32b": {
+      "name": "Hf-qwen3-32b",
+      "model": "Qwen/Qwen3-32B",
       "sampleCount": 185,
       "metrics": {
         "total": 185,
         "valid": 185,
         "errors": 0,
-        "exactMatches": 103,
-        "partialMatches": 32,
-        "exactAccuracy": 0.5567567567567567,
-        "lenientAccuracy": 0.7297297297297297,
-        "binaryAccuracy": 0.745945945945946,
+        "exactMatches": 106,
+        "partialMatches": 27,
+        "exactAccuracy": 0.572972972972973,
+        "lenientAccuracy": 0.7189189189189189,
+        "binaryAccuracy": 0.7351351351351352,
         "confusionMatrix": {
           "Supported": {
-            "Supported": 37,
-            "Partially supported": 25,
-            "Not supported": 17,
+            "Supported": 32,
+            "Partially supported": 24,
+            "Not supported": 23,
             "Source unavailable": 4
           },
           "Partially supported": {
-            "Supported": 7,
-            "Partially supported": 29,
-            "Not supported": 16,
+            "Supported": 3,
+            "Partially supported": 35,
+            "Not supported": 14,
             "Source unavailable": 2
           },
           "Not supported": {
             "Supported": 1,
-            "Partially supported": 7,
-            "Not supported": 37,
+            "Partially supported": 5,
+            "Not supported": 39,
             "Source unavailable": 3
           },
           "Source unavailable": {
@@ -62,9 +59,9 @@
           }
         },
         "latency": {
-          "avg": 3536.5795454545455,
-          "min": 1795,
-          "max": 11202
+          "avg": 1608.090909090909,
+          "min": 853,
+          "max": 10716
         },
         "confidence": {
           "avg": 0,
@@ -77,28 +74,28 @@
         "total": 176,
         "valid": 176,
         "errors": 0,
-        "exactMatches": 103,
-        "partialMatches": 32,
-        "exactAccuracy": 0.5852272727272727,
-        "lenientAccuracy": 0.7670454545454546,
-        "binaryAccuracy": 0.7670454545454546,
+        "exactMatches": 106,
+        "partialMatches": 27,
+        "exactAccuracy": 0.6022727272727273,
+        "lenientAccuracy": 0.7556818181818182,
+        "binaryAccuracy": 0.7556818181818182,
         "confusionMatrix": {
           "Supported": {
-            "Supported": 37,
-            "Partially supported": 25,
-            "Not supported": 17,
+            "Supported": 32,
+            "Partially supported": 24,
+            "Not supported": 23,
             "Source unavailable": 0
           },
           "Partially supported": {
-            "Supported": 7,
-            "Partially supported": 29,
-            "Not supported": 16,
+            "Supported": 3,
+            "Partially supported": 35,
+            "Not supported": 14,
             "Source unavailable": 0
           },
           "Not supported": {
             "Supported": 1,
-            "Partially supported": 7,
-            "Not supported": 37,
+            "Partially supported": 5,
+            "Not supported": 39,
             "Source unavailable": 0
           },
           "Source unavailable": {
@@ -109,9 +106,9 @@
           }
         },
         "latency": {
-          "avg": 3536.5795454545455,
-          "min": 1795,
-          "max": 11202
+          "avg": 1608.090909090909,
+          "min": 853,
+          "max": 10716
         },
         "confidence": {
           "avg": 0,
@@ -121,36 +118,36 @@
         }
       }
     },
-    "gemini-2.5-flash": {
-      "name": "Gemini-2.5-flash",
-      "model": "gemini-2.5-flash",
+    "openrouter-granite-4.1-8b": {
+      "name": "Openrouter-granite-4.1-8b",
+      "model": "ibm-granite/granite-4.1-8b",
       "sampleCount": 185,
       "metrics": {
         "total": 185,
-        "valid": 183,
-        "errors": 2,
-        "exactMatches": 106,
-        "partialMatches": 27,
-        "exactAccuracy": 0.5792349726775956,
-        "lenientAccuracy": 0.726775956284153,
-        "binaryAccuracy": 0.7431693989071039,
+        "valid": 185,
+        "errors": 0,
+        "exactMatches": 111,
+        "partialMatches": 28,
+        "exactAccuracy": 0.6,
+        "lenientAccuracy": 0.7513513513513513,
+        "binaryAccuracy": 0.7675675675675676,
         "confusionMatrix": {
           "Supported": {
-            "Supported": 41,
-            "Partially supported": 23,
-            "Not supported": 15,
+            "Supported": 54,
+            "Partially supported": 13,
+            "Not supported": 12,
             "Source unavailable": 4
           },
           "Partially supported": {
-            "Supported": 4,
-            "Partially supported": 29,
-            "Not supported": 18,
+            "Supported": 15,
+            "Partially supported": 28,
+            "Not supported": 9,
             "Source unavailable": 2
           },
           "Not supported": {
-            "Supported": 3,
-            "Partially supported": 5,
-            "Not supported": 36,
+            "Supported": 5,
+            "Partially supported": 11,
+            "Not supported": 29,
             "Source unavailable": 3
           },
           "Source unavailable": {
@@ -161,9 +158,9 @@
           }
         },
         "latency": {
-          "avg": 3160.0511363636365,
-          "min": 541,
-          "max": 9942
+          "avg": 1228.0113636363637,
+          "min": 307,
+          "max": 8209
         },
         "confidence": {
           "avg": 0,
@@ -174,30 +171,30 @@
       },
       "metricsOnUsable": {
         "total": 176,
-        "valid": 174,
-        "errors": 2,
-        "exactMatches": 106,
-        "partialMatches": 27,
-        "exactAccuracy": 0.6091954022988506,
-        "lenientAccuracy": 0.764367816091954,
-        "binaryAccuracy": 0.764367816091954,
+        "valid": 176,
+        "errors": 0,
+        "exactMatches": 111,
+        "partialMatches": 28,
+        "exactAccuracy": 0.6306818181818182,
+        "lenientAccuracy": 0.7897727272727273,
+        "binaryAccuracy": 0.7897727272727273,
         "confusionMatrix": {
           "Supported": {
-            "Supported": 41,
-            "Partially supported": 23,
-            "Not supported": 15,
+            "Supported": 54,
+            "Partially supported": 13,
+            "Not supported": 12,
             "Source unavailable": 0
           },
           "Partially supported": {
-            "Supported": 4,
-            "Partially supported": 29,
-            "Not supported": 18,
+            "Supported": 15,
+            "Partially supported": 28,
+            "Not supported": 9,
             "Source unavailable": 0
           },
           "Not supported": {
-            "Supported": 3,
-            "Partially supported": 5,
-            "Not supported": 36,
+            "Supported": 5,
+            "Partially supported": 11,
+            "Not supported": 29,
             "Source unavailable": 0
           },
           "Source unavailable": {
@@ -208,9 +205,9 @@
           }
         },
         "latency": {
-          "avg": 3160.0511363636365,
-          "min": 541,
-          "max": 9942
+          "avg": 1228.0113636363637,
+          "min": 307,
+          "max": 8209
         },
         "confidence": {
           "avg": 0,
@@ -228,27 +225,27 @@
         "total": 185,
         "valid": 185,
         "errors": 0,
-        "exactMatches": 106,
-        "partialMatches": 35,
-        "exactAccuracy": 0.572972972972973,
+        "exactMatches": 111,
+        "partialMatches": 30,
+        "exactAccuracy": 0.6,
         "lenientAccuracy": 0.7621621621621621,
         "binaryAccuracy": 0.7783783783783784,
         "confusionMatrix": {
           "Supported": {
-            "Supported": 39,
-            "Partially supported": 27,
-            "Not supported": 13,
+            "Supported": 47,
+            "Partially supported": 16,
+            "Not supported": 16,
             "Source unavailable": 4
           },
           "Partially supported": {
-            "Supported": 8,
-            "Partially supported": 31,
-            "Not supported": 13,
+            "Supported": 14,
+            "Partially supported": 28,
+            "Not supported": 10,
             "Source unavailable": 2
           },
           "Not supported": {
-            "Supported": 2,
-            "Partially supported": 7,
+            "Supported": 3,
+            "Partially supported": 6,
             "Not supported": 36,
             "Source unavailable": 3
           },
@@ -260,9 +257,9 @@
           }
         },
         "latency": {
-          "avg": 2328.6136363636365,
-          "min": 691,
-          "max": 12932
+          "avg": 2012.4886363636363,
+          "min": 648,
+          "max": 15156
         },
         "confidence": {
           "avg": 0,
@@ -275,27 +272,27 @@
         "total": 176,
         "valid": 176,
         "errors": 0,
-        "exactMatches": 106,
-        "partialMatches": 35,
-        "exactAccuracy": 0.6022727272727273,
+        "exactMatches": 111,
+        "partialMatches": 30,
+        "exactAccuracy": 0.6306818181818182,
         "lenientAccuracy": 0.8011363636363636,
         "binaryAccuracy": 0.8011363636363636,
         "confusionMatrix": {
           "Supported": {
-            "Supported": 39,
-            "Partially supported": 27,
-            "Not supported": 13,
+            "Supported": 47,
+            "Partially supported": 16,
+            "Not supported": 16,
             "Source unavailable": 0
           },
           "Partially supported": {
-            "Supported": 8,
-            "Partially supported": 31,
-            "Not supported": 13,
+            "Supported": 14,
+            "Partially supported": 28,
+            "Not supported": 10,
             "Source unavailable": 0
           },
           "Not supported": {
-            "Supported": 2,
-            "Partially supported": 7,
+            "Supported": 3,
+            "Partially supported": 6,
             "Not supported": 36,
             "Source unavailable": 0
           },
@@ -307,504 +304,9 @@
           }
         },
         "latency": {
-          "avg": 2328.6136363636365,
-          "min": 691,
-          "max": 12932
-        },
-        "confidence": {
-          "avg": 0,
-          "avgWhenCorrect": null,
-          "avgWhenWrong": null,
-          "calibration": null
-        }
-      }
-    },
-    "openrouter-gemma-4-26b-a4b": {
-      "name": "Openrouter-gemma-4-26b-a4b",
-      "model": "google/gemma-4-26b-a4b-it",
-      "sampleCount": 185,
-      "metrics": {
-        "total": 185,
-        "valid": 185,
-        "errors": 0,
-        "exactMatches": 96,
-        "partialMatches": 34,
-        "exactAccuracy": 0.518918918918919,
-        "lenientAccuracy": 0.7027027027027027,
-        "binaryAccuracy": 0.7189189189189189,
-        "confusionMatrix": {
-          "Supported": {
-            "Supported": 28,
-            "Partially supported": 29,
-            "Not supported": 22,
-            "Source unavailable": 4
-          },
-          "Partially supported": {
-            "Supported": 5,
-            "Partially supported": 29,
-            "Not supported": 18,
-            "Source unavailable": 2
-          },
-          "Not supported": {
-            "Supported": 1,
-            "Partially supported": 5,
-            "Not supported": 39,
-            "Source unavailable": 3
-          },
-          "Source unavailable": {
-            "Supported": 0,
-            "Partially supported": 0,
-            "Not supported": 0,
-            "Source unavailable": 0
-          }
-        },
-        "latency": {
-          "avg": 7664.221590909091,
-          "min": 467,
-          "max": 151338
-        },
-        "confidence": {
-          "avg": 0,
-          "avgWhenCorrect": null,
-          "avgWhenWrong": null,
-          "calibration": null
-        }
-      },
-      "metricsOnUsable": {
-        "total": 176,
-        "valid": 176,
-        "errors": 0,
-        "exactMatches": 96,
-        "partialMatches": 34,
-        "exactAccuracy": 0.5454545454545454,
-        "lenientAccuracy": 0.7386363636363636,
-        "binaryAccuracy": 0.7386363636363636,
-        "confusionMatrix": {
-          "Supported": {
-            "Supported": 28,
-            "Partially supported": 29,
-            "Not supported": 22,
-            "Source unavailable": 0
-          },
-          "Partially supported": {
-            "Supported": 5,
-            "Partially supported": 29,
-            "Not supported": 18,
-            "Source unavailable": 0
-          },
-          "Not supported": {
-            "Supported": 1,
-            "Partially supported": 5,
-            "Not supported": 39,
-            "Source unavailable": 0
-          },
-          "Source unavailable": {
-            "Supported": 0,
-            "Partially supported": 0,
-            "Not supported": 0,
-            "Source unavailable": 0
-          }
-        },
-        "latency": {
-          "avg": 7664.221590909091,
-          "min": 467,
-          "max": 151338
-        },
-        "confidence": {
-          "avg": 0,
-          "avgWhenCorrect": null,
-          "avgWhenWrong": null,
-          "calibration": null
-        }
-      }
-    },
-    "openrouter-granite-4.1-8b": {
-      "name": "Openrouter-granite-4.1-8b",
-      "model": "ibm-granite/granite-4.1-8b",
-      "sampleCount": 185,
-      "metrics": {
-        "total": 185,
-        "valid": 184,
-        "errors": 1,
-        "exactMatches": 101,
-        "partialMatches": 37,
-        "exactAccuracy": 0.5489130434782609,
-        "lenientAccuracy": 0.75,
-        "binaryAccuracy": 0.7663043478260869,
-        "confusionMatrix": {
-          "Supported": {
-            "Supported": 39,
-            "Partially supported": 28,
-            "Not supported": 12,
-            "Source unavailable": 4
-          },
-          "Partially supported": {
-            "Supported": 9,
-            "Partially supported": 29,
-            "Not supported": 14,
-            "Source unavailable": 2
-          },
-          "Not supported": {
-            "Supported": 4,
-            "Partially supported": 7,
-            "Not supported": 33,
-            "Source unavailable": 3
-          },
-          "Source unavailable": {
-            "Supported": 0,
-            "Partially supported": 0,
-            "Not supported": 0,
-            "Source unavailable": 0
-          }
-        },
-        "latency": {
-          "avg": 2949.7386363636365,
-          "min": 47,
-          "max": 10243
-        },
-        "confidence": {
-          "avg": 0,
-          "avgWhenCorrect": null,
-          "avgWhenWrong": null,
-          "calibration": null
-        }
-      },
-      "metricsOnUsable": {
-        "total": 176,
-        "valid": 175,
-        "errors": 1,
-        "exactMatches": 101,
-        "partialMatches": 37,
-        "exactAccuracy": 0.5771428571428572,
-        "lenientAccuracy": 0.7885714285714286,
-        "binaryAccuracy": 0.7885714285714286,
-        "confusionMatrix": {
-          "Supported": {
-            "Supported": 39,
-            "Partially supported": 28,
-            "Not supported": 12,
-            "Source unavailable": 0
-          },
-          "Partially supported": {
-            "Supported": 9,
-            "Partially supported": 29,
-            "Not supported": 14,
-            "Source unavailable": 0
-          },
-          "Not supported": {
-            "Supported": 4,
-            "Partially supported": 7,
-            "Not supported": 33,
-            "Source unavailable": 0
-          },
-          "Source unavailable": {
-            "Supported": 0,
-            "Partially supported": 0,
-            "Not supported": 0,
-            "Source unavailable": 0
-          }
-        },
-        "latency": {
-          "avg": 2949.7386363636365,
-          "min": 47,
-          "max": 10243
-        },
-        "confidence": {
-          "avg": 0,
-          "avgWhenCorrect": null,
-          "avgWhenWrong": null,
-          "calibration": null
-        }
-      }
-    },
-    "openrouter-qwen-3-32b": {
-      "name": "Openrouter-qwen-3-32b",
-      "model": "qwen/qwen3-32b",
-      "sampleCount": 185,
-      "metrics": {
-        "total": 185,
-        "valid": 185,
-        "errors": 0,
-        "exactMatches": 99,
-        "partialMatches": 38,
-        "exactAccuracy": 0.5351351351351351,
-        "lenientAccuracy": 0.7405405405405405,
-        "binaryAccuracy": 0.7567567567567568,
-        "confusionMatrix": {
-          "Supported": {
-            "Supported": 31,
-            "Partially supported": 34,
-            "Not supported": 14,
-            "Source unavailable": 4
-          },
-          "Partially supported": {
-            "Supported": 4,
-            "Partially supported": 31,
-            "Not supported": 17,
-            "Source unavailable": 2
-          },
-          "Not supported": {
-            "Supported": 1,
-            "Partially supported": 7,
-            "Not supported": 37,
-            "Source unavailable": 3
-          },
-          "Source unavailable": {
-            "Supported": 0,
-            "Partially supported": 0,
-            "Not supported": 0,
-            "Source unavailable": 0
-          }
-        },
-        "latency": {
-          "avg": 11204.068181818182,
-          "min": 1150,
-          "max": 43400
-        },
-        "confidence": {
-          "avg": 0,
-          "avgWhenCorrect": null,
-          "avgWhenWrong": null,
-          "calibration": null
-        }
-      },
-      "metricsOnUsable": {
-        "total": 176,
-        "valid": 176,
-        "errors": 0,
-        "exactMatches": 99,
-        "partialMatches": 38,
-        "exactAccuracy": 0.5625,
-        "lenientAccuracy": 0.7784090909090909,
-        "binaryAccuracy": 0.7784090909090909,
-        "confusionMatrix": {
-          "Supported": {
-            "Supported": 31,
-            "Partially supported": 34,
-            "Not supported": 14,
-            "Source unavailable": 0
-          },
-          "Partially supported": {
-            "Supported": 4,
-            "Partially supported": 31,
-            "Not supported": 17,
-            "Source unavailable": 0
-          },
-          "Not supported": {
-            "Supported": 1,
-            "Partially supported": 7,
-            "Not supported": 37,
-            "Source unavailable": 0
-          },
-          "Source unavailable": {
-            "Supported": 0,
-            "Partially supported": 0,
-            "Not supported": 0,
-            "Source unavailable": 0
-          }
-        },
-        "latency": {
-          "avg": 11204.068181818182,
-          "min": 1150,
-          "max": 43400
-        },
-        "confidence": {
-          "avg": 0,
-          "avgWhenCorrect": null,
-          "avgWhenWrong": null,
-          "calibration": null
-        }
-      }
-    },
-    "hf-qwen3-32b": {
-      "name": "Hf-qwen3-32b",
-      "model": "Qwen/Qwen3-32B",
-      "sampleCount": 185,
-      "metrics": {
-        "total": 185,
-        "valid": 185,
-        "errors": 0,
-        "exactMatches": 96,
-        "partialMatches": 37,
-        "exactAccuracy": 0.518918918918919,
-        "lenientAccuracy": 0.7189189189189189,
-        "binaryAccuracy": 0.7351351351351352,
-        "confusionMatrix": {
-          "Supported": {
-            "Supported": 32,
-            "Partially supported": 33,
-            "Not supported": 14,
-            "Source unavailable": 4
-          },
-          "Partially supported": {
-            "Supported": 4,
-            "Partially supported": 26,
-            "Not supported": 22,
-            "Source unavailable": 2
-          },
-          "Not supported": {
-            "Supported": 2,
-            "Partially supported": 5,
-            "Not supported": 38,
-            "Source unavailable": 3
-          },
-          "Source unavailable": {
-            "Supported": 0,
-            "Partially supported": 0,
-            "Not supported": 0,
-            "Source unavailable": 0
-          }
-        },
-        "latency": {
-          "avg": 1624.1647727272727,
-          "min": 714,
-          "max": 10557
-        },
-        "confidence": {
-          "avg": 0,
-          "avgWhenCorrect": null,
-          "avgWhenWrong": null,
-          "calibration": null
-        }
-      },
-      "metricsOnUsable": {
-        "total": 176,
-        "valid": 176,
-        "errors": 0,
-        "exactMatches": 96,
-        "partialMatches": 37,
-        "exactAccuracy": 0.5454545454545454,
-        "lenientAccuracy": 0.7556818181818182,
-        "binaryAccuracy": 0.7556818181818182,
-        "confusionMatrix": {
-          "Supported": {
-            "Supported": 32,
-            "Partially supported": 33,
-            "Not supported": 14,
-            "Source unavailable": 0
-          },
-          "Partially supported": {
-            "Supported": 4,
-            "Partially supported": 26,
-            "Not supported": 22,
-            "Source unavailable": 0
-          },
-          "Not supported": {
-            "Supported": 2,
-            "Partially supported": 5,
-            "Not supported": 38,
-            "Source unavailable": 0
-          },
-          "Source unavailable": {
-            "Supported": 0,
-            "Partially supported": 0,
-            "Not supported": 0,
-            "Source unavailable": 0
-          }
-        },
-        "latency": {
-          "avg": 1624.1647727272727,
-          "min": 714,
-          "max": 10557
-        },
-        "confidence": {
-          "avg": 0,
-          "avgWhenCorrect": null,
-          "avgWhenWrong": null,
-          "calibration": null
-        }
-      }
-    },
-    "hf-gpt-oss-20b": {
-      "name": "Hf-gpt-oss-20b",
-      "model": "openai/gpt-oss-20b",
-      "sampleCount": 185,
-      "metrics": {
-        "total": 185,
-        "valid": 185,
-        "errors": 0,
-        "exactMatches": 86,
-        "partialMatches": 29,
-        "exactAccuracy": 0.4648648648648649,
-        "lenientAccuracy": 0.6216216216216216,
-        "binaryAccuracy": 0.6378378378378379,
-        "confusionMatrix": {
-          "Supported": {
-            "Supported": 21,
-            "Partially supported": 27,
-            "Not supported": 31,
-            "Source unavailable": 4
-          },
-          "Partially supported": {
-            "Supported": 2,
-            "Partially supported": 25,
-            "Not supported": 25,
-            "Source unavailable": 2
-          },
-          "Not supported": {
-            "Supported": 1,
-            "Partially supported": 4,
-            "Not supported": 40,
-            "Source unavailable": 3
-          },
-          "Source unavailable": {
-            "Supported": 0,
-            "Partially supported": 0,
-            "Not supported": 0,
-            "Source unavailable": 0
-          }
-        },
-        "latency": {
-          "avg": 2121.0397727272725,
-          "min": 330,
-          "max": 46161
-        },
-        "confidence": {
-          "avg": 0,
-          "avgWhenCorrect": null,
-          "avgWhenWrong": null,
-          "calibration": null
-        }
-      },
-      "metricsOnUsable": {
-        "total": 176,
-        "valid": 176,
-        "errors": 0,
-        "exactMatches": 86,
-        "partialMatches": 29,
-        "exactAccuracy": 0.48863636363636365,
-        "lenientAccuracy": 0.6534090909090909,
-        "binaryAccuracy": 0.6534090909090909,
-        "confusionMatrix": {
-          "Supported": {
-            "Supported": 21,
-            "Partially supported": 27,
-            "Not supported": 31,
-            "Source unavailable": 0
-          },
-          "Partially supported": {
-            "Supported": 2,
-            "Partially supported": 25,
-            "Not supported": 25,
-            "Source unavailable": 0
-          },
-          "Not supported": {
-            "Supported": 1,
-            "Partially supported": 4,
-            "Not supported": 40,
-            "Source unavailable": 0
-          },
-          "Source unavailable": {
-            "Supported": 0,
-            "Partially supported": 0,
-            "Not supported": 0,
-            "Source unavailable": 0
-          }
-        },
-        "latency": {
-          "avg": 2121.0397727272725,
-          "min": 330,
-          "max": 46161
+          "avg": 2012.4886363636363,
+          "min": 648,
+          "max": 15156
         },
         "confidence": {
           "avg": 0,
@@ -822,28 +324,28 @@
         "total": 185,
         "valid": 185,
         "errors": 0,
-        "exactMatches": 113,
-        "partialMatches": 31,
-        "exactAccuracy": 0.6108108108108108,
-        "lenientAccuracy": 0.7783783783783784,
-        "binaryAccuracy": 0.7945945945945946,
+        "exactMatches": 125,
+        "partialMatches": 24,
+        "exactAccuracy": 0.6756756756756757,
+        "lenientAccuracy": 0.8054054054054054,
+        "binaryAccuracy": 0.8216216216216217,
         "confusionMatrix": {
           "Supported": {
-            "Supported": 48,
-            "Partially supported": 20,
+            "Supported": 55,
+            "Partially supported": 13,
             "Not supported": 11,
             "Source unavailable": 4
           },
           "Partially supported": {
             "Supported": 11,
-            "Partially supported": 30,
-            "Not supported": 11,
+            "Partially supported": 33,
+            "Not supported": 8,
             "Source unavailable": 2
           },
           "Not supported": {
             "Supported": 2,
-            "Partially supported": 8,
-            "Not supported": 35,
+            "Partially supported": 6,
+            "Not supported": 37,
             "Source unavailable": 3
           },
           "Source unavailable": {
@@ -854,9 +356,9 @@
           }
         },
         "latency": {
-          "avg": 2837.471590909091,
-          "min": 1616,
-          "max": 11359
+          "avg": 3027.2272727272725,
+          "min": 1813,
+          "max": 5490
         },
         "confidence": {
           "avg": 0,
@@ -869,28 +371,28 @@
         "total": 176,
         "valid": 176,
         "errors": 0,
-        "exactMatches": 113,
-        "partialMatches": 31,
-        "exactAccuracy": 0.6420454545454546,
-        "lenientAccuracy": 0.8181818181818182,
-        "binaryAccuracy": 0.8181818181818182,
+        "exactMatches": 125,
+        "partialMatches": 24,
+        "exactAccuracy": 0.7102272727272727,
+        "lenientAccuracy": 0.8465909090909091,
+        "binaryAccuracy": 0.8465909090909091,
         "confusionMatrix": {
           "Supported": {
-            "Supported": 48,
-            "Partially supported": 20,
+            "Supported": 55,
+            "Partially supported": 13,
             "Not supported": 11,
             "Source unavailable": 0
           },
           "Partially supported": {
             "Supported": 11,
-            "Partially supported": 30,
-            "Not supported": 11,
+            "Partially supported": 33,
+            "Not supported": 8,
             "Source unavailable": 0
           },
           "Not supported": {
             "Supported": 2,
-            "Partially supported": 8,
-            "Not supported": 35,
+            "Partially supported": 6,
+            "Not supported": 37,
             "Source unavailable": 0
           },
           "Source unavailable": {
@@ -901,9 +403,207 @@
           }
         },
         "latency": {
-          "avg": 2837.471590909091,
-          "min": 1616,
-          "max": 11359
+          "avg": 3027.2272727272725,
+          "min": 1813,
+          "max": 5490
+        },
+        "confidence": {
+          "avg": 0,
+          "avgWhenCorrect": null,
+          "avgWhenWrong": null,
+          "calibration": null
+        }
+      }
+    },
+    "openrouter-gemma-4-26b-a4b": {
+      "name": "Openrouter-gemma-4-26b-a4b",
+      "model": "google/gemma-4-26b-a4b-it",
+      "sampleCount": 185,
+      "metrics": {
+        "total": 185,
+        "valid": 185,
+        "errors": 0,
+        "exactMatches": 97,
+        "partialMatches": 28,
+        "exactAccuracy": 0.5243243243243243,
+        "lenientAccuracy": 0.6756756756756757,
+        "binaryAccuracy": 0.6918918918918919,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 29,
+            "Partially supported": 23,
+            "Not supported": 27,
+            "Source unavailable": 4
+          },
+          "Partially supported": {
+            "Supported": 5,
+            "Partially supported": 28,
+            "Not supported": 19,
+            "Source unavailable": 2
+          },
+          "Not supported": {
+            "Supported": 1,
+            "Partially supported": 4,
+            "Not supported": 40,
+            "Source unavailable": 3
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 10405.210227272728,
+          "min": 587,
+          "max": 135377
+        },
+        "confidence": {
+          "avg": 0,
+          "avgWhenCorrect": null,
+          "avgWhenWrong": null,
+          "calibration": null
+        }
+      },
+      "metricsOnUsable": {
+        "total": 176,
+        "valid": 176,
+        "errors": 0,
+        "exactMatches": 97,
+        "partialMatches": 28,
+        "exactAccuracy": 0.5511363636363636,
+        "lenientAccuracy": 0.7102272727272727,
+        "binaryAccuracy": 0.7102272727272727,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 29,
+            "Partially supported": 23,
+            "Not supported": 27,
+            "Source unavailable": 0
+          },
+          "Partially supported": {
+            "Supported": 5,
+            "Partially supported": 28,
+            "Not supported": 19,
+            "Source unavailable": 0
+          },
+          "Not supported": {
+            "Supported": 1,
+            "Partially supported": 4,
+            "Not supported": 40,
+            "Source unavailable": 0
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 10405.210227272728,
+          "min": 587,
+          "max": 135377
+        },
+        "confidence": {
+          "avg": 0,
+          "avgWhenCorrect": null,
+          "avgWhenWrong": null,
+          "calibration": null
+        }
+      }
+    },
+    "openrouter-qwen-3-32b": {
+      "name": "Openrouter-qwen-3-32b",
+      "model": "qwen/qwen3-32b",
+      "sampleCount": 185,
+      "metrics": {
+        "total": 185,
+        "valid": 185,
+        "errors": 0,
+        "exactMatches": 108,
+        "partialMatches": 28,
+        "exactAccuracy": 0.5837837837837838,
+        "lenientAccuracy": 0.7351351351351352,
+        "binaryAccuracy": 0.7513513513513513,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 37,
+            "Partially supported": 24,
+            "Not supported": 18,
+            "Source unavailable": 4
+          },
+          "Partially supported": {
+            "Supported": 4,
+            "Partially supported": 30,
+            "Not supported": 18,
+            "Source unavailable": 2
+          },
+          "Not supported": {
+            "Supported": 1,
+            "Partially supported": 3,
+            "Not supported": 41,
+            "Source unavailable": 3
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 8697.477272727272,
+          "min": 1125,
+          "max": 32242
+        },
+        "confidence": {
+          "avg": 0,
+          "avgWhenCorrect": null,
+          "avgWhenWrong": null,
+          "calibration": null
+        }
+      },
+      "metricsOnUsable": {
+        "total": 176,
+        "valid": 176,
+        "errors": 0,
+        "exactMatches": 108,
+        "partialMatches": 28,
+        "exactAccuracy": 0.6136363636363636,
+        "lenientAccuracy": 0.7727272727272727,
+        "binaryAccuracy": 0.7727272727272727,
+        "confusionMatrix": {
+          "Supported": {
+            "Supported": 37,
+            "Partially supported": 24,
+            "Not supported": 18,
+            "Source unavailable": 0
+          },
+          "Partially supported": {
+            "Supported": 4,
+            "Partially supported": 30,
+            "Not supported": 18,
+            "Source unavailable": 0
+          },
+          "Not supported": {
+            "Supported": 1,
+            "Partially supported": 3,
+            "Not supported": 41,
+            "Source unavailable": 0
+          },
+          "Source unavailable": {
+            "Supported": 0,
+            "Partially supported": 0,
+            "Not supported": 0,
+            "Source unavailable": 0
+          }
+        },
+        "latency": {
+          "avg": 8697.477272727272,
+          "min": 1125,
+          "max": 32242
         },
         "confidence": {
           "avg": 0,
