@@ -22,16 +22,22 @@ const REAL_ENTRY_IDS = {
   notes:          'entry.1010',
 };
 
-test('isDatasetSubmissionConfigured rejects the scaffolded defaults', () => {
-  assert.equal(isDatasetSubmissionConfigured(), false);
+test('isDatasetSubmissionConfigured accepts the shipped form URL + entry IDs', () => {
+  // The module ships pre-wired to the production form. If this fails, either
+  // someone reset the constants back to PLACEHOLDER_* values without updating
+  // the test, or a real entry ID accidentally contains the sentinel substring.
+  assert.equal(isDatasetSubmissionConfigured(), true);
   assert.equal(
     isDatasetSubmissionConfigured(DATASET_SUBMISSION_FORM_URL, DATASET_SUBMISSION_ENTRY_IDS),
-    false,
+    true,
   );
 });
 
 test('isDatasetSubmissionConfigured rejects when the URL is real but entry IDs are placeholder', () => {
-  assert.equal(isDatasetSubmissionConfigured(REAL_FORM_URL, DATASET_SUBMISSION_ENTRY_IDS), false);
+  const placeholderIds = Object.fromEntries(
+    Object.keys(DATASET_SUBMISSION_ENTRY_IDS).map((k, i) => [k, `entry.PLACEHOLDER_${i}`]),
+  );
+  assert.equal(isDatasetSubmissionConfigured(REAL_FORM_URL, placeholderIds), false);
 });
 
 test('isDatasetSubmissionConfigured rejects when any single entry ID is still a placeholder', () => {

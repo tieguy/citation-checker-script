@@ -738,23 +738,23 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
 const DATASET_SUBMISSION_PLACEHOLDER = 'PLACEHOLDER';
 
 const DATASET_SUBMISSION_FORM_URL =
-    'https://docs.google.com/forms/d/e/PLACEHOLDER_FORM_ID/viewform';
+    'https://docs.google.com/forms/d/e/1FAIpQLSdn0mnTHLV7NQZSmEbQXgLRzkJEfd6tcvVffLdInGpVyySkBA/viewform';
 
 const DATASET_SUBMISSION_ENTRY_IDS = {
-    articleUrl:     'entry.PLACEHOLDER_1',
-    citationNumber: 'entry.PLACEHOLDER_2',
-    claimText:      'entry.PLACEHOLDER_3',
-    sourceUrl:      'entry.PLACEHOLDER_4',
-    llmVerdict:     'entry.PLACEHOLDER_5',
-    llmRationale:   'entry.PLACEHOLDER_6',
-    llmProvider:    'entry.PLACEHOLDER_7',
-    llmModel:       'entry.PLACEHOLDER_8',
+    articleUrl:     'entry.1530874375',
+    citationNumber: 'entry.1417860793',
+    claimText:      'entry.1673425995',
+    sourceUrl:      'entry.1675972910',
+    llmVerdict:     'entry.270831712',
+    llmRationale:   'entry.805615048',
+    llmProvider:    'entry.230272168',
+    llmModel:       'entry.166995',
     // Populated only for SOURCE UNAVAILABLE rows where the proxy reported an
     // HTTP status — lets the dataset distinguish "we never fetched" from
     // "we fetched and the source returned 4xx/5xx".
-    fetchStatus:    'entry.PLACEHOLDER_11',
-    editorHandle:   'entry.PLACEHOLDER_9',
-    notes:          'entry.PLACEHOLDER_10',
+    fetchStatus:    'entry.375255643',
+    editorHandle:   'entry.362287943',
+    notes:          'entry.133790832',
 };
 
 function isDatasetSubmissionConfigured(
