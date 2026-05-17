@@ -1635,6 +1635,20 @@ function buildDatasetSubmissionUrl(
                     font-size: 11px;
                     padding: 2px 4px;
                 }
+                .report-card-header-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    min-width: 0;
+                }
+                .report-card-header-actions .oo-ui-buttonElement {
+                    margin: 0;
+                }
+                .report-card-header-actions .oo-ui-buttonElement-button {
+                    font-size: 11px;
+                    padding: 1px 6px;
+                    white-space: nowrap;
+                }
                 .verifier-report-group {
                     border: 1px solid #cdd5e0;
                     border-left: 3px solid ${this.getCurrentColor()};
@@ -2518,18 +2532,21 @@ function buildDatasetSubmissionUrl(
                 this.updateStatus('Fetching source content...');
                 const fetchId = ++this.currentFetchId;
                 const pageNum = this.extractPageNumber(refElement);
-                const sourceInfo = await this.fetchSourceContent(refUrl, pageNum);
+                const fetchResult = await this.fetchSourceContent(refUrl, pageNum);
 
                 if (fetchId !== this.currentFetchId) {
                     return;
                 }
 
-                if (!sourceInfo) {
+                if (!fetchResult.content) {
                     this.showSourceTextInput();
-                    this.updateStatus('Could not fetch source. Please paste the source text below.');
+                    const status = fetchResult.status != null ? ` (HTTP ${fetchResult.status})` : '';
+                    const reason = fetchResult.error ? `: ${fetchResult.error}` : '';
+                    this.updateStatus(`Could not fetch source${status}${reason}. Please paste the source text below.`, true);
                     return;
                 }
 
+                const sourceInfo = fetchResult.content;
                 this.activeSource = sourceInfo;
                 const sourceElement = document.getElementById('verifier-source-text');
 
@@ -3019,13 +3036,13 @@ function buildDatasetSubmissionUrl(
 	        verdictEl.classList.add('partially-supported');
 	    } else if (result.verdict === 'NOT SUPPORTED') {
 	        verdictEl.classList.add('not-supported');
-	    } else if (result.verdict === 'SOURCE UNAVAILABLE' || result.verdict === 'PARSE_ERROR') {
+	    } else if (result.verdict === 'SOURCE UNAVAILABLE' || result.verdict === 'ERROR') {
 	        verdictEl.classList.add('source-unavailable');
 	    }
 
 	    commentsEl.textContent = result.comments;
 	    console.log('[Verifier] Verdict for action button:', JSON.stringify(result.verdict));
-	    this.showActionButton(result.verdict);
+	    this.showActionButton(result.verdict, result.comments);
 	}
         
         // ========================================
@@ -3317,7 +3334,7 @@ function buildDatasetSubmissionUrl(
         attachRefScrollHandler(el, refElement) {
             if (!refElement) return;
             el.addEventListener('click', (e) => {
-                if (e.target.closest('.report-card-action') || e.target.closest('.verifier-report-group-edit')) return;
+                if (e.target.closest('.report-card-action') || e.target.closest('.report-card-header-actions') || e.target.closest('.verifier-report-group-edit')) return;
                 refElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 this.clearHighlights();
                 const parentRef = refElement.closest('.reference');
@@ -3358,7 +3375,9 @@ function buildDatasetSubmissionUrl(
             card.innerHTML = `
                 <div class="report-card-header">
                     <span class="report-card-citation">[${result.citationNumber}]</span>
-                    <span class="report-card-verdict ${verdictClass}">${verdictLabel}</span>
+                    <span class="report-card-header-actions">
+                        <span class="report-card-verdict ${verdictClass}">${verdictLabel}</span>
+                    </span>
                 </div>
                 <div class="report-card-claim">${this.escapeHtml(claimExcerpt)}</div>
                 ${result.comments ? `<div class="report-card-comment">${this.escapeHtml(result.comments)}</div>` : ''}
@@ -3366,6 +3385,11 @@ function buildDatasetSubmissionUrl(
             `;
 
             this.attachRefScrollHandler(card, result.refElement);
+
+            if (result.verdict && result.verdict !== 'ERROR' && this.isDatasetSubmissionConfigured()) {
+                const submitBtn = this.buildSubmitToDatasetButton(result, { label: 'Submit report' });
+                card.querySelector('.report-card-header-actions').appendChild(submitBtn.$element[0]);
+            }
 
             if (result.refElement && (result.verdict === 'NOT SUPPORTED' || result.verdict === 'PARTIALLY SUPPORTED' || result.verdict === 'SOURCE UNAVAILABLE')) {
                 const actionDiv = document.createElement('div');
@@ -3427,12 +3451,20 @@ function buildDatasetSubmissionUrl(
             row.innerHTML = `
                 <div class="verifier-report-group-row-header">
                     <span class="report-card-citation">[${result.citationNumber}]</span>
-                    <span class="report-card-verdict ${verdictClass}">${verdictLabel}</span>
+                    <span class="report-card-header-actions">
+                        <span class="report-card-verdict ${verdictClass}">${verdictLabel}</span>
+                    </span>
                 </div>
                 ${result.comments ? `<div class="report-card-comment">${this.escapeHtml(result.comments)}</div>` : ''}
                 ${truncationHtml}
             `;
             this.attachRefScrollHandler(row, result.refElement);
+
+            if (result.verdict && result.verdict !== 'ERROR' && this.isDatasetSubmissionConfigured()) {
+                const submitBtn = this.buildSubmitToDatasetButton(result, { label: 'Submit report' });
+                row.querySelector('.report-card-header-actions').appendChild(submitBtn.$element[0]);
+            }
+
             return row;
         }
 
@@ -3659,16 +3691,18 @@ function buildDatasetSubmissionUrl(
                         truncated: false
                     };
                 } else {
-                    // Fetch source if not cached
+                    // Fetch source if not cached. Cache value is always the
+                    // full { content, error, status } shape so retries on the
+                    // same URL preserve the diagnostic for the submission link.
                     const cacheKey = citation.pageNum ? `${citation.url}|page=${citation.pageNum}` : citation.url;
 
                     if (!this.sourceCache.has(cacheKey)) {
                         this.updateReportProgress(i, citations.length, `Fetching source for [${citation.citationNumber}]`, startTime);
                         try {
-                            const sourceContent = await this.fetchSourceContent(citation.url, citation.pageNum);
-                            this.sourceCache.set(cacheKey, sourceContent);
+                            const fetchResult = await this.fetchSourceContent(citation.url, citation.pageNum);
+                            this.sourceCache.set(cacheKey, fetchResult);
                         } catch (e) {
-                            this.sourceCache.set(cacheKey, null);
+                            this.sourceCache.set(cacheKey, { content: null, error: e?.message || 'fetch threw', status: null });
                         }
                         // Rate limit delay after fetch
                         if (!this.reportCancelled) {
@@ -3678,9 +3712,13 @@ function buildDatasetSubmissionUrl(
 
                     if (this.reportCancelled) break;
 
-                    const sourceContent = this.sourceCache.get(cacheKey);
+                    const fetchResult = this.sourceCache.get(cacheKey) || { content: null, error: null, status: null };
+                    const sourceContent = fetchResult.content;
 
                     if (!sourceContent) {
+                        const statusPart = fetchResult.status != null ? `HTTP ${fetchResult.status}` : null;
+                        const reasonPart = fetchResult.error || 'Could not fetch source content';
+                        const comments = statusPart ? `${statusPart}: ${reasonPart}` : reasonPart;
                         result = {
                             citationNumber: citation.citationNumber,
                             claimText: citation.claimText,
@@ -3688,7 +3726,9 @@ function buildDatasetSubmissionUrl(
                             refElement: citation.refElement,
                             verdict: 'SOURCE UNAVAILABLE',
                             confidence: 0,
-                            comments: 'Could not fetch source content',
+                            comments,
+                            fetchStatus: fetchResult.status,
+                            fetchError: fetchResult.error,
                             truncated: false
                         };
                     } else {
@@ -3783,6 +3823,12 @@ function buildDatasetSubmissionUrl(
                     result.groupSize = citation.groupSize;
                     result.groupIndex = citation.groupIndex;
                     result.groupCitationNumbers = citation.groupCitationNumbers;
+                    // Snapshot the provider/model used for this row so that
+                    // dataset-submission links stay accurate even if the user
+                    // switches providers after the report runs.
+                    const providerConfig = this.providers[this.currentProvider] || {};
+                    result.providerName = providerConfig.name || this.currentProvider || '';
+                    result.model = providerConfig.model || '';
                     this.reportResults.push(result);
                     this.renderReportCard(result, this.reportResults.length - 1);
                     this.renderReportSummary();
@@ -3837,23 +3883,66 @@ function buildDatasetSubmissionUrl(
         }
 
 
-        showActionButton(verdict) {
+        showActionButton(verdict, comments = '') {
             const container = document.getElementById('verifier-action-container');
             if (!container) return;
 
             container.innerHTML = '';
 
-            if (verdict !== 'NOT SUPPORTED' && verdict !== 'PARTIALLY SUPPORTED' && verdict !== 'SOURCE UNAVAILABLE') return;
+            if (verdict === 'NOT SUPPORTED' || verdict === 'PARTIALLY SUPPORTED' || verdict === 'SOURCE UNAVAILABLE') {
+                const btn = new OO.ui.ButtonWidget({
+                    label: 'Edit Section',
+                    flags: ['progressive'],
+                    icon: 'edit',
+                    href: this.buildEditUrl(),
+                    target: '_blank'
+                });
+                container.appendChild(btn.$element[0]);
+            }
 
-            const btn = new OO.ui.ButtonWidget({
-                label: 'Edit Section',
-                flags: ['progressive'],
-                icon: 'edit',
-                href: this.buildEditUrl(),
-                target: '_blank'
+            if (verdict && verdict !== 'ERROR' && this.isDatasetSubmissionConfigured()) {
+                const submitBtn = this.buildSubmitToDatasetButton({
+                    citationNumber: this.activeCitationNumber,
+                    claimText: this.activeClaim,
+                    url: this.activeSourceUrl,
+                    verdict,
+                    comments,
+                });
+                container.appendChild(submitBtn.$element[0]);
+            }
+        }
+
+        isDatasetSubmissionConfigured() {
+            return isDatasetSubmissionConfigured();
+        }
+
+        buildDatasetSubmissionUrl(result) {
+            const provider = this.providers[this.currentProvider] || {};
+            const articleUrl = (typeof window !== 'undefined' && window.location)
+                ? `${window.location.origin}${window.location.pathname}`
+                : '';
+            return buildDatasetSubmissionUrl({
+                articleUrl,
+                citationNumber: result?.citationNumber ?? '',
+                claimText: result?.claimText ?? '',
+                sourceUrl: result?.url ?? '',
+                llmVerdict: result?.verdict ?? '',
+                llmRationale: result?.comments ?? '',
+                llmProvider: result?.providerName ?? provider.name ?? '',
+                llmModel: result?.model ?? provider.model ?? '',
+                fetchStatus: result?.fetchStatus ?? '',
             });
+        }
 
-            container.appendChild(btn.$element[0]);
+        buildSubmitToDatasetButton(result, { label = 'Submit to dataset' } = {}) {
+            return new OO.ui.ButtonWidget({
+                label,
+                flags: ['progressive'],
+                icon: 'upload',
+                framed: false,
+                href: this.buildDatasetSubmissionUrl(result),
+                target: '_blank',
+            });
         }
 
         clearResult() {
