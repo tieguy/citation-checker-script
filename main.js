@@ -861,10 +861,15 @@ async function callProviderAPI(name, config) {
 // Calls to the Cloudflare Worker proxy: source fetching and verification logging.
 
 
+// Always returns { content, error, status }. `content` is the formatted source
+// text on success and null on any failure; `error` is a short human-readable
+// reason when content is null; `status` is the upstream HTTP status code if the
+// proxy reports one (`data.status`), otherwise the proxy's own response status,
+// or null if we never got a response at all.
 async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai-proxy.alaexis.workers.dev', augment = true } = {}) {
     if (isGoogleBooksUrl(url)) {
         console.log('[CitationVerifier] Skipping Google Books URL:', url);
-        return null;
+        return { content: null, error: 'Google Books URL skipped (no fetchable content)', status: null };
     }
 
     try {
@@ -873,11 +878,19 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
             proxyUrl += `&page=${pageNum}`;
         }
         const response = await fetch(proxyUrl);
-        const data = await response.json();
+        const proxyStatus = response.status;
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (_) {
+            return { content: null, error: `Proxy returned non-JSON response (HTTP ${proxyStatus})`, status: proxyStatus };
+        }
+
+        const status = (data && typeof data.status === 'number') ? data.status : proxyStatus;
 
         if (data.error) {
             console.warn('[CitationVerifier] Proxy error:', data.error);
-            return null;
+            return { content: null, error: data.error, status };
         }
 
         if (data.content && data.content.length > 100) {
@@ -896,7 +909,7 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
                 meta += `\nTruncated: true`;
             }
             const body = augment ? await augmentWithCitoid(data.content, url) : data.content;
-            return `${meta}\n\nSource Content:\n${body}`;
+            return { content: `${meta}\n\nSource Content:\n${body}`, error: null, status };
         }
 
         // If PDF was large and we didn't request a specific page, retry
@@ -904,10 +917,11 @@ async function fetchSourceContent(url, pageNum, { workerBase = 'https://publicai
         if (data.pdf && !pageNum && data.totalPages > 15) {
             console.log('[CitationVerifier] Large PDF without page param, content may be truncated');
         }
+        return { content: null, error: 'Source content was empty or too short to verify', status };
     } catch (error) {
         console.error('Proxy fetch failed:', error);
+        return { content: null, error: error?.message || String(error), status: null };
     }
-    return null; // Falls back to manual input
 }
 
 function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis.workers.dev' } = {}) {
@@ -923,6 +937,74 @@ function logVerification(payload, { workerBase = 'https://publicai-proxy.alaexis
     } catch (e) {
         // logging should never break the main flow
     }
+}
+
+// --- core/submission.js ---
+// Dataset-submission helpers. Pure logic for building a prefilled Google Form
+// URL so Wikipedia editors can contribute citation/ground-truth examples
+// without an API or auth. Inlined into main.js between <core-injected>
+// markers, and importable from tests.
+//
+// To activate the feature once a Form exists:
+//   1. Create a Google Form whose questions correspond to the keys in
+//      DATASET_SUBMISSION_ENTRY_IDS (articleUrl, citationNumber, claimText,
+//      sourceUrl, llmVerdict, llmRationale, llmProvider, llmModel,
+//      editorHandle, notes).
+//   2. Use the Form's "Get pre-filled link" tool, fill every field with a
+//      unique sentinel, and copy the resulting URL.
+//   3. Replace DATASET_SUBMISSION_FORM_URL with the /viewform URL, and
+//      replace each `entry.PLACEHOLDER_*` value with the matching
+//      `entry.<numeric-id>` from the pre-filled link.
+//   4. Run `npm run build` so the constants are re-inlined into main.js.
+
+// Sentinel substring that marks scaffolded values as not-yet-configured.
+// isDatasetSubmissionConfigured() looks for this exact token; don't reuse it
+// anywhere else in this file.
+const DATASET_SUBMISSION_PLACEHOLDER = 'PLACEHOLDER';
+
+const DATASET_SUBMISSION_FORM_URL =
+    'https://docs.google.com/forms/d/e/1FAIpQLSdn0mnTHLV7NQZSmEbQXgLRzkJEfd6tcvVffLdInGpVyySkBA/viewform';
+
+const DATASET_SUBMISSION_ENTRY_IDS = {
+    articleUrl:     'entry.1530874375',
+    citationNumber: 'entry.1417860793',
+    claimText:      'entry.1673425995',
+    sourceUrl:      'entry.1675972910',
+    llmVerdict:     'entry.270831712',
+    llmRationale:   'entry.805615048',
+    llmProvider:    'entry.230272168',
+    llmModel:       'entry.166995',
+    // Populated only for SOURCE UNAVAILABLE rows where the proxy reported an
+    // HTTP status — lets the dataset distinguish "we never fetched" from
+    // "we fetched and the source returned 4xx/5xx".
+    fetchStatus:    'entry.375255643',
+    editorHandle:   'entry.362287943',
+    notes:          'entry.133790832',
+};
+
+function isDatasetSubmissionConfigured(
+    formUrl = DATASET_SUBMISSION_FORM_URL,
+    entryIds = DATASET_SUBMISSION_ENTRY_IDS,
+) {
+    if (!formUrl || formUrl.includes(DATASET_SUBMISSION_PLACEHOLDER)) return false;
+    return Object.values(entryIds).every(
+        id => typeof id === 'string' && id && !id.includes(DATASET_SUBMISSION_PLACEHOLDER)
+    );
+}
+
+function buildDatasetSubmissionUrl(
+    fields,
+    formUrl = DATASET_SUBMISSION_FORM_URL,
+    entryIds = DATASET_SUBMISSION_ENTRY_IDS,
+) {
+    const params = new URLSearchParams();
+    params.set('usp', 'pp_url');
+    for (const key of Object.keys(entryIds)) {
+        const value = fields == null ? undefined : fields[key];
+        if (value === undefined || value === null || value === '') continue;
+        params.set(entryIds[key], String(value));
+    }
+    return `${formUrl}?${params.toString()}`;
 }
 // </core-injected>
 

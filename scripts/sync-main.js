@@ -21,6 +21,7 @@ const CORE_ORDER = [
   'citoid.js',
   'providers.js',
   'worker.js',
+  'submission.js',
 ];
 
 function stripEsm(source) {
