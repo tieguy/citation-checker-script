@@ -6,7 +6,8 @@
 import { parseArgs } from 'node:util';
 import { JSDOM } from 'jsdom';
 import { extractClaimText } from '../core/claim.js';
-import { extractReferenceUrl, extractPageNumber } from '../core/urls.js';
+import { extractReferenceUrl, extractPageNumber, isGoogleBooksUrl } from '../core/urls.js';
+import { extractBookIdentifiers, fetchBookSourceContent } from '../core/books.js';
 import { fetchSourceContent, logVerification } from '../core/worker.js';
 import { generateSystemPrompt, generateUserPrompt } from '../core/prompts.js';
 import { callProviderAPI } from '../core/providers.js';
@@ -306,17 +307,51 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
     //    so no global shim is needed.
     const sourceUrl = extractReferenceUrl(refAnchor, document);
     const pageNum = extractPageNumber(refAnchor, document);
-    if (!sourceUrl) {
-        stderr.write(`ccs: citation [${citationNumber}] has no fetchable URL\n`);
-        return 6;
+
+    // 8. Fetch the source content.
+    //
+    //    A book citation typically has no fetchable URL at all (or only a
+    //    Google Books link, which serves no readable text), so before giving
+    //    up we try to ground it against a scan: resolve the edition through
+    //    Open Library and full-text search the Internet Archive copy. That
+    //    path yields the same `{ content, error, status }` shape, so the rest
+    //    of this function is unchanged.
+    const bookIdentifiers = extractBookIdentifiers(refAnchor, document);
+    const useBookGrounding = bookIdentifiers.length > 0
+        && (!sourceUrl || isGoogleBooksUrl(sourceUrl));
+
+    let fetchResult;
+    let citedSource;
+    if (useBookGrounding) {
+        fetchResult = await fetchBookSourceContent(bookIdentifiers, claim, pageNum);
+        citedSource = fetchResult.deepLink
+            || bookIdentifiers.map((id) => `${id.scheme}:${id.value}`).join(' ');
+
+        // The one outcome that is an answer rather than a failure: we read the
+        // book, searched it, and the claim's terms are not in it. Reporting
+        // that as an unavailable source would discard a real finding, so the
+        // synthesized verdict stands in for the LLM call.
+        if (fetchResult.verdict) {
+            stdout.write(`Verdict:    ${fetchResult.verdict.verdict}\n`);
+            stdout.write(`Confidence: ${fetchResult.verdict.confidence}\n`);
+            stdout.write(`Claim:      ${claim}\n`);
+            stdout.write(`Source:     ${citedSource}\n`);
+            stdout.write(`\n${fetchResult.verdict.comments}\n`);
+            return 0;
+        }
+    } else {
+        if (!sourceUrl) {
+            stderr.write(`ccs: citation [${citationNumber}] has no fetchable URL\n`);
+            return 6;
+        }
+        fetchResult = await fetchSourceContent(sourceUrl, pageNum);
+        citedSource = sourceUrl;
     }
 
-    // 8. Fetch the source content via the worker proxy.
-    const fetchResult = await fetchSourceContent(sourceUrl, pageNum);
     if (!fetchResult.content) {
         const detail = fetchResult.status != null ? ` (HTTP ${fetchResult.status})` : '';
         const reason = fetchResult.error ? `: ${fetchResult.error}` : '';
-        stderr.write(`ccs: source unavailable${detail}${reason}\n  url: ${sourceUrl}\n`);
+        stderr.write(`ccs: source unavailable${detail}${reason}\n  url: ${citedSource}\n`);
         return 7;
     }
 
@@ -361,7 +396,7 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
             article_url: url,
             article_title: articleTitle,
             citation_number: String(citationNumber),
-            source_url: sourceUrl,
+            source_url: citedSource,
             provider,
             verdict: verdict.verdict,
             confidence: verdict.confidence,
@@ -372,7 +407,7 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
     stdout.write(`Verdict:    ${verdict.verdict}\n`);
     stdout.write(`Confidence: ${verdict.confidence ?? 'n/a'}\n`);
     stdout.write(`Claim:      ${claim}\n`);
-    stdout.write(`Source:     ${sourceUrl}\n`);
+    stdout.write(`Source:     ${citedSource}\n`);
     stdout.write(`\n${verdict.comments}\n`);
     return 0;
 }

@@ -724,3 +724,123 @@ test('main() with --help (no subcommand) writes top-level help', async () => {
   assert.match(stdout.value(), /Subcommands:/);
 });
 
+
+// --- book grounding -------------------------------------------------------
+// A book citation has no fetchable URL at all, so it never reaches
+// fetchSourceContent; the Open Library + Internet Archive path stands in.
+
+const WIKI_HTML_WITH_BOOK_CITATION = `
+<!DOCTYPE html><html><body>
+<div class="mw-parser-output">
+  <p>Matilda longed for her parents to be good and loving.<sup class="reference" id="cite_ref-1"><a href="#cite_note-1">[1]</a></sup></p>
+  <ol class="references">
+    <li id="cite_note-1">Dahl, Roald (1988). <i>Matilda</i>. Puffin. <a href="/wiki/Special:BookSources/978-0-14-032872-1">ISBN 978-0-14-032872-1</a>. p. 42.</li>
+  </ol>
+</div>
+</body></html>
+`;
+
+function bookRoutes(searchResponse) {
+  return [
+    {
+      match: (url) => String(url).startsWith('https://en.wikipedia.org/api/rest_v1/'),
+      respond: async () => ({ ok: true, status: 200, text: async () => WIKI_HTML_WITH_BOOK_CITATION }),
+    },
+    {
+      match: (url) => String(url).startsWith('https://openlibrary.org/api/books?'),
+      respond: async () => ({ ok: true, status: 200, json: async () => ({
+        'ISBN:9780140328721': { title: 'Matilda', authors: [{ name: 'Roald Dahl' }], publishers: [{ name: 'Puffin' }] },
+      }) }),
+    },
+    {
+      match: (url) => String(url).startsWith('https://openlibrary.org/api/volumes/brief/'),
+      respond: async () => ({ ok: true, status: 200, json: async () => ({
+        items: [{ match: 'exact', status: 'full access', itemURL: 'https://archive.org/details/matilda00dahl' }],
+      }) }),
+    },
+    {
+      match: (url) => String(url).startsWith('https://archive.org/metadata/'),
+      respond: async () => ({ ok: true, status: 200, json: async () => ({
+        server: 'ia800300.us.archive.org', dir: '/12/items/matilda00dahl', metadata: { mediatype: 'texts' },
+      }) }),
+    },
+    {
+      match: (url) => String(url).includes('/fulltext/inside.php'),
+      respond: async () => ({ ok: true, status: 200, json: async () => searchResponse }),
+    },
+  ];
+}
+
+test('runVerify: grounds a book citation against the Internet Archive scan', async () => {
+  let promptSeen = null;
+  const mock = mkFetchMock([
+    ...bookRoutes({
+      indexed: true,
+      matches: [{ text: 'Matilda longed for her parents to be <IA_FTS_MATCH>good</IA_FTS_MATCH> and loving.', par: [{ page: 42 }] }],
+    }),
+    {
+      match: (url, opts) => String(url) === 'https://publicai-proxy.alaexis.workers.dev' && opts?.method === 'POST',
+      respond: async (url, opts) => {
+        promptSeen = JSON.parse(opts.body);
+        return { ok: true, status: 200, json: async () => ({
+          choices: [{ message: { content: '{"verdict": "SUPPORTED", "confidence": 88, "comments": "the scan says so"}' } }],
+          usage: {},
+        }) };
+      },
+    },
+  ]);
+  const stdout = mkStream();
+  const stderr = mkStream();
+  try {
+    const code = await runVerify(
+      { url: 'https://en.wikipedia.org/wiki/Matilda', citationNumber: 1, provider: 'publicai', noLog: true },
+      { stdout, stderr, env: {} },
+    );
+    assert.equal(code, 0, `stderr: ${stderr.value()}`);
+    assert.match(stdout.value(), /Verdict:\s+SUPPORTED/);
+    // The reader is pointed at the exact scanned page, not the ISBN.
+    assert.match(stdout.value(), /Source:\s+https:\/\/archive\.org\/details\/matilda00dahl\/page\/42\?q=/);
+    // The model was given the verbatim OCR snippet, marker-free.
+    const sent = JSON.stringify(promptSeen);
+    assert.ok(sent.includes('Matilda longed for her parents to be good and loving.'));
+    assert.ok(!sent.includes('IA_FTS_MATCH'));
+  } finally {
+    mock.restore();
+  }
+});
+
+test('runVerify: a searched-but-unmatched book is NOT SUPPORTED, not source-unavailable', async () => {
+  const mock = mkFetchMock(bookRoutes({ indexed: true, matches: [] }));
+  const stdout = mkStream();
+  const stderr = mkStream();
+  try {
+    const code = await runVerify(
+      { url: 'https://en.wikipedia.org/wiki/Matilda', citationNumber: 1, provider: 'publicai', noLog: true },
+      { stdout, stderr, env: {} },
+    );
+    // No provider route is registered: reaching the LLM at all would throw
+    // "unmocked fetch", so this also asserts the call is skipped.
+    assert.equal(code, 0, `stderr: ${stderr.value()}`);
+    assert.match(stdout.value(), /Verdict:\s+NOT SUPPORTED/);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('runVerify: an unreadable book scan still exits source-unavailable', async () => {
+  const mock = mkFetchMock([
+    ...bookRoutes({ indexed: false }),
+  ]);
+  const stdout = mkStream();
+  const stderr = mkStream();
+  try {
+    const code = await runVerify(
+      { url: 'https://en.wikipedia.org/wiki/Matilda', citationNumber: 1, provider: 'publicai', noLog: true },
+      { stdout, stderr, env: {} },
+    );
+    assert.equal(code, 7);
+    assert.match(stderr.value(), /no full-text index/);
+  } finally {
+    mock.restore();
+  }
+});
