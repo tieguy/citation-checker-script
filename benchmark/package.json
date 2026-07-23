@@ -26,6 +26,7 @@
     "compare": "node ../bin/ccs compare"
   },
   "dependencies": {
-    "jsdom": "^24.0.0"
+    "jsdom": "^24.0.0",
+    "wtf_wikipedia": "^10.4.2"
   }
 }
