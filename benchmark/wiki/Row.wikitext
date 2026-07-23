@@ -1,0 +1,12 @@
+<noinclude>
+{{Documentation|User:Alaexis/AI Source Verification/Benchmark/Row/doc}}
+</noinclude><includeonly>|-
+| id="{{{id|}}}" | <code>{{{id|}}}</code>
+| {{#if:{{{article|}}}{{{oldid|}}}|[https://{{#switch:{{{wiki|}}}|enwiki=en|frwiki=fr|#default=en}}.wikipedia.org/w/index.php?title={{urlencode:{{{article|}}}|WIKI}}&oldid={{{oldid|}}} {{{article|}}}]&nbsp;<small>(rev&nbsp;{{{oldid|}}})</small>|<span class="error">missing article/oldid</span>}}
+| style="text-align:center" | {{{citation|}}}{{#if:{{{instance|}}}|&nbsp;#{{{instance|}}}}}
+| style="font-weight:bold" | {{{truth|<span class="error">missing truth</span>}}}
+| {{{rationale|}}}
+| <small>{{#if:{{{added-by|}}}|added by [[User:{{{added-by}}}|{{{added-by}}}]]}}{{#if:{{{confirmed-by|}}}|<br />confirmed by [[User:{{{confirmed-by}}}|{{{confirmed-by}}}]]|<br />''unconfirmed''}}</small>
+| {{#if:{{{claim-text|}}}{{{source-url|}}}|<small>{{{claim-text|}}}{{#if:{{{source-url|}}}|<br />{{{source-url}}}}}{{#if:{{{provenance|}}}|<br />''{{{provenance}}}''}}</small>}}
+| style="color:#666; font-size:85%" | {{#if:{{{llm-verdict|}}}|{{{llm-verdict}}}{{#if:{{{llm-model|}}}|&nbsp;<code>{{{llm-model}}}</code>}}{{#if:{{{llm-rationale|}}}|<br />{{{llm-rationale}}}}}{{#if:{{{fetch-status|}}}|<br />fetch: {{{fetch-status}}}}}}}
+{{#if:{{{id|}}}{{{wiki|}}}{{{article|}}}{{{oldid|}}}{{{citation|}}}{{{instance|}}}{{{truth|}}}||[[Category:AI Source Verification benchmark rows with errors]]}}{{#if:{{{id|}}}||[[Category:AI Source Verification benchmark rows with errors]]}}{{#if:{{{wiki|}}}||[[Category:AI Source Verification benchmark rows with errors]]}}{{#if:{{{article|}}}||[[Category:AI Source Verification benchmark rows with errors]]}}{{#if:{{{oldid|}}}||[[Category:AI Source Verification benchmark rows with errors]]}}{{#if:{{{citation|}}}||[[Category:AI Source Verification benchmark rows with errors]]}}{{#if:{{{instance|}}}||[[Category:AI Source Verification benchmark rows with errors]]}}{{#if:{{{truth|}}}||[[Category:AI Source Verification benchmark rows with errors]]}}</includeonly>
