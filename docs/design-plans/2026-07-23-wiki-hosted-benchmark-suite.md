@@ -36,9 +36,15 @@ current `v1`/`v2`/`v3` subset tags.
 
 1. **Suite page.** `User:Alaexis/AI_Source_Verification/Benchmark` on en.wikipedia
    holds all 189 current rows as per-row template transclusions, rendering as a
-   readable table. An editnotice carries the ground-truth principle (*label what an
-   editor following the citation to the live page would find — not what our scraper
-   captured*) and the "second editor confirms" convention.
+   readable table. A prominent header section on the page itself carries the
+   ground-truth principle (*label what an editor following the citation to the live
+   page would find — not what our scraper captured*), the value-formatting rules, and
+   the "second editor confirms" convention.
+
+   A page-specific editnotice would be the more conventional vehicle for this, but
+   `Template:Editnotices/Page/<title>` is title-blacklisted to admins, template
+   editors, and page movers — rights the maintainer does not hold. A page header
+   requires no rights and is visible to readers as well as editors.
 
 2. **Revision-pinned extraction.** `extract_dataset.js` builds `dataset.json` from
    that page at a pinned revision (`--suite-oldid N`), producing output equivalent to
@@ -97,7 +103,7 @@ current `v1`/`v2`/`v3` subset tags.
 | --- | --- | --- |
 | Friction-free row addition | Label gating | Rows count toward headline metrics immediately; advancing the pinned revid is the only review gate. |
 | Social review | Pipeline state | Contributor supplies ground truth with a rationale; a second editor confirms. No `proposed`/`accepted` machinery. |
-| Direct editing, invited by editnotice | A separate `/Submissions` subpage | Relies on social signalling to overcome the "don't edit user space" norm. |
+| Direct editing, invited by a page header | A separate `/Submissions` subpage | Relies on social signalling to overcome the "don't edit user space" norm. |
 | Continuity in the UI | A clean end state | The Submit button is repointed rather than removed; Form plumbing lingers. |
 | Forward-compat on `wiki=` only | Full multi-wiki support | One reserved param today; per-wiki pinning deferred. |
 
@@ -105,8 +111,8 @@ current `v1`/`v2`/`v3` subset tags.
 
 - **User subpage**: A Wikipedia page namespaced under a specific user (e.g.
   `User:Alaexis/...`), editable like any wiki page but conventionally treated as that
-  user's personal space — hence this design's reliance on an editnotice to invite
-  outside edits despite the norm.
+  user's personal space — hence this design's reliance on a prominent page header to
+  invite outside edits despite the norm.
 - **Transclusion**: Embedding one page's or template's content inside another via
   `{{...}}` syntax. The suite page renders as a table built from many individual
   row-template invocations rather than one hand-edited table.
@@ -117,8 +123,9 @@ current `v1`/`v2`/`v3` subset tags.
   page. `action=raw&oldid=N` fetches that exact historical wikitext, which is how a
   benchmark run is pinned to an immutable input.
 - **Editnotice**: A MediaWiki mechanism displaying a custom notice to anyone editing a
-  specific page. Carries the ground-truth labelling principle and value-formatting
-  rules to prospective contributors.
+  specific page. Considered and rejected here: page-specific editnotices live under
+  `Template:Editnotices/Page/`, which is title-blacklisted to admins, template
+  editors, and page movers.
 - **Tracking category**: A category a template auto-adds a page to when given
   malformed input, making validation errors visible on-wiki without running any
   tooling.
@@ -260,9 +267,11 @@ modes is required regardless of which parser is used.
 **Goal:** A rendering, documented, empty suite page on-wiki.
 
 **Components:** `User:Alaexis/AI Source Verification/Benchmark/Row` (row template with
-permalink rendering and error tracking category); the suite page wrapper table; an
-editnotice carrying the ground-truth principle and value rules; template
-documentation.
+permalink rendering and error tracking category); the suite page wrapper table; a page
+header carrying the ground-truth principle and value rules; template documentation.
+
+All of these are created in the maintainer's own user space and require no permissions
+beyond ordinary editing.
 
 **Dependencies:** None.
 
@@ -380,6 +389,24 @@ them), and rejects empty required params. This is an input-integrity check, dist
 from the project convention that *analytical* tools always exit 0 — that convention
 exists to prevent rubber-stamping of results, whereas silent row loss corrupts the
 inputs.
+
+**Alternative considered: a plain wikitable instead of a row template.** Measured,
+`wtf_wikipedia` parses wikitables well — header names become object keys, numerics are
+auto-typed, and row counts reconcile against `|-` markers in both cell syntaxes. On two
+points it is *better* than templates: an empty cell yields `text: ""` (distinguishable
+from an absent one, which templates cannot express), and no equivalent to the
+template-returns-`null` vanishing-row failure was observed.
+
+Rejected on data shape, not parsing. The row carries 7 required fields plus 11 optional
+ones, giving an 18-column table that would be mostly empty, including two long-prose
+columns (`claim-text`, `llm-rationale`) that make rows unreadable. Sparse optional
+fields and long prose are what templates handle well and tables handle badly. Note the
+decision would flip if the schema were cut to roughly 8 columns — which would mean
+dropping the `llm-*` fields.
+
+Templates require no special permissions: the row template lives in the maintainer's
+own user space, and template creation on en.wikipedia is available to any autoconfirmed
+user regardless.
 
 **Parity excludes `source_text`.** Live sources drift, so re-fetching produces
 different bytes for reasons unrelated to this migration. Comparing `source_text` would
