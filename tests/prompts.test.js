@@ -22,6 +22,81 @@ test('generateSystemPrompt enumerates the four verdict categories', () => {
   }
 });
 
+// --- quote field (grounding backport, Phase 0) ------------------------------
+
+// The in-prompt few-shot examples are bare JSON objects, one per line, inside
+// <example> blocks. Phase 1's locator depends on every one of them modelling
+// the same shape the schema asks for, so pull them out and assert on them.
+function exampleObjects(prompt) {
+  const lines = prompt.split('\n').filter(l => l.trimStart().startsWith('{') && l.trimEnd().endsWith('}'));
+  return lines.map(l => JSON.parse(l));
+}
+
+test('generateSystemPrompt declares a quote field in the response schema', () => {
+  const out = generateSystemPrompt();
+  assert.match(out, /"quote"/, 'schema should ask for a quote field');
+});
+
+test('generateSystemPrompt instructs that the quote be copied verbatim', () => {
+  const out = generateSystemPrompt();
+  assert.match(out, /verbatim/i);
+});
+
+test('generateSystemPrompt keeps confidence and reason_type (additive change only)', () => {
+  // Phase 0 adds the quote field and changes nothing else, so that any verdict
+  // shift in the benchmark is attributable to the quote field alone.
+  const out = generateSystemPrompt();
+  assert.match(out, /"confidence"/);
+  assert.match(out, /"reason_type"/);
+});
+
+test('generateSystemPrompt no longer emits the undeclared source_quote field', () => {
+  // One pre-existing example used "source_quote", a key the schema never
+  // declared. The real quote field replaces it.
+  assert.ok(!generateSystemPrompt().includes('source_quote'));
+});
+
+test('every few-shot example parses as JSON with verdict, quote and comments', () => {
+  const examples = exampleObjects(generateSystemPrompt());
+  assert.ok(examples.length >= 8, `expected the full example set, got ${examples.length}`);
+  for (const ex of examples) {
+    assert.ok(Object.hasOwn(ex, 'verdict'), `example missing verdict: ${JSON.stringify(ex)}`);
+    assert.ok(Object.hasOwn(ex, 'quote'), `example missing quote: ${JSON.stringify(ex)}`);
+    assert.ok(Object.hasOwn(ex, 'comments'), `example missing comments: ${JSON.stringify(ex)}`);
+    assert.equal(typeof ex.quote, 'string', `example quote must be a string: ${JSON.stringify(ex)}`);
+  }
+});
+
+test('SOURCE UNAVAILABLE examples model an empty quote', () => {
+  const unavailable = exampleObjects(generateSystemPrompt())
+    .filter(ex => ex.verdict === 'SOURCE UNAVAILABLE');
+  assert.ok(unavailable.length > 0, 'expected at least one SOURCE UNAVAILABLE example');
+  for (const ex of unavailable) {
+    assert.equal(ex.quote, '', 'an unusable source has no span to quote');
+  }
+});
+
+test('every non-empty example quote appears verbatim in that example source text', () => {
+  // The examples teach copying, not paraphrasing — so each must itself be a
+  // literal substring of the source text it sits under. A paraphrased example
+  // would train exactly the failure mode Phase 1 measures.
+  const prompt = generateSystemPrompt();
+  const blocks = prompt.split('<example>').slice(1);
+  for (const block of blocks) {
+    const sourceMatch = block.match(/Source text: "([\s\S]*?)"\n/);
+    const objects = exampleObjects(block);
+    assert.ok(sourceMatch, `example block has no parseable source text: ${block.slice(0, 80)}`);
+    assert.equal(objects.length, 1, `expected one JSON object per example block`);
+    const quote = objects[0].quote;
+    if (quote) {
+      assert.ok(
+        sourceMatch[1].includes(quote),
+        `example quote is not verbatim in its source text: ${JSON.stringify(quote)}`
+      );
+    }
+  }
+});
+
 test('generateUserPrompt embeds claim and source text', () => {
   const claim = 'THE CLAIM TEXT MARKER';
   const source = 'THE SOURCE TEXT MARKER';

@@ -182,6 +182,22 @@ test('shapeResult: delegates JSON parsing to core and title-cases the verdict', 
     assert.deepEqual(out.usage, { input: 10, output: 5, cost_usd: null });
 });
 
+test('shapeResult: carries the quote through to the results record', () => {
+    // Phase 1 re-locates this span offline over the stored results.json, so the
+    // runner has to persist it — an unpersisted quote means re-running the panel.
+    const text = JSON.stringify({
+        verdict: 'SUPPORTED', confidence: 90,
+        quote: 'established in 1985', comments: 'ok'
+    });
+    const out = shapeResult({ text, usage: null });
+    assert.equal(out.quote, 'established in 1985');
+});
+
+test('shapeResult: quote is null when the model omitted it', () => {
+    const text = JSON.stringify({ verdict: 'SUPPORTED', confidence: 90, comments: 'ok' });
+    assert.equal(shapeResult({ text, usage: null }).quote, null);
+});
+
 test('shapeResult: recovers verdict from the Granite-style markdown fallback', () => {
     // Regression guard: pre-consolidation, the benchmark's local regex
     // (/verdict["\s:]+([A-Z_ ]+)/i) could not advance past "**" in

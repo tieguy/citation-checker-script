@@ -373,6 +373,9 @@ export async function runVerify(opts, { stdout = process.stdout, stderr = proces
     stdout.write(`Confidence: ${verdict.confidence ?? 'n/a'}\n`);
     stdout.write(`Claim:      ${claim}\n`);
     stdout.write(`Source:     ${sourceUrl}\n`);
+    if (verdict.quote) {
+        stdout.write(`Quote:      "${verdict.quote}"\n`);
+    }
     stdout.write(`\n${verdict.comments}\n`);
     return 0;
 }

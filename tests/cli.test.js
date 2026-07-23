@@ -291,7 +291,7 @@ test('runVerify: success path prints verdict and returns 0', async () => {
       match: (url, opts) => String(url) === 'https://publicai-proxy.alaexis.workers.dev' && opts?.method === 'POST',
       respond: async () => ({
         ok: true, status: 200, json: async () => ({
-          choices: [{ message: { content: '{"verdict": "SUPPORTED", "confidence": 92, "comments": "matches source"}' } }],
+          choices: [{ message: { content: '{"verdict": "SUPPORTED", "confidence": 92, "quote": "Rayleigh scattering", "comments": "matches source"}' } }],
           usage: { prompt_tokens: 50, completion_tokens: 20 },
         }),
       }),
@@ -311,6 +311,41 @@ test('runVerify: success path prints verdict and returns 0', async () => {
     assert.equal(code, 0, `stderr: ${stderr.value()}`);
     assert.match(stdout.value(), /Verdict:\s+SUPPORTED/);
     assert.match(stdout.value(), /Confidence:\s+92/);
+    assert.match(stdout.value(), /Quote:\s+"Rayleigh scattering"/);
+  } finally {
+    mock.restore();
+  }
+});
+
+test('runVerify: omits the Quote line when the model returned no quote', async () => {
+  const mock = mkFetchMock([
+    {
+      match: (url) => String(url).startsWith('https://en.wikipedia.org/api/rest_v1/'),
+      respond: async () => ({ ok: true, status: 200, text: async () => WIKI_HTML_WITH_ONE_CITATION }),
+    },
+    {
+      match: (url) => String(url).includes('publicai-proxy.alaexis.workers.dev') && String(url).includes('?fetch='),
+      respond: async () => ({ ok: true, json: async () => ({ content: 'The sky is indeed blue due to Rayleigh scattering.' + 'x'.repeat(200) }) }),
+    },
+    {
+      match: (url, opts) => String(url) === 'https://publicai-proxy.alaexis.workers.dev' && opts?.method === 'POST',
+      respond: async () => ({
+        ok: true, status: 200, json: async () => ({
+          choices: [{ message: { content: '{"verdict": "SUPPORTED", "confidence": 92, "comments": "matches source"}' } }],
+          usage: { prompt_tokens: 50, completion_tokens: 20 },
+        }),
+      }),
+    },
+  ]);
+  const stdout = mkStream();
+  const stderr = mkStream();
+  try {
+    const code = await runVerify(
+      { url: 'https://en.wikipedia.org/wiki/Sky', citationNumber: 1, provider: 'publicai', noLog: true },
+      { stdout, stderr, env: {} },
+    );
+    assert.equal(code, 0, `stderr: ${stderr.value()}`);
+    assert.ok(!stdout.value().includes('Quote:'), 'no quote means no Quote line');
   } finally {
     mock.restore();
   }

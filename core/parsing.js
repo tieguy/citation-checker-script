@@ -9,6 +9,17 @@
 
 import { canonicalizeVerdict } from './verdicts.js';
 
+// Normalises the model-supplied `quote` — the verbatim span it claims to have
+// copied out of the source body — into either a non-empty string or null.
+// Anything non-string (some small open-weight models emit a list of spans) and
+// anything blank becomes null: a blank quote would re-locate everywhere, which
+// is worse than admitting there is no quote.
+function normalizeQuote(value) {
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
+}
+
 export function parseVerificationResult(response) {
     const trimmed = response.trim();
 
@@ -25,6 +36,7 @@ export function parseVerificationResult(response) {
         return {
             verdict: result.verdict || 'UNKNOWN',
             confidence: result.confidence ?? null,
+            quote: normalizeQuote(result.quote),
             comments: result.comments || '',
             reason_type: result.reason_type || null
         };
@@ -39,13 +51,14 @@ export function parseVerificationResult(response) {
     if (match) {
         const verdict = canonicalizeVerdict(match[1]);
         if (verdict) {
-            return { verdict, confidence: null, comments: '<extracted from non-JSON response>' };
+            return { verdict, confidence: null, quote: null, comments: '<extracted from non-JSON response>' };
         }
     }
 
     return {
         verdict: 'PARSE_ERROR',
         confidence: null,
+        quote: null,
         comments: `Failed to parse AI response: ${response.substring(0, 200)}`
     };
 }

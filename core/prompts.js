@@ -35,9 +35,12 @@ Respond in JSON format:
 {
   "confidence": <number 0-100>,
   "verdict": "<verdict>",
+  "quote": "<verbatim span copied from the source text, or an empty string>",
   "reason_type": "<only for NOT SUPPORTED: 'contradiction' or 'omission'>",
-  "comments": "<relevant quote and brief explanation>"
+  "comments": "<brief explanation>"
 }
+
+The "quote" field must be copied out of the source text character for character. Do not paraphrase it, correct its spelling or punctuation, translate it, or stitch together words from different places. Choose the shortest contiguous span that carries the part of the claim you are ruling on. Use an empty string when the source text is unusable, or when nothing in it bears on the claim. Put your reasoning in "comments", not in "quote".
 
 For NOT SUPPORTED verdicts, include a "reason_type" field: use "contradiction" when the source explicitly states something incompatible with the claim, or "omission" when the source simply does not mention or address the claim. If both apply (source contradicts one part and omits another), use "contradiction". Do not include reason_type for other verdicts.
 
@@ -51,56 +54,56 @@ Confidence guide:
 Claim: "The committee published its findings in 1932."
 Source text: "History of Modern Economics - Economic Research Council - Google Books Sign in Hidden fields Books Try the new Google Books Check out the new look and enjoy easier access to your favorite features Try it now No thanks My library Help Advanced Book Search Download EPUB Download PDF Plain text Read eBook Get this book in print AbeBooks On Demand Books Amazon Find in a library All sellers About this book Terms of Service Plain text PDF EPUB"
 
-{"source_quote": "", "confidence": 0, "verdict": "SOURCE UNAVAILABLE", "comments": "Google Books interface with no actual book content, only navigation and metadata."}
+{"confidence": 0, "verdict": "SOURCE UNAVAILABLE", "quote": "", "comments": "Google Books interface with no actual book content, only navigation and metadata."}
 </example>
 
 <example>
 Claim: "The bridge was completed in 1998."
 Source text: "Skip to main content Web Archive toolbar... Capture date: 2015-03-12 ... City Tribune - Local News ... The Morrison Bridge project broke ground in 1994 after years of planning. Construction faced multiple delays due to funding shortages. The bridge was finally opened to traffic in August 2002, four years behind schedule. Mayor Davis called it 'a triumph of persistence.'"
 
-{"confidence": 15, "verdict": "NOT SUPPORTED", "reason_type": "contradiction", "comments": "\"finally opened to traffic in August 2002, four years behind schedule\" - Source says the bridge opened in 2002, not 1998. The article is accessible despite being an Internet Archive capture."}
+{"confidence": 15, "verdict": "NOT SUPPORTED", "quote": "The bridge was finally opened to traffic in August 2002, four years behind schedule.", "reason_type": "contradiction", "comments": "Source says the bridge opened in 2002, not 1998. The article is accessible despite being an Internet Archive capture."}
 </example>
 
 <example>
 Claim: "The company was founded in 1985 by John Smith."
 Source text: "Acme Corp was established in 1985. Its founder, John Smith, served as CEO until 2001."
 
-{"confidence": 95, "verdict": "SUPPORTED", "comments": "\"Acme Corp was established in 1985. Its founder, John Smith\" - Definitive match with paraphrasing."}
+{"confidence": 95, "verdict": "SUPPORTED", "quote": "Acme Corp was established in 1985. Its founder, John Smith", "comments": "Definitive match on both the founding year and the founder."}
 </example>
 
 <example>
 Claim: "The treaty was signed by 45 countries."
 Source text: "The treaty, finalized in March, was signed by over 30 nations, though the exact number remains disputed."
 
-{"confidence": 20, "verdict": "NOT SUPPORTED", "reason_type": "contradiction", "comments": "\"signed by over 30 nations\" - Source says \"over 30,\" not 45."}
+{"confidence": 20, "verdict": "NOT SUPPORTED", "quote": "signed by over 30 nations", "reason_type": "contradiction", "comments": "Source gives over 30, not 45."}
 </example>
 
 <example>
 Claim: "The treaty was signed in Paris."
 Source text: "It is believed the treaty was signed in Paris, though some historians dispute this."
 
-{"confidence": 60, "verdict": "PARTIALLY SUPPORTED", "comments": "\"It is believed... though some historians dispute this\" - Source hedges this as uncertain; Wikipedia states it as fact."}
+{"confidence": 60, "verdict": "PARTIALLY SUPPORTED", "quote": "It is believed the treaty was signed in Paris, though some historians dispute this.", "comments": "Source hedges this as uncertain; Wikipedia states it as fact."}
 </example>
 
 <example>
 Claim: "The population increased by 12% between 2010 and 2020."
 Source text: "Census data shows significant population growth in the region during the 2010s."
 
-{"confidence": 55, "verdict": "PARTIALLY SUPPORTED", "comments": "\"significant population growth\" - Source confirms growth but doesn't specify 12%."}
+{"confidence": 55, "verdict": "PARTIALLY SUPPORTED", "quote": "significant population growth in the region during the 2010s", "comments": "Source confirms growth but does not specify 12%."}
 </example>
 
 <example>
 Claim: "The president resigned on March 3."
 Source text: "The president remained in office throughout March."
 
-{"confidence": 5, "verdict": "NOT SUPPORTED", "reason_type": "contradiction", "comments": "\"remained in office throughout March\" - Source directly contradicts the claim."}
+{"confidence": 5, "verdict": "NOT SUPPORTED", "quote": "The president remained in office throughout March.", "reason_type": "contradiction", "comments": "Source directly contradicts the claim."}
 </example>
 
 <example>
 Claim: "She received the Nobel Prize in Chemistry in 2015."
 Source text: "Professor Martin completed her PhD at Oxford in 1998 and joined the faculty at Cambridge in 2003. Her research focuses on organic synthesis and catalysis. She has published over 200 papers and received several university teaching awards."
 
-{"confidence": 10, "verdict": "NOT SUPPORTED", "reason_type": "omission", "comments": "The source discusses her academic career and publications but makes no mention of a Nobel Prize."}
+{"confidence": 10, "verdict": "NOT SUPPORTED", "quote": "", "reason_type": "omission", "comments": "The source discusses her academic career and publications but makes no mention of a Nobel Prize, so there is no span to quote."}
 </example>`;
 }
 

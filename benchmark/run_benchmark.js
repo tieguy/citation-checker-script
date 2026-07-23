@@ -284,6 +284,7 @@ export function shapeResult({ text, usage }) {
     return {
         verdict: normalizeVerdict(parsed.verdict),
         confidence: parsed.confidence ?? 0,
+        quote: parsed.quote,
         comments: parsed.comments,
         raw_response: text,
         usage,
@@ -598,6 +599,7 @@ async function main() {
                     ground_truth: entry.ground_truth,
                     predicted_verdict: result.verdict,
                     confidence: result.confidence,
+                    quote: result.quote ?? null,
                     comments: result.comments,
                     latency_ms: result.latency,
                     error: result.error,
