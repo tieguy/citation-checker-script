@@ -482,23 +482,55 @@ export function parseSearchInside(data) {
     return { indexed, matches };
 }
 
-// A conservative full-text query from a claim: the distinct longer words
-// (>= 5 chars, falling back to >= 4, then the trimmed claim) in claim order.
-// Deliberately simple — term selection affects only recall, never grounding,
-// since the returned snippet bytes are what any quote is checked against.
-export function searchQuery(claim) {
+// The distinct longer words of a claim (>= 5 chars, falling back to >= 4) in
+// claim order, capped. Empty when the claim has no word that long.
+function claimTerms(claim, limit) {
     const words = String(claim).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
     for (const floor of [5, 4]) {
         const picked = [];
         for (const word of words) {
             if ([...word].length >= floor && !picked.includes(word)) {
                 picked.push(word);
-                if (picked.length === MAX_QUERY_TERMS) break;
+                if (picked.length === limit) break;
             }
         }
-        if (picked.length > 0) return picked.join(' ');
+        if (picked.length > 0) return picked;
     }
-    return String(claim).trim();
+    return [];
+}
+
+// A conservative full-text query from a claim: the distinct longer words in
+// claim order, capped at MAX_QUERY_TERMS.
+export function searchQuery(claim) {
+    const terms = claimTerms(claim, MAX_QUERY_TERMS);
+    return terms.length > 0 ? terms.join(' ') : String(claim).trim();
+}
+
+// Progressively narrower queries, tried in order until one returns matches.
+//
+// This ladder is a correctness requirement, not a recall optimization. The
+// endpoint returns zero matches for the *entire* query when any single term is
+// absent from the item's OCR index — "favourable" is missing from the index of
+// a scan that uses the word throughout, and every query containing it comes
+// back empty. Since an empty result is what we report as "not supported", a
+// one-shot query would let a single unindexed word turn a well-supported claim
+// into a false accusation against the citation. Falling back to the few most
+// distinctive terms, and finally to the single most distinctive one, makes
+// "no matches" mean the book really does lack the claim's rarest word.
+export function searchQueryLadder(claim) {
+    const rungs = [];
+    for (const width of [MAX_QUERY_TERMS, 3, 1]) {
+        const terms = claimTerms(claim, MAX_QUERY_TERMS);
+        if (terms.length === 0) continue;
+        // Narrower rungs keep the longest (rarest) terms, in claim order.
+        const kept = width >= terms.length
+            ? terms
+            : [...terms].sort((a, b) => b.length - a.length).slice(0, width)
+                .sort((a, b) => terms.indexOf(a) - terms.indexOf(b));
+        const query = kept.join(' ');
+        if (!rungs.includes(query)) rungs.push(query);
+    }
+    return rungs.length > 0 ? rungs : [String(claim).trim()];
 }
 
 // A page-anchored deep link into the scan with the search terms highlighted —
@@ -540,34 +572,44 @@ export async function prepareBookGrounding({ getJson = defaultJsonTransport } = 
     if (!location) return { kind: 'no_usable_body', detail: 'item metadata unusable' };
     if (!location.isTextItem) return { kind: 'no_usable_body', detail: 'not a text item' };
 
-    // 2. Full-text search on the designated server.
-    const query = searchQuery(claim);
-    const searchUrl = buildSearchInsideUrl(location, ocaid, query);
-    if (!searchUrl) return { kind: 'no_usable_body', detail: 'search server unusable' };
+    // 2. Full-text search on the designated server, narrowing the query until
+    //    something comes back (see searchQueryLadder for why that matters).
+    let result = null;
+    let query = null;
+    for (const rung of searchQueryLadder(claim)) {
+        query = rung;
+        const searchUrl = buildSearchInsideUrl(location, ocaid, rung);
+        if (!searchUrl) return { kind: 'no_usable_body', detail: 'search server unusable' };
 
-    let search;
-    try {
-        search = await getJson(searchUrl);
-    } catch (error) {
-        return { kind: 'unreachable', message: (error && error.message) || String(error) };
+        let search;
+        try {
+            search = await getJson(searchUrl);
+        } catch (error) {
+            return { kind: 'unreachable', message: (error && error.message) || String(error) };
+        }
+        // A 403 here is the lending-restricted case, and it is the common one:
+        // as of 2026-07 the Internet Archive returns 403 from this endpoint for
+        // in-copyright (print-disabled / lendable) scans, so in practice only
+        // full-access items can be grounded. Either way it is a failure to
+        // read, not a finding about the book, so it must never become
+        // "not supported".
+        if (!isOk(search.status)) {
+            return {
+                kind: 'unreachable',
+                message: search.status === 403
+                    ? 'search-inside returned 403 (scan is lending-restricted, not full access)'
+                    : `search-inside returned ${search.status}`,
+            };
+        }
+        result = parseSearchInside(search.data);
+        if (!result) return { kind: 'no_usable_body', detail: 'search response unusable' };
+        if (!result.indexed) return { kind: 'no_usable_body', detail: 'no full-text index' };
+        if (result.matches.length > 0) break;
     }
-    // A 403 here is the lending-restricted case, and it is the common one:
-    // as of 2026-07 the Internet Archive returns 403 from this endpoint for
-    // in-copyright (print-disabled / lendable) scans, so in practice only
-    // full-access items can be grounded. Either way it is a failure to read,
-    // not a finding about the book, so it must never become "not supported".
-    if (!isOk(search.status)) {
-        return {
-            kind: 'unreachable',
-            message: search.status === 403
-                ? 'search-inside returned 403 (scan is lending-restricted, not full access)'
-                : `search-inside returned ${search.status}`,
-        };
-    }
-    const result = parseSearchInside(search.data);
-    if (!result) return { kind: 'no_usable_body', detail: 'search response unusable' };
-    if (!result.indexed) return { kind: 'no_usable_body', detail: 'no full-text index' };
+
     if (result.matches.length === 0) {
+        // Every rung came back empty, down to the single most distinctive
+        // term — the book really does not contain the claim's rarest word.
         return { kind: 'no_matches', query, deepLink: scanDeepLink(ocaid, null, query) };
     }
 

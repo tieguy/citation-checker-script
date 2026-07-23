@@ -21,6 +21,7 @@ import {
     buildSearchInsideUrl,
     parseSearchInside,
     searchQuery,
+    searchQueryLadder,
     scanDeepLink,
     leadingPageNumber,
     prepareBookGrounding,
@@ -497,6 +498,50 @@ test('searchQuery takes distinct longer words in claim order', () => {
     assert.equal(searchQuery('a b c'), 'a b c', 'then to the raw claim');
 });
 
+test('searchQueryLadder narrows until a single distinctive term remains', () => {
+    // The load-bearing safety property: one word missing from a scan's OCR
+    // index zeroes the whole query, so "no matches" must not be concluded
+    // from a wide query alone.
+    assert.deepEqual(
+        searchQueryLadder('Natural selection acts by the preservation of slight favourable variations.'),
+        [
+            'Natural selection preservation slight favourable variations',
+            'preservation favourable variations',
+            'preservation',
+        ]
+    );
+    // A claim with few long words collapses to fewer distinct rungs.
+    assert.deepEqual(searchQueryLadder('The cat sat down'), ['down']);
+});
+
+test('the query ladder rescues a claim whose wide query returns nothing', async () => {
+    const { getJson, urls } = stubTransport([
+        ok(ITEM_METADATA),
+        ok({ indexed: true, matches: [] }),                                   // 6 terms: poisoned
+        ok({ indexed: true, matches: [] }),                                   // 3 terms: still poisoned
+        ok({ indexed: true, matches: [{ text: 'the preservation of favoured races', par: [{ page: 3 }] }] }),
+    ]);
+    const prep = await prepareBookGrounding({ getJson },
+        'x', 'Natural selection acts by the preservation of slight favourable variations.', null);
+    assert.equal(prep.kind, 'body');
+    assert.equal(prep.query, 'preservation', 'the narrowest rung is what produced the body');
+    assert.equal(urls.length, 4);
+});
+
+test('no_matches is only reached after every rung comes back empty', async () => {
+    const { getJson, urls } = stubTransport([
+        ok(ITEM_METADATA),
+        ok({ indexed: true, matches: [] }),
+        ok({ indexed: true, matches: [] }),
+        ok({ indexed: true, matches: [] }),
+    ]);
+    const prep = await prepareBookGrounding({ getJson },
+        'x', 'Natural selection acts by the preservation of slight favourable variations.', null);
+    assert.equal(prep.kind, 'no_matches');
+    assert.equal(prep.query, 'preservation');
+    assert.equal(urls.length, 4);
+});
+
 test('scanDeepLink anchors the page and highlights the query', () => {
     assert.equal(
         scanDeepLink('matilda00dahl', 42, 'good loving'),
@@ -608,7 +653,9 @@ test('fetchBookSourceContent assembles a body the existing verifier can judge', 
 
 test('fetchBookSourceContent reports searched-but-nothing-found as not supported', async () => {
     const { getJson } = stubTransport([
-        ok(CATALOG_HIT), ok(READ_API_EXACT), ok(ITEM_METADATA), ok({ indexed: true, matches: [] }),
+        ok(CATALOG_HIT), ok(READ_API_EXACT), ok(ITEM_METADATA),
+        // Every rung of the query ladder, all empty.
+        ok({ indexed: true, matches: [] }), ok({ indexed: true, matches: [] }),
     ]);
     const result = await fetchBookSourceContent([ISBN], 'A claim the book never makes', null, { getJson });
     assert.equal(result.content, null);
