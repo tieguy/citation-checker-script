@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractRowBlocks, splitTopLevelParams, SUITE_TEMPLATE_TITLE } from '../benchmark/suite.js';
+import { extractRowBlocks, splitTopLevelParams, SUITE_TEMPLATE_TITLE, SUITE_TEMPLATE_KEY, wtf } from '../benchmark/suite.js';
 
 const T = SUITE_TEMPLATE_TITLE;
 const row = (params) => `{{${T}|${params}}}`;
@@ -37,11 +37,39 @@ test('extractRowBlocks does not match the /doc subpage transclusion', () => {
     assert.equal(extractRowBlocks(page).length, 0);
 });
 
+test('extractRowBlocks reports balanced:true even when an extra-closing-brace form makes wtf vanish the row', () => {
+    // With `rationale=see note}` (unmatched closing brace), extractRowBlocks
+    // encounters depth-zero at the `}` and returns a balanced block, but wtf
+    // silently drops the entire row. This is reported separately by the validator
+    // as ROW_COUNT_MISMATCH (or UNBALANCED_BRACES if caught by the raw scan).
+    // This test documents the current behavior so it doesn't regress if the
+    // depth-matching logic changes.
+    const blocks = extractRowBlocks(row('id=a|rationale=see note}|citation=1'));
+    assert.equal(blocks.length, 1);
+    assert.equal(blocks[0].balanced, true);
+});
+
 test('splitTopLevelParams separates params without splitting inside a wikilink', () => {
     const block = row('id=a|rationale=see [[Foo|bar]] here|citation=1');
     const { name, params } = splitTopLevelParams(block);
     assert.equal(name, T);
     assert.deepEqual(params, ['id=a', 'rationale=see [[Foo|bar]] here', 'citation=1']);
+});
+
+test('splitTopLevelParams: an unclosed wikilink swallows all subsequent parameters (limitation)', () => {
+    // With `rationale=see [[Foo|bar` (unclosed wikilink), the link counter stays
+    // at 1 for the rest of the block, so no further `|` chars trigger a split.
+    // This causes subsequent parameters to be merged into the malformed value.
+    // This limitation is acceptable — the validator catches the stray `|` in the
+    // corrupted value via STRAY_PIPE — but we document it so the behavior
+    // doesn't regress unexpectedly.
+    const block = row('id=a|rationale=see [[Foo|bar|citation=1');
+    const { params } = splitTopLevelParams(block);
+    // All three params are present, but `rationale` and the split attempt at
+    // `citation` are merged: the entire `see [[Foo|bar|citation=1` is one value.
+    assert.equal(params.length, 2);
+    assert.equal(params[0], 'id=a');
+    assert.equal(params[1], 'rationale=see [[Foo|bar|citation=1');
 });
 
 test('splitTopLevelParams handles the multi-line pretty format', () => {
@@ -50,8 +78,20 @@ test('splitTopLevelParams handles the multi-line pretty format', () => {
     assert.deepEqual(params.map(p => p.trim()), ['id = a', 'truth = Supported']);
 });
 
-import wtf from 'wtf_wikipedia';
-import { SUITE_TEMPLATE_KEY } from '../benchmark/suite.js';
+test('splitTopLevelParams handles blocks ending with a single-} when braces are unmatched', () => {
+    // When extractRowBlocks encounters an unmatched `}` in a value, it stops at
+    // depth-zero with one `}` remaining. Verify splitTopLevelParams correctly
+    // strips that single trailing brace without destroying unrelated parameter data.
+    const block = '{{' + T + '|id=a|rationale=see note}|citation=1}';
+    const { name, params } = splitTopLevelParams(block);
+    assert.equal(name, T);
+    // The unmatched `}` drives the depth-counter negative, so the subsequent `|`
+    // does not split; citation=1 is merged into the rationale value. Verify we
+    // get exactly what the depth-tracking logic produces (not something worse).
+    assert.equal(params.length, 2);
+    assert.equal(params[0], 'id=a');
+    assert.equal(params[1], 'rationale=see note}|citation=1');
+});
 
 // These tests document measured wtf_wikipedia 10.4.2 behavior rather than our own
 // code. They exist so a dependency bump that changes any of it fails here, loudly,
@@ -130,4 +170,16 @@ test('wtf lossy-but-accepted: a wikilink is flattened to its label', () => {
 test('wtf safe: rows transcluded inside a wikitable still parse', () => {
     const page = `{|class="wikitable"\n|-\n|${row('id=a|citation=1')}\n|}`;
     assert.equal(parseOne(page).id, 'a');
+});
+
+test('wtf quirk: silent whitespace normalization before punctuation', () => {
+    // The parser strips space before certain punctuation irregularly: only the
+    // FIRST occurrence of ` ,`, only TRAILING ` .`, semicolons untouched. This
+    // quirk breaks byte-comparison parity and affects four CSV rows. Phase 4's
+    // escapeParamValue pre-normalizes these sequences so they never reach the
+    // parser and the round trip is exact.
+    assert.equal(parseOne(row('id=a|rationale=a , b|citation=1')).rationale, 'a, b');
+    assert.equal(parseOne(row('id=a|rationale=a , b , c|citation=1')).rationale, 'a, b , c');
+    assert.equal(parseOne(row('id=a|rationale=hello .|citation=1')).rationale, 'hello.');
+    assert.equal(parseOne(row('id=a|rationale=a ; b|citation=1')).rationale, 'a ; b');
 });

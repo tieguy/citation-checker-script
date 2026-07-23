@@ -20,6 +20,11 @@
 import wtf from 'wtf_wikipedia';
 import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
 
+// Re-export wtf so tests and benchmark code share a single resolved module.
+// This ensures both paths use the same wtf_wikipedia instance and any future
+// version drift from floating ^10.4.2 ranges hits all regression fixtures equally.
+export { default as wtf } from 'wtf_wikipedia';
+
 export const SUITE_TEMPLATE_TITLE = 'User:Alaexis/AI Source Verification/Benchmark/Row';
 
 // wtf_wikipedia lowercases template names but PRESERVES spaces (it does not
@@ -106,7 +111,10 @@ export function extractRowBlocks(wikitext) {
  * @returns {{name:string, params:string[]}}
  */
 export function splitTopLevelParams(blockText) {
-    const inner = blockText.slice(2, -2);
+    // Defensively strip delimiters rather than assuming fixed offsets, in case the
+    // block's trailing braces are unbalanced (e.g., from extractRowBlocks terminating
+    // on depth-zero with a single `}` instead of `}}` remaining).
+    const inner = blockText.replace(/^\{\{/, '').replace(/\}+$/, '');
     const segments = [];
     let current = '';
     let depth = 0;
