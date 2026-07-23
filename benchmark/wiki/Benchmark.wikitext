@@ -1,0 +1,43 @@
+{{DISPLAYTITLE:AI Source Verification benchmark suite}}
+== About this page ==
+
+This page is the ground-truth dataset for the [[User:Alaexis/AI Source Verification|AI Source Verification]] tool. Each row records one citation, the claim it supports, and a '''human''' judgement of whether the source actually supports that claim. Benchmark accuracy numbers are computed against these labels.
+
+'''You are invited to edit this page.''' It lives in user space, but it is a shared resource — adding a row or confirming someone else's label is welcome and does not need permission.
+
+=== How to label a row ===
+
+Label what '''an editor following the citation to the live source would find'''. Do not label based on what an automated scraper captured. The two differ often: a scraper may miss tables, byline dates, late-loading content, or paywalled material that a human reader can see. If the live source supports the claim, the row is <code>Supported</code> even when our tooling failed to retrieve the text.
+
+Use one of exactly four values in <code>truth</code>:
+
+* <code>Supported</code> — the source states the claim.
+* <code>Partially supported</code> — the source supports part of the claim but not all of it.
+* <code>Not supported</code> — the source does not support the claim, or contradicts it.
+* <code>Source unavailable</code> — the source cannot be consulted at all (dead link with no archive, unobtainable offline work).
+
+Please fill in <code>rationale</code> with a sentence explaining the call. A second editor is asked to check the row and add their username to <code>confirmed-by</code>; a confirmed row carries more weight in disputes.
+
+=== Formatting rules (important) ===
+
+The ingestion tooling parses this page's wikitext. Some characters silently corrupt or '''delete''' a row rather than producing a visible error, so these rules are enforced by a validator that refuses to run on a malformed page:
+
+* Never use <code>|</code>, <code>{</code>, or <code>}</code> inside a parameter value. Not even escaped — <code><nowiki>{{!}}</nowiki></code> and <code><nowiki><nowiki>|</nowiki></nowiki></code> do '''not''' work here. Write <code>&amp;#124;</code> if you truly need a pipe character.
+* Never nest a template (<code><nowiki>{{...}}</nowiki></code>) inside a parameter value.
+* Leave a parameter out entirely rather than giving it an empty value.
+* Never repeat the same parameter twice in one row.
+* <code>=</code> is safe, including inside URLs.
+
+A row that breaks these rules will appear in [[:Category:AI Source Verification benchmark rows with errors]].
+
+=== Machine output is not ground truth ===
+
+The <code>llm-*</code> parameters record what a model said. They are stored for comparison only and are '''never''' read as ground truth. Do not let them influence your <code>truth</code> value — judge the source yourself.
+
+== Rows ==
+
+{| class="wikitable sortable"
+! ID !! Article !! Citation !! Ground truth !! Rationale !! Attribution !! Source override !! Model output (not ground truth)
+|}
+
+[[Category:AI Source Verification]]
