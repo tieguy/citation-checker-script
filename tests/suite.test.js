@@ -49,3 +49,85 @@ test('splitTopLevelParams handles the multi-line pretty format', () => {
     const { params } = splitTopLevelParams(block);
     assert.deepEqual(params.map(p => p.trim()), ['id = a', 'truth = Supported']);
 });
+
+import wtf from 'wtf_wikipedia';
+import { SUITE_TEMPLATE_KEY } from '../benchmark/suite.js';
+
+// These tests document measured wtf_wikipedia 10.4.2 behavior rather than our own
+// code. They exist so a dependency bump that changes any of it fails here, loudly,
+// instead of silently changing which rows survive ingestion. If one of these breaks
+// after an upgrade, re-derive the validator rules — do not just update the expectation.
+
+const parseOne = (wikitext) => {
+    const found = wtf(wikitext).templates().map(t => t.json())
+        .filter(j => j.template === SUITE_TEMPLATE_KEY);
+    return found.length === 1 ? found[0] : found;
+};
+
+test('wtf quirk: template name comes back lowercased with spaces preserved', () => {
+    const j = parseOne(row('id=a'));
+    assert.equal(j.template, 'user:alaexis/ai source verification/benchmark/row');
+});
+
+test('wtf quirk: an UNBALANCED brace makes the whole row vanish', () => {
+    assert.deepEqual(parseOne(row('id=a|rationale=see {note|citation=1')), []);
+    assert.deepEqual(parseOne(row('id=a|rationale=see note}|citation=1')), []);
+});
+
+test('wtf quirk: BALANCED braces survive — the ban is conservative, not literal', () => {
+    // The design doc states any { or } nulls the row. Measured: only unbalanced
+    // ones do. The validator still rejects both, because distinguishing them on
+    // wiki is a trap for editors; this test records why the rule is stricter than
+    // the underlying failure.
+    assert.equal(parseOne(row('id=a|rationale=a {b} c|citation=1')).rationale, 'a {b} c');
+});
+
+test('wtf quirk: a bare pipe truncates the value and invents a `list` param', () => {
+    const j = parseOne(row('id=a|rationale=a | b|citation=1'));
+    assert.equal(j.rationale, 'a');
+    assert.deepEqual(j.list, ['b']);
+});
+
+test('wtf quirk: {{!}} and <nowiki> do NOT escape a pipe here', () => {
+    for (const escaped of ['a {{!}} b', 'a <nowiki>|</nowiki> b']) {
+        const j = parseOne(row(`id=a|rationale=${escaped}|citation=1`));
+        assert.equal(j.rationale, 'a', `expected truncation for: ${escaped}`);
+    }
+});
+
+test('wtf quirk: &#124; survives as an encoded pipe', () => {
+    assert.equal(parseOne(row('id=a|rationale=a &#124; b|citation=1')).rationale, 'a &#124; b');
+});
+
+test('wtf quirk: an empty value makes the param vanish entirely', () => {
+    const j = parseOne(row('id=a|rationale=|citation=1'));
+    assert.equal('rationale' in j, false);
+});
+
+test('wtf quirk: a duplicated param silently keeps the last value', () => {
+    const j = parseOne(row('id=a|truth=Supported|truth=Not supported|citation=1'));
+    assert.equal(j.truth, 'Not supported');
+});
+
+test('wtf quirk: a magic word expands at parse time, breaking reproducibility', () => {
+    assert.match(parseOne(row('id=a|rationale={{CURRENTYEAR}}|citation=1')).rationale, /^\d{4}$/);
+});
+
+test('wtf safe: equals signs, URLs, non-ASCII and quotes pass through intact', () => {
+    assert.equal(parseOne(row('id=a|rationale=a=b')).rationale, 'a=b');
+    assert.equal(
+        parseOne(row('id=a|source-url=https://e.com/p?a=1&b=2#frag'))['source-url'],
+        'https://e.com/p?a=1&b=2#frag',
+    );
+    assert.equal(parseOne(row('id=a|article=Café Müller — naïve')).article, 'Café Müller — naïve');
+    assert.equal(parseOne(row('id=a|rationale=He said "hi"')).rationale, 'He said "hi"');
+});
+
+test('wtf lossy-but-accepted: a wikilink is flattened to its label', () => {
+    assert.equal(parseOne(row('id=a|rationale=see [[Foo|bar]]')).rationale, 'see bar');
+});
+
+test('wtf safe: rows transcluded inside a wikitable still parse', () => {
+    const page = `{|class="wikitable"\n|-\n|${row('id=a|citation=1')}\n|}`;
+    assert.equal(parseOne(page).id, 'a');
+});
