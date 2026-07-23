@@ -17,7 +17,6 @@
 // behavior matrix and docs/implementation-plans/2026-07-23-wiki-hosted-benchmark-suite/README.md
 // for the measurements.
 
-import wtf from 'wtf_wikipedia';
 import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
 
 // Re-export wtf so tests and benchmark code share a single resolved module.
@@ -114,7 +113,7 @@ export function splitTopLevelParams(blockText) {
     // Defensively strip delimiters rather than assuming fixed offsets, in case the
     // block's trailing braces are unbalanced (e.g., from extractRowBlocks terminating
     // on depth-zero with a single `}` instead of `}}` remaining).
-    const inner = blockText.replace(/^\{\{/, '').replace(/\}+$/, '');
+    const inner = blockText.replace(/^\{\{/, '').replace(/\}\}?$/, '');
     const segments = [];
     let current = '';
     let depth = 0;

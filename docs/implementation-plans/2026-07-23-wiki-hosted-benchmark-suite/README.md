@@ -139,7 +139,7 @@ From the root `CLAUDE.md` and observed test files:
   describe/it nesting. Run with `npm test` from the repo root
   (`node --test 'tests/**/*.test.js'`). All new tests go in `tests/` as `*.test.js`.
 - **Filtering tests — `npm test -- --test-name-pattern=X` does NOT work.** Verified:
-  it runs all 290 tests and silently ignores the filter, because Node only parses
+  it runs all 314 tests and silently ignores the filter, because Node only parses
   options that appear *before* the file-list argument. To run a subset use:
 
   ```sh

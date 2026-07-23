@@ -93,6 +93,18 @@ test('splitTopLevelParams handles blocks ending with a single-} when braces are 
     assert.equal(params[1], 'rationale=see note}|citation=1');
 });
 
+test('splitTopLevelParams preserves nested-template closing braces in the last parameter', () => {
+    // Regression: a greedy trailing-brace strip corrupted `citation={{tl|x}}}}` by
+    // stripping all four closing braces. This test verifies the fix preserves the
+    // nested template's closing `}}` while still stripping the outer template's `}}`.
+    const block = row('id=a|citation={{tl|x}}');
+    const { name, params } = splitTopLevelParams(block);
+    assert.equal(name, T);
+    assert.equal(params.length, 2);
+    assert.equal(params[0], 'id=a');
+    assert.equal(params[1], 'citation={{tl|x}}');
+});
+
 // These tests document measured wtf_wikipedia 10.4.2 behavior rather than our own
 // code. They exist so a dependency bump that changes any of it fails here, loudly,
 // instead of silently changing which rows survive ingestion. If one of these breaks

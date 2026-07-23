@@ -91,7 +91,7 @@ Create `tests/suite.test.js`:
 ```javascript
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractRowBlocks, splitTopLevelParams, SUITE_TEMPLATE_TITLE } from '../benchmark/suite.js';
+import { extractRowBlocks, splitTopLevelParams, SUITE_TEMPLATE_TITLE, SUITE_TEMPLATE_KEY, wtf } from '../benchmark/suite.js';
 
 const T = SUITE_TEMPLATE_TITLE;
 const row = (params) => `{{${T}|${params}}}`;
@@ -128,6 +128,18 @@ test('extractRowBlocks does not match the /doc subpage transclusion', () => {
     assert.equal(extractRowBlocks(page).length, 0);
 });
 
+test('extractRowBlocks reports balanced:true even when an extra-closing-brace form makes wtf vanish the row', () => {
+    // With `rationale=see note}` (unmatched closing brace), extractRowBlocks
+    // encounters depth-zero at the `}` and returns a balanced block, but wtf
+    // silently drops the entire row. This is reported separately by the validator
+    // as ROW_COUNT_MISMATCH (or UNBALANCED_BRACES if caught by the raw scan).
+    // This test documents the current behavior so it doesn't regress if the
+    // depth-matching logic changes.
+    const blocks = extractRowBlocks(row('id=a|rationale=see note}|citation=1'));
+    assert.equal(blocks.length, 1);
+    assert.equal(blocks[0].balanced, true);
+});
+
 test('splitTopLevelParams separates params without splitting inside a wikilink', () => {
     const block = row('id=a|rationale=see [[Foo|bar]] here|citation=1');
     const { name, params } = splitTopLevelParams(block);
@@ -135,10 +147,53 @@ test('splitTopLevelParams separates params without splitting inside a wikilink',
     assert.deepEqual(params, ['id=a', 'rationale=see [[Foo|bar]] here', 'citation=1']);
 });
 
+test('splitTopLevelParams: an unclosed wikilink swallows all subsequent parameters (limitation)', () => {
+    // With `rationale=see [[Foo|bar` (unclosed wikilink), the link counter stays
+    // at 1 for the rest of the block, so no further `|` chars trigger a split.
+    // This causes subsequent parameters to be merged into the malformed value.
+    // This limitation is acceptable — the validator catches the stray `|` in the
+    // corrupted value via STRAY_PIPE — but we document it so the behavior
+    // doesn't regress unexpectedly.
+    const block = row('id=a|rationale=see [[Foo|bar|citation=1');
+    const { params } = splitTopLevelParams(block);
+    // All three params are present, but `rationale` and the split attempt at
+    // `citation` are merged: the entire `see [[Foo|bar|citation=1` is one value.
+    assert.equal(params.length, 2);
+    assert.equal(params[0], 'id=a');
+    assert.equal(params[1], 'rationale=see [[Foo|bar|citation=1');
+});
+
 test('splitTopLevelParams handles the multi-line pretty format', () => {
     const block = `{{${T}\n| id = a\n| truth = Supported\n}}`;
     const { params } = splitTopLevelParams(block);
     assert.deepEqual(params.map(p => p.trim()), ['id = a', 'truth = Supported']);
+});
+
+test('splitTopLevelParams handles blocks ending with a single-} when braces are unmatched', () => {
+    // When extractRowBlocks encounters an unmatched `}` in a value, it stops at
+    // depth-zero with one `}` remaining. Verify splitTopLevelParams correctly
+    // strips that single trailing brace without destroying unrelated parameter data.
+    const block = '{{' + T + '|id=a|rationale=see note}|citation=1}';
+    const { name, params } = splitTopLevelParams(block);
+    assert.equal(name, T);
+    // The unmatched `}` drives the depth-counter negative, so the subsequent `|`
+    // does not split; citation=1 is merged into the rationale value. Verify we
+    // get exactly what the depth-tracking logic produces (not something worse).
+    assert.equal(params.length, 2);
+    assert.equal(params[0], 'id=a');
+    assert.equal(params[1], 'rationale=see note}|citation=1');
+});
+
+test('splitTopLevelParams preserves nested-template closing braces in the last parameter', () => {
+    // Regression: a greedy trailing-brace strip corrupted `citation={{tl|x}}}}` by
+    // stripping all four closing braces. This test verifies the fix preserves the
+    // nested template's closing `}}` while still stripping the outer template's `}}`.
+    const block = row('id=a|citation={{tl|x}}');
+    const { name, params } = splitTopLevelParams(block);
+    assert.equal(name, T);
+    assert.equal(params.length, 2);
+    assert.equal(params[0], 'id=a');
+    assert.equal(params[1], 'citation={{tl|x}}');
 });
 ```
 
@@ -171,7 +226,6 @@ Create `benchmark/suite.js`:
 // behavior matrix and docs/implementation-plans/2026-07-23-wiki-hosted-benchmark-suite/README.md
 // for the measurements.
 
-import wtf from 'wtf_wikipedia';
 import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
 
 // Re-export wtf so tests and benchmark code share a single resolved module.
@@ -298,7 +352,7 @@ export function splitTopLevelParams(blockText) {
 **Step 4: Run to verify it passes**
 
 Run: `node --test --test-name-pattern='extractRowBlocks|splitTopLevelParams' 'tests/**/*.test.js'`
-Expected: PASS, 7 tests.
+Expected: PASS, 11 tests.
 
 **Step 5: Commit**
 
@@ -323,8 +377,8 @@ run months later.
 Append to `tests/suite.test.js`:
 
 ```javascript
-import wtf from 'wtf_wikipedia';
-import { SUITE_TEMPLATE_KEY } from '../benchmark/suite.js';
+// Note: wtf and SUITE_TEMPLATE_KEY are imported from suite.js at the top of the file
+// (Task 2's re-export makes them available to all tests). No additional imports needed.
 
 // These tests document measured wtf_wikipedia 10.4.2 behavior rather than our own
 // code. They exist so a dependency bump that changes any of it fails here, loudly,
@@ -950,7 +1004,7 @@ git commit -m "benchmark: map validated suite rows onto the dataset row shape"
 
 ## Phase 2 done when
 
-- [ ] `npm test` passes with all of `tests/suite.test.js` green (39 tests across tasks 2–5).
+- [ ] `npm test` passes with all of `tests/suite.test.js` green (45 tests across tasks 2–5: 11 + 13 + 17 + 4).
 - [ ] A suite containing a deliberately malformed row throws `SuiteValidationError`
       naming the row number and the offending parameter — verified by the
       `MISSING_PARAM` test asserting `row`, `param`, and `id`.
