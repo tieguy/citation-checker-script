@@ -6,7 +6,7 @@ import path from 'node:path';
 import {
     buildRawUrl, SUITE_USER_AGENT, SUITE_PAGE_TITLE,
     snapshotPaths, writeSnapshot, readSnapshot, hasSnapshot,
-    resolveSuiteRef,
+    resolveSuiteRef, loadSuite,
 } from '../benchmark/suite_fetch.js';
 
 const tmpDir = () => fs.mkdtempSync(path.join(os.tmpdir(), 'suite-'));
@@ -90,4 +90,93 @@ test('resolveSuiteRef lists the available pins when a name is unknown', () => {
 
 test('resolveSuiteRef refuses an empty pins table with an actionable message', () => {
     assert.throws(() => resolveSuiteRef('v1', {}), /no pins are defined/i);
+});
+
+test('loadSuite fetches once, writes a snapshot, then never fetches again', async () => {
+    const { SUITE_TEMPLATE_TITLE } = await import('../benchmark/suite.js');
+    const validPage = `{{${SUITE_TEMPLATE_TITLE}
+| id = ctb-a1b2c3
+| wiki = enwiki
+| article = Immigration to the United States
+| oldid = 1331476438
+| citation = 1
+| instance = 1
+| truth = Supported
+}}`;
+
+    const dir = tmpDir();
+    try {
+        let fetches = 0;
+        const fetchFn = async () => { fetches++; return validPage; };
+
+        const first = await loadSuite(111, { dir, fetchFn });
+        assert.equal(fetches, 1);
+        assert.equal(first.rows.length, 1);
+        assert.equal(first.fromSnapshot, false);
+
+        const second = await loadSuite(111, { dir, fetchFn });
+        assert.equal(fetches, 1, 'second call must not hit the network');
+        assert.equal(second.fromSnapshot, true);
+        assert.deepEqual(second.rows, first.rows);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('loadSuite with offline:true refuses to fetch a missing snapshot', async () => {
+    const { SUITE_TEMPLATE_TITLE } = await import('../benchmark/suite.js');
+    const validPage = `{{${SUITE_TEMPLATE_TITLE}
+| id = ctb-a1b2c3
+| wiki = enwiki
+| article = Immigration to the United States
+| oldid = 1331476438
+| citation = 1
+| instance = 1
+| truth = Supported
+}}`;
+
+    const dir = tmpDir();
+    try {
+        await assert.rejects(
+            () => loadSuite(222, { dir, offline: true, fetchFn: async () => validPage }),
+            /no snapshot/i,
+        );
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('loadSuite does not write a snapshot when validation fails', async () => {
+    const { SUITE_TEMPLATE_TITLE } = await import('../benchmark/suite.js');
+    const dir = tmpDir();
+    try {
+        const bad = `{{${SUITE_TEMPLATE_TITLE}|id=ctb-a1b2c3|truth=Supported}}`;
+        await assert.rejects(() => loadSuite(333, { dir, fetchFn: async () => bad }));
+        assert.equal(hasSnapshot(dir, 333), false,
+            'an invalid suite must not be frozen — it would reproduce the corruption');
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('loadSuite re-parses stored wikitext rather than trusting stored rows', async () => {
+    const { SUITE_TEMPLATE_TITLE } = await import('../benchmark/suite.js');
+    const validPage = `{{${SUITE_TEMPLATE_TITLE}
+| id = ctb-a1b2c3
+| wiki = enwiki
+| article = Immigration to the United States
+| oldid = 1331476438
+| citation = 1
+| instance = 1
+| truth = Supported
+}}`;
+
+    const dir = tmpDir();
+    try {
+        await loadSuite(444, { dir, fetchFn: async () => validPage });
+        // Corrupt only the derived JSON. The wikitext is the source of record, so
+        // the reload must reflect the wikitext, not the tampered rows.
+        const { jsonPath } = snapshotPaths(dir, 444);
+        const stored = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+        stored.rows = [{ id: 'ctb-ffffff' }, { id: 'ctb-eeeeee' }];
+        fs.writeFileSync(jsonPath, JSON.stringify(stored));
+
+        const reloaded = await loadSuite(444, { dir, fetchFn: async () => { throw new Error('no fetch'); } });
+        assert.equal(reloaded.rows.length, 1);
+        assert.equal(reloaded.rows[0].id, 'ctb-a1b2c3');
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });

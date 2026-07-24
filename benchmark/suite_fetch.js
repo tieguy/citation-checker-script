@@ -12,6 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import https from 'node:https';
 import { fileURLToPath } from 'node:url';
+import { parseSuite } from './suite.js';
 
 export const SUITE_PAGE_TITLE = 'User:Alaexis/AI Source Verification/Benchmark';
 export const SUITE_WIKI_HOST = 'en.wikipedia.org';
@@ -136,4 +137,48 @@ export function resolveSuiteRef(ref, pins = loadPins()) {
         throw new Error(`unknown suite pin "${ref}". Available pins: ${names.join(', ')}`);
     }
     return Number(pins[ref]);
+}
+
+/**
+ * Resolve a suite revision to validated rows.
+ *
+ * On a cache miss: fetch, validate, and only then freeze. An invalid suite is
+ * never written to disk — freezing it would make the corruption reproducible,
+ * which is the opposite of the point.
+ *
+ * On a cache hit: re-parse the stored wikitext rather than trusting the stored
+ * rows. The wikitext is the artifact of record; the JSON is a convenience
+ * derivation, and re-deriving it means a validator improvement applies to
+ * existing snapshots for free.
+ */
+export async function loadSuite(ref, {
+    dir = SUITE_SNAPSHOT_DIR,
+    pins = undefined,
+    offline = false,
+    fetchFn = fetchRawWikitext,
+    fetchedAt = undefined,
+} = {}) {
+    const oldid = resolveSuiteRef(ref, pins ?? loadPins());
+
+    if (hasSnapshot(dir, oldid)) {
+        const snapshot = readSnapshot(dir, oldid);
+        const { rows } = parseSuite(snapshot.wikitext);
+        return { oldid, rows, wikitext: snapshot.wikitext, metadata: snapshot.metadata, fromSnapshot: true };
+    }
+
+    if (offline) {
+        throw new Error(
+            `no snapshot for suite revision ${oldid} in ${dir} and offline mode is set. `
+            + 'Run once with network access to freeze it.');
+    }
+
+    const wikitext = await fetchFn(oldid);
+    const parsed = parseSuite(wikitext);
+
+    writeSnapshot(dir, oldid, wikitext, parsed, {
+        fetched_at: fetchedAt ?? new Date().toISOString().slice(0, 10),
+    });
+
+    const snapshot = readSnapshot(dir, oldid);
+    return { oldid, rows: parsed.rows, wikitext, metadata: snapshot.metadata, fromSnapshot: false };
 }
