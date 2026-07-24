@@ -5,6 +5,7 @@ import {
   DATASET_SUBMISSION_ENTRY_IDS,
   isDatasetSubmissionConfigured,
   buildDatasetSubmissionUrl,
+  escapeParamValue,
 } from '../core/submission.js';
 
 const REAL_FORM_URL = 'https://docs.google.com/forms/d/e/1AAA/viewform';
@@ -131,4 +132,16 @@ test('buildDatasetSubmissionUrl coerces non-string field values to strings', () 
   }, REAL_FORM_URL, REAL_ENTRY_IDS);
   const params = new URL(url).searchParams;
   assert.equal(params.get('entry.222'), '42');
+});
+
+test('escapeParamValue strips whitespace before punctuation so the parser cannot', () => {
+    // The parser normalizes ` ,` -> `,` irregularly. Doing it deterministically
+    // here keeps the wikitext round trip exact.
+    assert.equal(escapeParamValue('a cult classic , then'), 'a cult classic, then');
+    assert.equal(escapeParamValue('end of it .'), 'end of it.');
+    assert.equal(escapeParamValue('a , b , c'), 'a, b, c');
+});
+
+test('escapeParamValue leaves URLs and equals signs untouched', () => {
+    assert.equal(escapeParamValue('https://e.com/p?a=1&b=2#frag'), 'https://e.com/p?a=1&b=2#frag');
 });

@@ -1,4 +1,9 @@
 // Render CSV rows as suite-page wikitext.
+//
+// Used twice: by the Phase 4 parity harness (generate, parse back, diff), and by
+// the Phase 5 migration (generate the bytes a human pastes on-wiki). Those being
+// the same code path is deliberate — the migration publishes exactly what parity
+// validated.
 
 import { computeRowId, parseArticleUrl, SUITE_TEMPLATE_TITLE } from './suite.js';
 import { escapeParamValue } from '../core/submission.js';
