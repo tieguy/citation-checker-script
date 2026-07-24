@@ -6,10 +6,15 @@
 // different bytes for reasons unrelated to this migration, and comparing it
 // would fail for the wrong reason while masking real errors.
 //
-// Per project convention this tool always exits 0 and prints its findings; the
-// caller inspects the report. (The suite *validator* is the documented exception
-// to that convention, because silent row loss corrupts inputs rather than
-// merely producing a debatable result.)
+// Per project convention this tool prints its findings for the caller to
+// inspect rather than gating on a pass/fail exit code. The one exception it
+// inherits: a structurally *invalid* suite still throws via `parseSuite` — a
+// duplicate content-hash id (DUPLICATE_ID) or an unrecognized ground truth
+// (from `csvRowToWikitext`) aborts the run instead of being folded into the
+// report, because those corrupt the input set rather than producing a merely
+// debatable result. The `collisions` return field below is therefore vestigial
+// on the current parser path (DUPLICATE_ID fires first); it is retained as part
+// of the documented report shape and covered directly by the unique-id test.
 
 import fs from 'node:fs';
 import { parseSuite, computeRowId, parseArticleUrl } from './suite.js';
@@ -18,6 +23,9 @@ import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
 
 export function loadCsvRows(csvPath) {
     const content = fs.readFileSync(csvPath, 'utf-8');
+    // Line-based split: this handles quote-doubling *within* a physical line
+    // (see parseCsvLine) but NOT RFC-4180 quoted fields that span newlines.
+    // The current dataset has no multi-line fields; revisit if one is added.
     const lines = content.trim().split('\n');
     const headers = parseCsvLine(lines[0]);
 
