@@ -1,0 +1,4 @@
+{
+  "_comment": "Named pins for benchmark suite revisions. A pin is an immutable revision id of the suite page; advancing one is a deliberate act with a reviewable diff. Populated by Phase 5 of the wiki-hosted-benchmark-suite plan.",
+  "pins": {}
+}

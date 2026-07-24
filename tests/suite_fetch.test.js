@@ -6,6 +6,7 @@ import path from 'node:path';
 import {
     buildRawUrl, SUITE_USER_AGENT, SUITE_PAGE_TITLE,
     snapshotPaths, writeSnapshot, readSnapshot, hasSnapshot,
+    resolveSuiteRef,
 } from '../benchmark/suite_fetch.js';
 
 const tmpDir = () => fs.mkdtempSync(path.join(os.tmpdir(), 'suite-'));
@@ -67,4 +68,26 @@ test('hasSnapshot is false when only one of the two files exists', () => {
 
 test('SUITE_PAGE_TITLE matches the page Phase 1 published', () => {
     assert.equal(SUITE_PAGE_TITLE, 'User:Alaexis/AI Source Verification/Benchmark');
+});
+
+test('resolveSuiteRef passes a bare revision id straight through', () => {
+    const PINS = { v1: 1000, 'v1+v2': 2000, latest: 3000 };
+    assert.equal(resolveSuiteRef('123456', PINS), 123456);
+    assert.equal(resolveSuiteRef(123456, PINS), 123456);
+});
+
+test('resolveSuiteRef resolves a named pin', () => {
+    const PINS = { v1: 1000, 'v1+v2': 2000, latest: 3000 };
+    assert.equal(resolveSuiteRef('v1', PINS), 1000);
+    assert.equal(resolveSuiteRef('v1+v2', PINS), 2000);
+});
+
+test('resolveSuiteRef lists the available pins when a name is unknown', () => {
+    const PINS = { v1: 1000, 'v1+v2': 2000, latest: 3000 };
+    assert.throws(() => resolveSuiteRef('v9', PINS), /unknown suite pin "v9"/);
+    assert.throws(() => resolveSuiteRef('v9', PINS), /v1\+v2/);
+});
+
+test('resolveSuiteRef refuses an empty pins table with an actionable message', () => {
+    assert.throws(() => resolveSuiteRef('v1', {}), /no pins are defined/i);
 });
