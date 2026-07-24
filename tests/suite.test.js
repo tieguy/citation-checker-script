@@ -195,3 +195,174 @@ test('wtf quirk: silent whitespace normalization before punctuation', () => {
     assert.equal(parseOne(row('id=a|rationale=hello .|citation=1')).rationale, 'hello.');
     assert.equal(parseOne(row('id=a|rationale=a ; b|citation=1')).rationale, 'a ; b');
 });
+
+// Task 4: The validator
+import { parseSuite, SuiteValidationError } from '../benchmark/suite.js';
+
+const good = (over = {}) => {
+    const base = {
+        id: 'ctb-a1b2c3', wiki: 'enwiki', article: 'Immigration to the United States',
+        oldid: '1331476438', citation: '1', instance: '1', truth: 'Supported',
+    };
+    const merged = { ...base, ...over };
+    return `{{${T}\n${Object.entries(merged)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => `| ${k} = ${v}`).join('\n')}\n}}`;
+};
+const codesOf = (page) => {
+    try { parseSuite(page); return []; }
+    catch (e) {
+        assert.ok(e instanceof SuiteValidationError, `expected SuiteValidationError, got ${e}`);
+        return e.errors.map(x => x.code);
+    }
+};
+
+test('parseSuite accepts a well-formed row', () => {
+    const { rows } = parseSuite(good());
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].id, 'ctb-a1b2c3');
+    assert.equal(rows[0].truth, 'Supported');
+    assert.equal(rows[0].oldid, 1331476438);
+    assert.equal(rows[0].citation, 1);
+});
+
+test('parseSuite reports a missing required param, naming row and param', () => {
+    let err;
+    try { parseSuite(good({ truth: undefined })); } catch (e) { err = e; }
+    assert.ok(err instanceof SuiteValidationError);
+    assert.equal(err.errors.length, 1);
+    assert.equal(err.errors[0].code, 'MISSING_PARAM');
+    assert.equal(err.errors[0].param, 'truth');
+    assert.equal(err.errors[0].row, 1);
+    assert.equal(err.errors[0].id, 'ctb-a1b2c3');
+    assert.match(err.message, /truth/);
+});
+
+test('parseSuite rejects an unbalanced brace rather than losing the row silently', () => {
+    assert.deepEqual(codesOf(`{{${T}|id=ctb-a1b2c3|rationale=see {note|citation=1}}`), ['UNBALANCED_BRACES']);
+});
+
+test('parseSuite rejects braces in a value even when balanced', () => {
+    assert.ok(codesOf(good({ rationale: 'a {b} c' })).includes('FORBIDDEN_CHAR'));
+});
+
+test('parseSuite rejects a stray pipe in a value', () => {
+    assert.ok(codesOf(good({ rationale: 'a | b' })).includes('STRAY_PIPE'));
+});
+
+test('parseSuite rejects a nested template, including the {{!}} escape', () => {
+    assert.ok(codesOf(good({ rationale: 'a {{!}} b' })).includes('NESTED_TEMPLATE'));
+    assert.ok(codesOf(good({ rationale: '{{CURRENTYEAR}}' })).includes('NESTED_TEMPLATE'));
+});
+
+test('parseSuite rejects an empty value that wtf would have hidden', () => {
+    assert.ok(codesOf(good({ rationale: '' })).includes('EMPTY_PARAM'));
+});
+
+test('parseSuite rejects a duplicated param that wtf would have collapsed', () => {
+    const page = `{{${T}|id=ctb-a1b2c3|wiki=enwiki|article=A|oldid=1|citation=1|instance=1`
+        + `|truth=Supported|truth=Not supported}}`;
+    assert.ok(codesOf(page).includes('DUPLICATE_PARAM'));
+});
+
+test('parseSuite rejects unknown and reserved param names', () => {
+    assert.ok(codesOf(good({ 'noSuchParam': 'x' })).includes('UNKNOWN_PARAM'));
+    assert.ok(codesOf(good({ 'template': 'x' })).includes('RESERVED_PARAM'));
+});
+
+test('parseSuite rejects a malformed id and a non-numeric oldid', () => {
+    assert.ok(codesOf(good({ id: 'row_77' })).includes('BAD_ID_FORMAT'));
+    assert.ok(codesOf(good({ oldid: 'latest' })).includes('NON_NUMERIC'));
+});
+
+test('parseSuite rejects an unrecognized verdict but accepts case variants', () => {
+    assert.ok(codesOf(good({ truth: 'Probably fine' })).includes('BAD_VERDICT'));
+    assert.equal(parseSuite(good({ truth: 'partially supported' })).rows[0].truth, 'Partially supported');
+    assert.equal(parseSuite(good({ truth: 'NOT SUPPORTED' })).rows[0].truth, 'Not supported');
+});
+
+test('parseSuite rejects an unknown wiki', () => {
+    assert.ok(codesOf(good({ wiki: 'dewiki' })).includes('UNKNOWN_WIKI'));
+});
+
+test('parseSuite rejects two rows sharing an id', () => {
+    assert.ok(codesOf(`${good()}\n${good({ citation: '2' })}`).includes('DUPLICATE_ID'));
+});
+
+test('parseSuite reports every error in one pass, not just the first', () => {
+    const codes = codesOf(good({ truth: 'Nope', oldid: 'x', id: 'bad' }));
+    assert.ok(codes.includes('BAD_VERDICT'));
+    assert.ok(codes.includes('NON_NUMERIC'));
+    assert.ok(codes.includes('BAD_ID_FORMAT'));
+});
+
+test('parseSuite ignores prose and other templates around the rows', () => {
+    const page = `== Header ==\nSome prose.\n{{Documentation}}\n${good()}\n[[Category:X]]`;
+    assert.equal(parseSuite(page).rows.length, 1);
+});
+
+test('parseSuite hard-fails when the parser and the raw scan disagree on row count', () => {
+    // Guard against the whole class of silent-row-loss bugs, not just the causes
+    // enumerated above: if wtf ever drops a row for a reason we do not model, the
+    // reconciliation catches it.
+    //
+    // Every KNOWN cause of row loss makes a block unbalanced, and the reconciliation
+    // is deliberately skipped in that case (UNBALANCED_BRACES already names the row
+    // precisely). So this exercises the branch directly with a stubbed parser rather
+    // than through a fixture — a fixture that triggers it would, by definition, be a
+    // cause we already model.
+    const page = `${good()}\n${good({ id: 'ctb-b2c3d4', citation: '2' })}`;
+
+    const original = globalThis.__suiteParseHook;
+    globalThis.__suiteParseHook = (templates) => templates.slice(0, 1); // drop a row
+    try {
+        const codes = codesOf(page);
+        assert.ok(codes.includes('ROW_COUNT_MISMATCH'),
+            `expected ROW_COUNT_MISMATCH, got ${codes.join(', ')}`);
+    } finally {
+        globalThis.__suiteParseHook = original;
+    }
+});
+
+test('parseSuite accepts a page where the parser and raw scan agree', () => {
+    const page = `${good()}\n${good({ id: 'ctb-b2c3d4', citation: '2' })}`;
+    assert.equal(parseSuite(page).rows.length, 2);
+});
+
+// Task 5: Normalize to the dataset row shape
+import { toDatasetRow } from '../benchmark/suite.js';
+
+test('toDatasetRow produces the CSV column shape extract_dataset.js consumes', () => {
+    const { rows } = parseSuite(good());
+    const csvRow = toDatasetRow(rows[0]);
+    assert.equal(csvRow['Citation number'], '1');
+    assert.equal(csvRow['Citation instance'], '1');
+    assert.equal(csvRow['Article'],
+        'https://en.wikipedia.org/w/index.php?title=Immigration_to_the_United_States&oldid=1331476438');
+    assert.equal(csvRow['Ground truth'], 'Supported');
+    assert.equal(csvRow['WMF claim text'], '');
+    assert.equal(csvRow['WMF source URL'], '');
+    assert.equal(csvRow._id, 'ctb-a1b2c3');
+});
+
+test('toDatasetRow carries the WMF override trio through', () => {
+    const { rows } = parseSuite(good({
+        'claim-text': 'She guest-starred in several episodes.',
+        'source-url': 'https://www.nbc.com/some-article',
+        'provenance': 'human-annotation:source-verification-2026-04-25',
+    }));
+    const csvRow = toDatasetRow(rows[0]);
+    assert.equal(csvRow['WMF claim text'], 'She guest-starred in several episodes.');
+    assert.equal(csvRow['WMF source URL'], 'https://www.nbc.com/some-article');
+    assert.equal(csvRow['WMF provenance'], 'human-annotation:source-verification-2026-04-25');
+});
+
+test('toDatasetRow builds a French Wikipedia URL for frwiki', () => {
+    const { rows } = parseSuite(good({ wiki: 'frwiki', article: 'Paris' }));
+    assert.match(toDatasetRow(rows[0])['Article'], /^https:\/\/fr\.wikipedia\.org\//);
+});
+
+test('toDatasetRow underscore-encodes spaces but leaves other characters alone', () => {
+    const { rows } = parseSuite(good({ article: 'Café Müller' }));
+    assert.match(toDatasetRow(rows[0])['Article'], /title=Caf%C3%A9_M%C3%BCller&/);
+});
