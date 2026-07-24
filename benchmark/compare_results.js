@@ -161,6 +161,14 @@ export function compareResults({ control, treatment, dataset, options = {} }) {
             .map(r => r.id)
     );
 
+    // Historical results.json artifacts store entry_id as `row_<csv_line>`, while
+    // dataset ids are now content hashes. Resolve through the caller-supplied
+    // alias map so those artifacts stay comparable without being rewritten.
+    const aliases = options.aliases ?? {};
+    const resolveId = (id) => (typeof id === 'string' && id.startsWith('ctb-'))
+        ? id
+        : (aliases[id] ?? id);
+
     const controlRows = Array.isArray(control) ? control : control.rows ?? [];
     const treatmentRows = Array.isArray(treatment) ? treatment : treatment.rows ?? [];
 
@@ -169,11 +177,13 @@ export function compareResults({ control, treatment, dataset, options = {} }) {
 
     const intersectionKeys = [...controlByPair.keys()].filter(k => treatmentByPair.has(k));
     const cells = [];
+    let unmatched = 0;
     for (const key of intersectionKeys) {
-        const [entryId, provider] = key.split(':');
-        if (!validIds.has(entryId)) continue;
+        const [rawEntryId, provider] = key.split(':');
+        const entryId = resolveId(rawEntryId);
+        if (!validIds.has(entryId)) { unmatched++; continue; }
         const datasetEntry = datasetById.get(entryId);
-        if (!datasetEntry) continue;
+        if (!datasetEntry) { unmatched++; continue; }
 
         const controlRow = controlByPair.get(key);
         const treatmentRow = treatmentByPair.get(key);
@@ -220,6 +230,7 @@ export function compareResults({ control, treatment, dataset, options = {} }) {
             changeAxes: options.changeAxes ?? [],
             groundTruthVersion: options.groundTruthVersion ?? null,
             generatedAt: new Date().toISOString(),
+            unmatchedEntryIds: unmatched,
         },
         coverage: {
             datasetTotal: dataset.length,

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { UsageError } from './verify.js';
 import { compareResults, filterComparison } from '../benchmark/compare_results.js';
 import { renderJson, renderMarkdown, renderHtml } from '../benchmark/render_compare.js';
+import { loadAliases } from '../benchmark/generate_row_aliases.js';
 
 export const COMPARE_HELP_TEXT = `usage: ccs compare <control.json> <treatment.json> --dataset <dataset.json> [options]
 
@@ -146,6 +147,7 @@ export async function runCompare(opts, { stdout = process.stdout, stderr = proce
         options: {
             changeAxes: opts.changeAxes,
             groundTruthVersion: opts.groundTruthVersion,
+            aliases: loadAliases(),
         },
     });
 
@@ -158,6 +160,12 @@ export async function runCompare(opts, { stdout = process.stdout, stderr = proce
             return 2;
         }
         result = filterComparison(result, predicate);
+    }
+
+    if (result.metadata.unmatchedEntryIds > 0) {
+        stderr.write(`ccs compare: warning: ${result.metadata.unmatchedEntryIds} result `
+            + 'row(s) had entry ids not present in the dataset and were skipped. '
+            + 'If this is a historical run, check benchmark/row-id-aliases.json.\n');
     }
 
     if (result.coverage.comparedCells === 0) {

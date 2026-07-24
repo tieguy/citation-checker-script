@@ -293,3 +293,38 @@ test('filterComparison by provider name restricts to single-provider view', () =
     assert.equal(mistralOnly.perProvider.size, 1);
     assert.equal(mistralOnly.perProvider.get('mistral').n, 5);
 });
+
+test('compareResults joins legacy row_ ids to ctb- dataset ids through an alias map', () => {
+    // A historical results.json stores entry_id as row_<csv_line>. Once dataset
+    // ids are content hashes, an unaliased join drops every cell — and drops them
+    // SILENTLY, reporting a clean comparison over nothing.
+    const dataset = [{
+        id: 'ctb-a1b2c3', extraction_status: 'complete', needs_manual_review: false,
+        ground_truth: 'Supported',
+    }];
+    const mkRows = (verdict) => [{ entry_id: 'row_2', provider: 'p', verdict }];
+
+    const withoutAliases = compareResults({
+        control: mkRows('Supported'), treatment: mkRows('Not supported'), dataset,
+    });
+    assert.equal(withoutAliases.cells.length, 0);
+
+    const withAliases = compareResults({
+        control: mkRows('Supported'), treatment: mkRows('Not supported'), dataset,
+        options: { aliases: { row_2: 'ctb-a1b2c3' } },
+    });
+    assert.equal(withAliases.cells.length, 1);
+    assert.equal(withAliases.cells[0].entryId, 'ctb-a1b2c3');
+});
+
+test('compareResults reports how many cells it dropped for an unknown entry id', () => {
+    const dataset = [{
+        id: 'ctb-a1b2c3', extraction_status: 'complete', needs_manual_review: false,
+        ground_truth: 'Supported',
+    }];
+    const mkRows = (v) => [{ entry_id: 'row_2', provider: 'p', verdict: v }];
+    const result = compareResults({
+        control: mkRows('Supported'), treatment: mkRows('Not supported'), dataset,
+    });
+    assert.equal(result.metadata.unmatchedEntryIds, 1);
+});
