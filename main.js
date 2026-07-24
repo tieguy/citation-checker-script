@@ -1131,6 +1131,33 @@ function buildDatasetSubmissionUrl(
     }
     return `${formUrl}?${params.toString()}`;
 }
+
+/**
+ * Make a value safe for a benchmark row template parameter.
+ *
+ * Shared by the CSV migration generator and the userscript write path: if the two
+ * escaped differently, the userscript would produce rows that fail parity.
+ *
+ * Three rules, all measured against the parser used on ingestion:
+ *
+ * 1. Only `&#124;` survives as a pipe. `{{!}}` and `<nowiki>|</nowiki>` are both
+ *    corrupted identically to a bare pipe.
+ * 2. Braces are stripped, not encoded — an unbalanced one deletes the entire row,
+ *    and no encoding of them is safe enough to be worth the risk.
+ * 3. Whitespace before punctuation is removed. The parser does this itself, but
+ *    irregularly (only the first ` ,` in a value, only a trailing ` .`), so
+ *    normalizing here first means the sequences that trigger it never reach the
+ *    parser and the round trip is exact.
+ */
+function escapeParamValue(value) {
+    return String(value ?? '')
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/[{}]/g, '')
+        .replace(/\|/g, '&#124;')
+        .replace(/\s+([,.;:!?])/g, '$1')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
 // </core-injected>
 
     class WikipediaSourceVerifier {

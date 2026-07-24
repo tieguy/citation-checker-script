@@ -17,6 +17,7 @@
 // behavior matrix and docs/implementation-plans/2026-07-23-wiki-hosted-benchmark-suite/README.md
 // for the measurements.
 
+import { createHash } from 'node:crypto';
 import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
 
 // Re-export wtf so tests and benchmark code share a single resolved module.
@@ -39,10 +40,11 @@ const ROW_CALL_RE =
     /\{\{\s*(?:Template:)?User:Alaexis\/AI[ _]Source[ _]Verification\/Benchmark\/Row\s*(?=[|}])/gi;
 
 export const REQUIRED_PARAMS = Object.freeze([
-    'id', 'wiki', 'article', 'oldid', 'citation', 'instance', 'truth',
+    'wiki', 'article', 'oldid', 'citation', 'instance', 'truth',
 ]);
 
 export const OPTIONAL_PARAMS = Object.freeze([
+    'id',
     'rationale', 'added-by', 'confirmed-by',
     'claim-text', 'source-url', 'provenance',
     'llm-verdict', 'llm-rationale', 'llm-provider', 'llm-model', 'fetch-status',
@@ -165,10 +167,11 @@ export class SuiteValidationError extends Error {
  * rubber-stamping *results*, whereas this guards the *inputs*.
  *
  * @param {string} wikitext
- * @returns {{rows: object[]}} validated rows in page order
+ * @returns {{rows: object[], warnings: object[]}} validated rows in page order
  */
 export function parseSuite(wikitext) {
     const errors = [];
+    const warnings = [];
     const blocks = extractRowBlocks(wikitext);
 
     // --- Reading 1: raw text. Recovers what wtf_wikipedia destroys.
@@ -291,21 +294,56 @@ export function parseSuite(wikitext) {
         if (values === null) return;
         const rowNo = i + 1;
         const id = values.get('id') ?? null;
+        let effectiveId = id;
         const parsedRow = parsed.length === blocks.length ? parsed[i] : null;
-        const err = (code, param, message) => errors.push({ row: rowNo, id, param, code, message });
+        const err = (code, param, message) => errors.push({ row: rowNo, id: effectiveId, param, code, message });
 
         for (const param of REQUIRED_PARAMS) {
             if (!values.has(param)) err('MISSING_PARAM', param, 'is required but absent');
         }
 
-        if (values.has('id') && !ID_RE.test(id)) {
-            err('BAD_ID_FORMAT', 'id', `"${id}" is not "ctb-" followed by 6 hex characters`);
-        }
-        if (id !== null && ID_RE.test(id)) {
-            if (idsSeen.has(id)) {
-                err('DUPLICATE_ID', 'id', `already used by row ${idsSeen.get(id)}`);
+        // Identity fields must be valid before a hash means anything.
+        const identityUsable = ['wiki', 'oldid', 'citation', 'instance']
+            .every(p => values.has(p)) && /^\d+$/.test(values.get('oldid') ?? '');
+        const computedId = identityUsable ? computeRowId({
+            wiki: values.get('wiki'),
+            oldid: values.get('oldid'),
+            citation: values.get('citation'),
+            instance: values.get('instance'),
+        }) : null;
+
+        if (id === null) {
+            // A contributed row: nobody could have written the hash. Compute it
+            // rather than rejecting, so one contribution cannot block ingestion.
+            if (computedId === null) {
+                err('MISSING_PARAM', 'id', 'absent, and identity fields are too incomplete '
+                    + 'to compute one');
             } else {
-                idsSeen.set(id, rowNo);
+                effectiveId = computedId;
+                warnings.push({
+                    row: rowNo, id: computedId, code: 'ID_COMPUTED',
+                    message: 'no id on the row; computed from identity fields. A maintainer '
+                        + 'should write it back to the page.',
+                });
+            }
+        } else if (!ID_RE.test(id)) {
+            err('BAD_ID_FORMAT', 'id', `"${id}" is not "ctb-" followed by 6 hex characters`);
+        } else if (computedId !== null && computedId !== id) {
+            // Never override: the written id keeps the row joinable to historical
+            // results even when its identity fields have since been corrected.
+            warnings.push({
+                row: rowNo, id, code: 'ID_DRIFT',
+                message: `written id ${id} does not match the hash of its identity fields `
+                    + `(${computedId}) — an identity field was probably corrected after the `
+                    + 'row was created. Keeping the written id.',
+            });
+        }
+
+        if (effectiveId !== null && ID_RE.test(effectiveId)) {
+            if (idsSeen.has(effectiveId)) {
+                err('DUPLICATE_ID', 'id', `already used by row ${idsSeen.get(effectiveId)}`);
+            } else {
+                idsSeen.set(effectiveId, rowNo);
             }
         }
 
@@ -340,7 +378,7 @@ export function parseSuite(wikitext) {
         };
 
         rows.push({
-            id,
+            id: effectiveId,
             wiki,
             article: text('article'),
             oldid: Number(values.get('oldid')),
@@ -363,7 +401,49 @@ export function parseSuite(wikitext) {
 
     if (errors.length > 0) throw new SuiteValidationError(errors);
 
-    return { rows };
+    return { rows, warnings };
+}
+
+export const ROW_ID_PREFIX = 'ctb-';
+const ROW_ID_HEX_LENGTH = 6;
+
+/**
+ * Stable row identity: a hash over identity fields ONLY.
+ *
+ * Deliberately excludes ground truth, rationale, and the override trio, so
+ * correcting a label never renumbers a row. Replaces the `row_<csv_line>`
+ * scheme, where inserting a row mid-file shifted every id after it while
+ * results.json kept the old ids — a misalignment that went undetected for two
+ * weeks in May 2026.
+ *
+ * Fields are joined with a separator that cannot appear in any of them, so
+ * (citation=1, instance=11) and (citation=11, instance=1) hash differently.
+ */
+export function computeRowId({ wiki, oldid, citation, instance }) {
+    const material = [wiki, oldid, citation, instance].map(v => String(v)).join(' ');
+    const digest = createHash('sha256').update(material, 'utf8').digest('hex');
+    return ROW_ID_PREFIX + digest.slice(0, ROW_ID_HEX_LENGTH);
+}
+
+/**
+ * Recover identity fields from the pre-assembled `Article` URL the CSV stores.
+ * Needed to compute a content hash for legacy rows during migration.
+ */
+export function parseArticleUrl(url) {
+    const parsed = new URL(url);
+    const title = parsed.searchParams.get('title');
+    const oldid = parsed.searchParams.get('oldid');
+
+    if (!title || !oldid) {
+        throw new Error(
+            `cannot derive row identity from "${url}": expected title and oldid query parameters`);
+    }
+
+    const subdomain = parsed.hostname.split('.')[0];
+    const wiki = Object.entries(WIKI_SUBDOMAINS).find(([, sub]) => sub === subdomain)?.[0];
+    if (!wiki) throw new Error(`unrecognized wiki host in "${url}"`);
+
+    return { article: decodeURIComponent(title).replace(/_/g, ' '), oldid: Number(oldid), wiki };
 }
 
 /**
