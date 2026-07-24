@@ -35,6 +35,9 @@ import { dirname } from 'path';
 import { extractClaimText as extractClaimTextFromRef } from '../core/claim.js';
 import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
 import { writeWithMetadata, todayIso, loadRows } from './io.js';
+import { loadSuite } from './suite_fetch.js';
+import { toDatasetRow } from './suite.js';
+import { loadAliases, resolveRowId } from './generate_row_aliases.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -62,8 +65,35 @@ const ROW_FILTER = rowsIndex !== -1
     ? new Set(args[rowsIndex + 1].split(',').map(s => s.trim()).filter(Boolean))
     : null;
 
+const suiteIndex = args.indexOf('--suite-oldid');
+// SUITE_REF: null | string — when set, rows come from the on-wiki benchmark suite
+// at that revision (or named pin) instead of the CSV. The CSV path remains until
+// Phase 6 retires it.
+const SUITE_REF = suiteIndex !== -1 ? args[suiteIndex + 1] : null;
+const OFFLINE = args.includes('--offline');
+
+let SUITE_METADATA = null;
+
 function log(msg) {
     if (VERBOSE) console.log(msg);
+}
+
+// Row identity: content-hash `_id` when rows come from the suite, legacy
+// `row_<csv_line>` when they come from the CSV. Phase 6 removes the fallback.
+function rowId(row) {
+    return row._id ?? `row_${row._rowIndex}`;
+}
+
+// Legacy ids sort numerically (row_2 before row_10); content-hash ids have no
+// meaningful order, so they sort lexicographically for a stable, diffable file.
+function compareRowIds(a, b) {
+    const legacy = /^row_(\d+)$/;
+    const ma = legacy.exec(a);
+    const mb = legacy.exec(b);
+    if (ma && mb) return Number(ma[1]) - Number(mb[1]);
+    if (ma) return -1;
+    if (mb) return 1;
+    return a < b ? -1 : (a > b ? 1 : 0);
 }
 
 /**
@@ -330,14 +360,26 @@ function normalizeVerdict(verdict) {
 async function main() {
     console.log('=== Dataset Extraction Tool ===\n');
 
-    // Read input CSV
-    console.log(`Reading: ${INPUT_CSV}`);
-    const csvContent = fs.readFileSync(INPUT_CSV, 'utf-8');
-    let rows = parseCSV(csvContent);
+    let rows;
+    if (SUITE_REF !== null) {
+        const suite = await loadSuite(SUITE_REF, { offline: OFFLINE });
+        rows = suite.rows.map(toDatasetRow);
+        SUITE_METADATA = { suite_page: suite.metadata.suite_page, suite_oldid: suite.oldid };
+        console.log(`Loaded ${rows.length} rows from suite revision ${suite.oldid}`
+            + `${suite.fromSnapshot ? ' (snapshot)' : ' (fetched)'}`);
+    } else {
+        console.log(`Reading: ${INPUT_CSV}`);
+        rows = parseCSV(fs.readFileSync(INPUT_CSV, 'utf-8'));
+        console.log(`Found ${rows.length} rows`);
+    }
 
-    console.log(`Found ${rows.length} rows`);
+    if (VERSION_FILTER !== 'all' && SUITE_REF !== null) {
+        console.error('--version cannot be combined with --suite-oldid: cohort membership comes '
+            + 'from the pinned revision, not a per-row tag. Pin the cohort revid instead.');
+        process.exit(1);
+    }
 
-    if (VERSION_FILTER !== 'all') {
+    if (VERSION_FILTER !== 'all' && SUITE_REF === null) {
         const before = rows.length;
         // Treat rows with no Dataset version as 'v1' for backwards compatibility
         // with CSVs predating the column.
@@ -346,17 +388,18 @@ async function main() {
     }
 
     if (ROW_FILTER) {
-        const before = rows.length;
-        rows = rows.filter(r => ROW_FILTER.has(`row_${r._rowIndex}`));
-        console.log(`Filtered to rows [${[...ROW_FILTER].join(', ')}]: ${rows.length}/${before} rows`);
+        const aliases = loadAliases();
+        const wanted = new Set([...ROW_FILTER].map(id => resolveRowId(id, aliases)));
+        rows = rows.filter(r => wanted.has(resolveRowId(rowId(r), aliases)));
+        console.log(`Filtered to rows [${[...ROW_FILTER].join(', ')}]: ${rows.length}/${rows.length} rows`);
         if (rows.length === 0) {
             console.error('No matching rows found for --rows filter. Aborting.');
             process.exit(1);
         }
-        const matched = new Set(rows.map(r => `row_${r._rowIndex}`));
-        const unmatched = [...ROW_FILTER].filter(id => !matched.has(id));
+        const matched = new Set(rows.map(r => resolveRowId(rowId(r), aliases)));
+        const unmatched = [...wanted].filter(id => !matched.has(id));
         if (unmatched.length > 0) {
-            console.warn(`Warning: --rows ids not found in CSV: ${unmatched.join(', ')}`);
+            console.warn(`Warning: --rows ids not found: ${unmatched.join(', ')}`);
         }
     }
 
@@ -430,7 +473,7 @@ async function main() {
                 // Add rows with error status
                 for (const row of articleRows) {
                     dataset.push({
-                        id: `row_${row._rowIndex}`,
+                        id: rowId(row),
                         article_url: articleUrl,
                         citation_number: parseInt(row['Citation number'], 10),
                         occurrence: 1,
@@ -484,7 +527,7 @@ async function main() {
             }
 
             const entry = {
-                id: `row_${row._rowIndex}`,
+                id: rowId(row),
                 article_url: articleUrl,
                 article_title: articleUrl.split('title=')[1]?.split('&')[0]?.replace(/_/g, ' ') || '',
                 citation_number: citationNumber,
@@ -516,7 +559,8 @@ async function main() {
     console.log(`\nWriting: ${OUTPUT_JSON}`);
     const datasetMetadata = {
         extracted_at: todayIso(),
-        version_filter: VERSION_FILTER
+        version_filter: VERSION_FILTER,
+        ...(SUITE_METADATA ?? {}),
     };
 
     // When --rows is used, merge the newly-extracted entries into the existing
@@ -528,7 +572,7 @@ async function main() {
         const newIds = new Set(dataset.map(e => e.id));
         const kept = existingRows.filter(e => !newIds.has(e.id));
         finalDataset = [...kept, ...dataset].sort((a, b) =>
-            parseInt(a.id.replace('row_', ''), 10) - parseInt(b.id.replace('row_', ''), 10)
+            compareRowIds(a.id, b.id)
         );
         console.log(`Merged ${dataset.length} re-extracted rows into ${existingRows.length} existing entries (${finalDataset.length} total)`);
     }
