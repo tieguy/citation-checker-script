@@ -1,4 +1,3 @@
-{{DISPLAYTITLE:AI Source Verification benchmark suite}}
 == About this page ==
 
 This page is the ground-truth dataset for the [[User:Alaexis/AI Source Verification|AI Source Verification]] tool. Each row records one citation, the claim it supports, and a '''human''' judgement of whether the source actually supports that claim. Benchmark accuracy numbers are computed against these labels.

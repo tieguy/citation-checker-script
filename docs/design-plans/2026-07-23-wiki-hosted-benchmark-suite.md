@@ -427,3 +427,75 @@ move retroactively: advancing a pin is a deliberate act with a reviewable diff.
 be added when the tool's French Wikipedia support needs benchmarking, without a schema
 migration. Per-wiki pinning (a set of `(wiki, oldid)` pairs rather than one revid) is
 out of scope.
+
+---
+
+## Addendum — post-publish findings (2026-07-24)
+
+After the Phase 1 pages were first published to en.wikipedia, checking the live page
+surfaced three issues with the on-wiki error-surfacing design. Recorded here so the
+responses are deliberate decisions rather than inherited assumptions. The `Row.wikitext`
+and doc fixes below are committed on the branch but **not yet republished** — pending a
+maintainer conversation about the contributor-facing surface.
+
+### 1. The tracking category is low-value in a single-page design
+
+`Category:AI Source Verification benchmark rows with errors` works exactly as intended —
+a `[[Category:…]]` emitted from a transcluded row categorizes the *host* page. But a
+tracking category earns its keep by letting an editor *find which page* among many needs
+attention. This design has exactly **one** suite page, so the category's maximum
+population is one page and it tells an editor nothing they couldn't get by opening the
+page. Its only residual value is as a binary, watchlist-able "the page currently has a
+malformed row" flag.
+
+**Decision:** keep it as near-zero-cost future-proofing — it regains real value only if
+the suite ever spans multiple pages (per-language subpages, or pagination once rows grow
+large) — but do not rely on it. The load-bearing error gate is the ingestion validator
+(`parseSuite`), which names the exact row and parameter and hard-fails the benchmark. For
+a single contributor-facing page, the **inline per-row error is the important surface**,
+because a casual editor never runs the validator; their only immediate feedback is what
+the page shows at preview/save.
+
+### 2. The inline per-row error was under-firing
+
+The original Article cell tested `{{#if:{{{article|}}}{{{oldid|}}}|…|error}}` — the two
+fields *concatenated* — so the red "missing article/oldid" text only appeared when
+**both** were absent. A row supplying `article` but omitting `oldid` (the common mistake,
+and exactly what sample row 2 does) rendered a **malformed permalink with an empty
+`&oldid=`** instead of any visible error. So the on-page signal was strictly coarser than
+what the category already tracked per-field.
+
+**Fix (committed):** `Row.wikitext` now checks `article` and `oldid` separately and shows
+per-field inline errors (`missing article`, `(missing oldid)`, `missing citation`,
+`(missing instance)`, `missing truth`), so any missing required field is visible in the
+row itself. Pure ParserFunctions; no new dependency. A `Module:` (Lua/Scribunto) rewrite
+would make richer error logic cleaner but was deliberately avoided to keep the template
+in plain wikitext.
+
+### 3. The template's "required" set drifted out of sync with Phase 4
+
+Phase 4 made `id` **optional** — it is derived from a content hash of the identity fields,
+and the `/doc` tells contributors to leave it blank for the tooling to fill. But
+`Row.wikitext` still flagged a missing `id` as an error and filed the page into the error
+category, so **every well-behaved contributor row (blank `id`) would have been wrongly
+flagged.**
+
+**Fix (committed):** the template's error/category logic now uses the correct required
+set — `wiki, article, oldid, citation, instance, truth` — matching `REQUIRED_PARAMS` in
+`benchmark/suite.js`. The `id` cell shows a muted `(auto — leave blank)` hint instead of
+an error, and `Row.doc.wikitext`'s parameter table is corrected from "Required: yes" to
+"no (auto)" to match its own prose.
+
+### 4. Minor: DISPLAYTITLE rejected
+
+`{{DISPLAYTITLE:AI Source Verification benchmark suite}}` was rejected by MediaWiki
+(DISPLAYTITLE may only re-case/format the real title, not replace its text) and put the
+page in `Category:Pages with disallowed DISPLAYTITLE modifications`. Removed from
+`Benchmark.wikitext`.
+
+### For the maintainer
+
+These four are the contributor-facing wiki surface, so they want a maintainer decision
+before republishing, the same way `main.js`'s rendered surface does. The open question is
+item 1: whether the tracking category is worth keeping at all given the single-page
+design, or whether the inline errors (item 2) plus the validator fully cover the need.

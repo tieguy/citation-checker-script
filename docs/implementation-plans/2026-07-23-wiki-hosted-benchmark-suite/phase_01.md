@@ -319,7 +319,12 @@ header line and the closing `|}`:
 **Step 4:** Use "Show preview" and confirm:
 - The table renders two rows.
 - Row 1's Article cell is a working permalink to revision 1331476438.
-- Row 2's Article cell shows the red `missing article/oldid` error text.
+- Row 2's Article cell shows the article name followed by red `(missing oldid)` text.
+  (Row 2 supplies `article` but omits `oldid`, so the per-field check flags the
+  missing revision specifically. Superseded template behavior — before the
+  2026-07-24 `Row.wikitext` fix, the article/oldid check was combined and a row
+  missing only `oldid` rendered a malformed permalink with an empty `&oldid=`
+  instead of a visible error. See the design-plan addendum.)
 
 **Step 5:** Save with summary: `Create benchmark suite page with sample rows`
 
