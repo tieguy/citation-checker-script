@@ -181,10 +181,14 @@ export function compareResults({ control, treatment, dataset, options = {} }) {
     for (const key of intersectionKeys) {
         const [rawEntryId, provider] = key.split(':');
         const entryId = resolveId(rawEntryId);
-        if (!validIds.has(entryId)) { unmatched++; continue; }
-        const datasetEntry = datasetById.get(entryId);
-        if (!datasetEntry) { unmatched++; continue; }
+        // Only count toward unmatchedEntryIds when the id is genuinely absent from
+        // the dataset. Valid-but-filtered ids (extraction_status !== 'complete' or
+        // needs_manual_review) are present in the dataset, so they skip the cell
+        // without bumping the unmatched counter.
+        if (!datasetById.has(entryId)) { unmatched++; continue; }
+        if (!validIds.has(entryId)) { continue; }
 
+        const datasetEntry = datasetById.get(entryId);
         const controlRow = controlByPair.get(key);
         const treatmentRow = treatmentByPair.get(key);
         const direction = classifyDirection({

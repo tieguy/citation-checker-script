@@ -360,6 +360,15 @@ function normalizeVerdict(verdict) {
 async function main() {
     console.log('=== Dataset Extraction Tool ===\n');
 
+    // Guard: --version and --suite-oldid are mutually exclusive. Check this BEFORE
+    // loading rows from either source, so we fail fast with a clean message rather
+    // than after a network fetch.
+    if (VERSION_FILTER !== 'all' && SUITE_REF !== null) {
+        console.error('--version cannot be combined with --suite-oldid: cohort membership comes '
+            + 'from the pinned revision, not a per-row tag. Pin the cohort revid instead.');
+        process.exit(1);
+    }
+
     let rows;
     if (SUITE_REF !== null) {
         const suite = await loadSuite(SUITE_REF, { offline: OFFLINE });
@@ -373,12 +382,6 @@ async function main() {
         console.log(`Found ${rows.length} rows`);
     }
 
-    if (VERSION_FILTER !== 'all' && SUITE_REF !== null) {
-        console.error('--version cannot be combined with --suite-oldid: cohort membership comes '
-            + 'from the pinned revision, not a per-row tag. Pin the cohort revid instead.');
-        process.exit(1);
-    }
-
     if (VERSION_FILTER !== 'all' && SUITE_REF === null) {
         const before = rows.length;
         // Treat rows with no Dataset version as 'v1' for backwards compatibility
@@ -390,8 +393,9 @@ async function main() {
     if (ROW_FILTER) {
         const aliases = loadAliases();
         const wanted = new Set([...ROW_FILTER].map(id => resolveRowId(id, aliases)));
+        const before = rows.length;
         rows = rows.filter(r => wanted.has(resolveRowId(rowId(r), aliases)));
-        console.log(`Filtered to rows [${[...ROW_FILTER].join(', ')}]: ${rows.length}/${rows.length} rows`);
+        console.log(`Filtered to rows [${[...ROW_FILTER].join(', ')}]: ${rows.length}/${before} rows`);
         if (rows.length === 0) {
             console.error('No matching rows found for --rows filter. Aborting.');
             process.exit(1);

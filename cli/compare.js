@@ -164,7 +164,7 @@ export async function runCompare(opts, { stdout = process.stdout, stderr = proce
 
     if (result.metadata.unmatchedEntryIds > 0) {
         stderr.write(`ccs compare: warning: ${result.metadata.unmatchedEntryIds} result `
-            + 'row(s) had entry ids not present in the dataset and were skipped. '
+            + 'row(s) had entry ids not found in the dataset and were skipped. '
             + 'If this is a historical run, check benchmark/row-id-aliases.json.\n');
     }
 
