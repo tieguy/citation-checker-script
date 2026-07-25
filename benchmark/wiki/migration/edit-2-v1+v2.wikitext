@@ -1,0 +1,1032 @@
+== About this page ==
+
+This page is the ground-truth dataset for the [[User:Alaexis/AI Source Verification|AI Source Verification]] tool. Each row records one citation, the claim it supports, and a '''human''' judgement of whether the source actually supports that claim. Benchmark accuracy numbers are computed against these labels.
+
+'''You are invited to edit this page.''' It lives in user space, but it is a shared resource — adding a row or confirming someone else's label is welcome and does not need permission.
+
+=== How to label a row ===
+
+Label what '''an editor following the citation to the live source would find'''. Do not label based on what an automated scraper captured. The two differ often: a scraper may miss tables, byline dates, late-loading content, or paywalled material that a human reader can see. If the live source supports the claim, the row is <code>Supported</code> even when our tooling failed to retrieve the text.
+
+Use one of exactly four values in <code>truth</code>:
+
+* <code>Supported</code> — the source states the claim.
+* <code>Partially supported</code> — the source supports part of the claim but not all of it.
+* <code>Not supported</code> — the source does not support the claim, or contradicts it.
+* <code>Source unavailable</code> — the source cannot be consulted at all (dead link with no archive, unobtainable offline work).
+
+Please fill in <code>rationale</code> with a sentence explaining the call. A second editor is asked to check the row and add their username to <code>confirmed-by</code>; a confirmed row carries more weight in disputes.
+
+=== Formatting rules (important) ===
+
+The ingestion tooling parses this page's wikitext. Some characters silently corrupt or '''delete''' a row rather than producing a visible error, so these rules are enforced by a validator that refuses to run on a malformed page:
+
+* Never use <code>|</code>, <code>{</code>, or <code>}</code> inside a parameter value. Not even escaped — <code><nowiki>{{!}}</nowiki></code> and <code><nowiki><nowiki>|</nowiki></nowiki></code> do '''not''' work here. Write <code>&amp;#124;</code> if you truly need a pipe character.
+* Never nest a template (<code><nowiki>{{...}}</nowiki></code>) inside a parameter value.
+* Leave a parameter out entirely rather than giving it an empty value.
+* Never repeat the same parameter twice in one row.
+* <code>=</code> is safe, including inside URLs.
+
+A row that breaks these rules will appear in [[:Category:AI Source Verification benchmark rows with errors]].
+
+=== Machine output is not ground truth ===
+
+The <code>llm-*</code> parameters record what a model said. They are stored for comparison only and are '''never''' read as ground truth. Do not let them influence your <code>truth</code> value — judge the source yourself.
+
+== Rows ==
+
+{| class="wikitable sortable"
+! ID !! Article !! Citation !! Ground truth !! Rationale !! Attribution !! Source override !! Model output (not ground truth)
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-eb9463
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 1
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-c14f68
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 2
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-6a3c22
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 3
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-0b38f7
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 2
+| instance    = 2
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-c6b06a
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 4
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-7ef598
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 4
+| instance    = 2
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-f09f8a
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 4
+| instance    = 3
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-543b04
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 8
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-bd7f7f
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 11
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-445d8c
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 12
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-1b16af
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 13
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-258d97
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 14
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-0fc812
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 15
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-0de12d
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 20
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-3d97be
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 25
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-4cc022
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 29
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-3ee8b1
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 33
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-957972
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 34
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-5dce3b
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 42
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-6eee72
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 43
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-d869d7
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 46
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-21d332
+| wiki        = enwiki
+| article     = Immigration to the United States
+| oldid       = 1331476438
+| citation    = 33
+| instance    = 2
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-c0ba58
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 1
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-aecc22
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 3
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-7f6538
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 4
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-fe154f
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 5
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-c7b481
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 1
+| instance    = 3
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-4fdf0f
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 11
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-03485a
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 1
+| instance    = 4
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-263691
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 1
+| instance    = 5
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-9c6704
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 11
+| instance    = 2
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-ec7e18
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 13
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-8854dc
+| wiki        = enwiki
+| article     = Fall of Aden (2026)
+| oldid       = 1333565519
+| citation    = 13
+| instance    = 2
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-e59030
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 11
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-8bb625
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 16
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-ba988e
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 17
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-21b7cf
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 18
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-8bea31
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 8
+| instance    = 2
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-a096af
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 17
+| instance    = 2
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-502316
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 20
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-47b15d
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 20
+| instance    = 2
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-052683
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 21
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-7c04da
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 22
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-b1de50
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 23
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-04c785
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 24
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-03a02b
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 25
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-d494ca
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 26
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-605f6a
+| wiki        = enwiki
+| article     = Battle of Sanaa (2014)
+| oldid       = 1332969229
+| citation    = 27
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-19560f
+| wiki        = enwiki
+| article     = History of Chechnya
+| oldid       = 1333083936
+| citation    = 76
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-46a1e3
+| wiki        = enwiki
+| article     = History of Chechnya
+| oldid       = 1333083936
+| citation    = 123
+| instance    = 2
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-4de60c
+| wiki        = enwiki
+| article     = History of Chechnya
+| oldid       = 1333083936
+| citation    = 165
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-0b1e42
+| wiki        = enwiki
+| article     = History of Chechnya
+| oldid       = 1333083936
+| citation    = 167
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-e3be45
+| wiki        = enwiki
+| article     = History of Chechnya
+| oldid       = 1333083936
+| citation    = 170
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-61c941
+| wiki        = enwiki
+| article     = Dancing House
+| oldid       = 1331358792
+| citation    = 1
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-568790
+| wiki        = enwiki
+| article     = Dancing House
+| oldid       = 1331358792
+| citation    = 2
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-e49bf0
+| wiki        = enwiki
+| article     = Dancing House
+| oldid       = 1331358792
+| citation    = 3
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-106646
+| wiki        = enwiki
+| article     = Dancing House
+| oldid       = 1331358792
+| citation    = 5
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-c22258
+| wiki        = enwiki
+| article     = Dancing House
+| oldid       = 1331358792
+| citation    = 8
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-ba303d
+| wiki        = enwiki
+| article     = Al Jazeera Media Network
+| oldid       = 1330605065
+| citation    = 112
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-cdbc56
+| wiki        = enwiki
+| article     = Al Jazeera Media Network
+| oldid       = 1330605065
+| citation    = 113
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-acda6c
+| wiki        = enwiki
+| article     = Al Jazeera Media Network
+| oldid       = 1330605065
+| citation    = 114
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-d25d68
+| wiki        = enwiki
+| article     = Al Jazeera Media Network
+| oldid       = 1330605065
+| citation    = 116
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-aedcf8
+| wiki        = enwiki
+| article     = Al Jazeera Media Network
+| oldid       = 1330605065
+| citation    = 18
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-df17d0
+| wiki        = enwiki
+| article     = Al Jazeera Media Network
+| oldid       = 1330605065
+| citation    = 27
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-ffe2ca
+| wiki        = enwiki
+| article     = Al Jazeera Media Network
+| oldid       = 1330605065
+| citation    = 30
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-e77051
+| wiki        = enwiki
+| article     = Hartford, Connecticut
+| oldid       = 1329287981
+| citation    = 28
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-f3f5bd
+| wiki        = enwiki
+| article     = Hartford, Connecticut
+| oldid       = 1329287981
+| citation    = 29
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-e26157
+| wiki        = enwiki
+| article     = Hartford, Connecticut
+| oldid       = 1329287981
+| citation    = 30
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-b06153
+| wiki        = enwiki
+| article     = Nasry Asfura
+| oldid       = 1330112057
+| citation    = 32
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-116c1c
+| wiki        = enwiki
+| article     = Liberation Tigers of Tamil Eelam
+| oldid       = 1325239248
+| citation    = 52
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-199000
+| wiki        = enwiki
+| article     = Battle of Sokhumi (1992)
+| oldid       = 1291683944
+| citation    = 4
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-9e60d7
+| wiki        = enwiki
+| article     = Battle of Sokhumi (1992)
+| oldid       = 1291683944
+| citation    = 7
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-0b624b
+| wiki        = enwiki
+| article     = Freedom Flotilla II
+| oldid       = 1320167236
+| citation    = 70
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-b82c9d
+| wiki        = enwiki
+| article     = First Chechen War
+| oldid       = 1325376850
+| citation    = 61
+| instance    = 4
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-ab1ea5
+| wiki        = enwiki
+| article     = Second Congo War
+| oldid       = 1324841474
+| citation    = 64
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-d92889
+| wiki        = enwiki
+| article     = Gaza war
+| oldid       = 1324234133
+| citation    = 739
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-35b0f1
+| wiki        = enwiki
+| article     = Agnes Gund
+| oldid       = 1329750129
+| citation    = 6
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-cd8f63
+| wiki        = enwiki
+| article     = Arlo Hemphill
+| oldid       = 1329709078
+| citation    = 4
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-d052bd
+| wiki        = enwiki
+| article     = Central Bank of Sri Lanka bond scandal
+| oldid       = 1319126614
+| citation    = 40
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-a67edf
+| wiki        = enwiki
+| article     = Gary Graffman
+| oldid       = 1329781889
+| citation    = 7
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-3b612e
+| wiki        = enwiki
+| article     = Herzliya Hebrew Gymnasium
+| oldid       = 1330490808
+| citation    = 5
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-2df398
+| wiki        = enwiki
+| article     = Justice Mission-2025
+| oldid       = 1330519998
+| citation    = 5
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-776856
+| wiki        = enwiki
+| article     = Kai Cenat
+| oldid       = 1330512271
+| citation    = 24
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-51e01e
+| wiki        = enwiki
+| article     = Málaga–Almería road massacre
+| oldid       = 1329457872
+| citation    = 4
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-cf3317
+| wiki        = enwiki
+| article     = National Resistance Front
+| oldid       = 1330111814
+| citation    = 30
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-40d99a
+| wiki        = enwiki
+| article     = Salaam-e-Ishq
+| oldid       = 1329988663
+| citation    = 8
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-a138db
+| wiki        = enwiki
+| article     = Tim Kask
+| oldid       = 1330498813
+| citation    = 14
+| instance    = 1
+| truth       = Supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-42848c
+| wiki        = enwiki
+| article     = University of York
+| oldid       = 1330203930
+| citation    = 128
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-55cb47
+| wiki        = enwiki
+| article     = Ajnad al-Sham
+| oldid       = 1263995073
+| citation    = 19
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-ada155
+| wiki        = enwiki
+| article     = Al-Jabal Brigade
+| oldid       = 1262181669
+| citation    = 7
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-0d52b6
+| wiki        = enwiki
+| article     = C. B. Forrest
+| oldid       = 1261714934
+| citation    = 1
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-19b640
+| wiki        = enwiki
+| article     = Clinton, Washington
+| oldid       = 1256250414
+| citation    = 9
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-fa048e
+| wiki        = enwiki
+| article     = Croydon
+| oldid       = 1264351539
+| citation    = 23
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-3ff9e8
+| wiki        = enwiki
+| article     = Electric energy consumption
+| oldid       = 1265189492
+| citation    = 3
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-40c143
+| wiki        = enwiki
+| article     = Finley Welch
+| oldid       = 1266392568
+| citation    = 6
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-621994
+| wiki        = enwiki
+| article     = Georgia Shreve
+| oldid       = 1266203183
+| citation    = 7
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-4e6873
+| wiki        = enwiki
+| article     = John Zogby
+| oldid       = 1262931744
+| citation    = 6
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-db3592
+| wiki        = enwiki
+| article     = Latin music
+| oldid       = 1263170357
+| citation    = 90
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-70576c
+| wiki        = enwiki
+| article     = Mohammad Abdul Rahman
+| oldid       = 1262327277
+| citation    = 2
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-417691
+| wiki        = enwiki
+| article     = Nasrin Sotoudeh
+| oldid       = 1256477381
+| citation    = 48
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-15d602
+| wiki        = enwiki
+| article     = Ohio University
+| oldid       = 1263800935
+| citation    = 18
+| instance    = 1
+| truth       = Partially supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-fa6ee0
+| wiki        = enwiki
+| article     = Rashmika Mandanna
+| oldid       = 1262804839
+| citation    = 96
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-8148cb
+| wiki        = enwiki
+| article     = Rax Roast Beef
+| oldid       = 1264300368
+| citation    = 35
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-ce8d70
+| wiki        = enwiki
+| article     = Richard Harris
+| oldid       = 1261700282
+| citation    = 41
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-97e9e5
+| wiki        = enwiki
+| article     = Story of the Eye
+| oldid       = 1263035448
+| citation    = 1
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-61bb6d
+| wiki        = enwiki
+| article     = Sue Fennessy
+| oldid       = 1264674950
+| citation    = 6
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-1ee2e9
+| wiki        = enwiki
+| article     = The Phoenix (magazine)
+| oldid       = 1263003668
+| citation    = 8
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-7f0ed9
+| wiki        = enwiki
+| article     = Wes Olson
+| oldid       = 1261635737
+| citation    = 2
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-8c0245
+| wiki        = enwiki
+| article     = You'll Never Know
+| oldid       = 1263012631
+| citation    = 2
+| instance    = 1
+| truth       = Not supported
+}}
+{{User:Alaexis/AI Source Verification/Benchmark/Row
+| id          = ctb-bbdeba
+| wiki        = enwiki
+| article     = Zealandia (wildlife sanctuary)
+| oldid       = 1259406891
+| citation    = 13
+| instance    = 1
+| truth       = Source unavailable
+}}
+|}
+
+[[Category:AI Source Verification]]
