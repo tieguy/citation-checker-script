@@ -23,7 +23,8 @@ const OUT_DIR = path.join(MODULE_DIR, 'wiki', 'migration');
 export const BATCH_ORDER = Object.freeze(['v1', 'v2', 'v3']);
 
 export function splitIntoBatches(csvRows) {
-    const batches = { v1: [], v2: [], v3: [] };
+    // Derived from BATCH_ORDER so the recognized cohorts have a single source of truth.
+    const batches = Object.fromEntries(BATCH_ORDER.map(v => [v, []]));
 
     for (const row of csvRows) {
         // Untagged rows default to v1, matching the `|| 'v1'` fallback that
