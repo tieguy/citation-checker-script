@@ -322,7 +322,7 @@ export function splitTopLevelParams(blockText) {
     // Defensively strip delimiters rather than assuming fixed offsets, in case the
     // block's trailing braces are unbalanced (e.g., from extractRowBlocks terminating
     // on depth-zero with a single `}` instead of `}}` remaining).
-    const inner = blockText.replace(/^\{\{/, '').replace(/\}+$/, '');
+    const inner = blockText.replace(/^\{\{/, '').replace(/\}\}?$/, '');
     const segments = [];
     let current = '';
     let depth = 0;

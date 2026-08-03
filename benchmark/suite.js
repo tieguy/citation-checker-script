@@ -20,12 +20,12 @@
 import { createHash } from 'node:crypto';
 import { canonicalizeVerdict, toTitleCase } from '../core/verdicts.js';
 
-// Re-export wtf so tests and benchmark code share a single resolved module.
-// This ensures both paths use the same wtf_wikipedia instance and any future
-// version drift from floating ^10.4.2 ranges hits all regression fixtures equally.
-export { default as wtf } from 'wtf_wikipedia';
-import wtfImport from 'wtf_wikipedia';
-const wtf = wtfImport;
+// Import wtf_wikipedia once, then re-export the same binding. Tests import `wtf`
+// from this module rather than resolving the package themselves, so the fixtures
+// that pin wtf_wikipedia's quirks exercise the exact instance parseSuite() uses.
+// Any future version drift from the floating ^10.4.2 range hits both equally.
+import wtf from 'wtf_wikipedia';
+export { wtf };
 
 export const SUITE_TEMPLATE_TITLE = 'User:Alaexis/AI Source Verification/Benchmark/Row';
 

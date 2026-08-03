@@ -72,6 +72,16 @@ test('splitTopLevelParams: an unclosed wikilink swallows all subsequent paramete
     assert.equal(params[1], 'rationale=see [[Foo|bar|citation=1');
 });
 
+test('splitTopLevelParams still splits after a stray closing wikilink', () => {
+    // A `]]` with no matching `[[` drives the link counter to -1. The split guard
+    // is `link <= 0` precisely so a negative depth still permits top-level splits;
+    // `link === 0` would leave the counter stuck below zero and swallow every
+    // parameter after the stray `]]`. This fixture pins that choice.
+    const block = row('id=a|rationale=a ]] b|citation=1');
+    const { params } = splitTopLevelParams(block);
+    assert.deepEqual(params, ['id=a', 'rationale=a ]] b', 'citation=1']);
+});
+
 test('splitTopLevelParams handles the multi-line pretty format', () => {
     const block = `{{${T}\n| id = a\n| truth = Supported\n}}`;
     const { params } = splitTopLevelParams(block);
