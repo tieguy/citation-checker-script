@@ -70,8 +70,8 @@ const PROVIDERS = {
     },
     // Claude
     'claude-sonnet-4-5': {
-        name: 'Claude Sonnet 4.5',
-        model: 'claude-sonnet-4-5-20250929',
+        name: 'Claude Sonnet 4.6',
+        model: 'claude-sonnet-4-6',
         endpoint: 'https://api.anthropic.com/v1/messages',
         requiresKey: true,
         keyEnv: 'ANTHROPIC_API_KEY',
