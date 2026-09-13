@@ -111,6 +111,22 @@ const PROVIDERS = {
         keyEnv: 'OPENROUTER_API_KEY',
         type: 'openrouter'
     },
+    'openrouter-deepseek-v3': {
+        name: 'DeepSeek V3 (OpenRouter, non-reasoning)',
+        model: 'deepseek/deepseek-chat',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
+    'openrouter-deepseek-v3.1': {
+        name: 'DeepSeek V3.1 chat (OpenRouter, non-thinking)',
+        model: 'deepseek/deepseek-chat-v3.1',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'OPENROUTER_API_KEY',
+        type: 'openrouter'
+    },
     'openrouter-granite-4.1-8b': {
         name: 'Granite 4.1 8B (OpenRouter)',
         model: 'ibm-granite/granite-4.1-8b',
@@ -160,6 +176,30 @@ const PROVIDERS = {
     'hf-deepseek-v3-2': {
         name: 'DeepSeek-V3.2 (HF Inference)',
         model: 'deepseek-ai/DeepSeek-V3.2',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface'
+    },
+    'hf-deepseek-v3': {
+        name: 'DeepSeek-V3 original (HF Inference)',
+        model: 'deepseek-ai/DeepSeek-V3',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface'
+    },
+    'hf-deepseek-v3-0324': {
+        name: 'DeepSeek-V3 0324 update (HF Inference)',
+        model: 'deepseek-ai/DeepSeek-V3-0324',
+        endpoint: 'https://router.huggingface.co/v1/chat/completions',
+        requiresKey: true,
+        keyEnv: 'HF_TOKEN',
+        type: 'huggingface'
+    },
+    'hf-deepseek-v3-1-terminus': {
+        name: 'DeepSeek-V3.1-Terminus (HF Inference)',
+        model: 'deepseek-ai/DeepSeek-V3.1-Terminus',
         endpoint: 'https://router.huggingface.co/v1/chat/completions',
         requiresKey: true,
         keyEnv: 'HF_TOKEN',
@@ -384,7 +424,7 @@ async function callHuggingFace(config, systemPrompt, userPrompt) {
 /**
  * Parse LLM response to extract verdict
  */
-function parseResponse(content) {
+export function parseResponse(content) {
     // Try to extract JSON from response
     let jsonStr = content;
 
@@ -423,13 +463,17 @@ function parseResponse(content) {
 /**
  * Normalize verdict string
  */
-function normalizeVerdict(verdict) {
+export function normalizeVerdict(verdict) {
     const v = verdict.toUpperCase().trim();
     if (v.includes('NOT SUPPORTED') || v.includes('NOT_SUPPORTED')) return 'Not supported';
     if (v.includes('PARTIALLY')) return 'Partially supported';
     if (v.includes('UNAVAILABLE')) return 'Source unavailable';
     if (v.includes('SUPPORTED')) return 'Supported';
-    return verdict;
+    // Fail closed on unrecognized input. The fallback regex in parseResponse
+    // is greedy enough to capture prompt-echo phrases ("based on what the
+    // article body says", "options", etc.) from truncated reasoning traces;
+    // returning the raw capture turned parse failures into pseudo-verdicts.
+    return 'PARSE_ERROR';
 }
 
 /**
