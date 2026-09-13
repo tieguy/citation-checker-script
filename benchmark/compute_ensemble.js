@@ -73,7 +73,7 @@ export const PANEL = PANEL_FULL;
 export const PANEL_HF = [
     'hf-qwen3-32b',
     'hf-gpt-oss-20b',
-    'hf-deepseek-v3-2'
+    'hf-deepseek-v3'
 ];
 
 // Infer the synthesized-row prefix from panel-member naming. Any panel
