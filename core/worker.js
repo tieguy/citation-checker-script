@@ -1,5 +1,6 @@
 // Calls to the Cloudflare Worker proxy: source fetching and verification logging.
 
+import { isGoogleBooksUrl } from './urls.js';
 import { augmentWithCitoid } from './citoid.js';
 import { classifyBody } from './body-classifier.js';
 
